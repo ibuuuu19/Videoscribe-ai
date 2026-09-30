@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VideoScribe AI — Teaser</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif; }
+html,body { height:100%; background:#04101f; overflow:hidden; }
+.stage { position:relative; width:100%; height:100%;
+background:radial-gradient(1200px 600px at 50% -10%, #1B3B6F, #0B1F3A 60%, #04101f); overflow:hidden; }
+.bars { position:absolute; top:12px; left:5%; right:5%; display:flex; gap:6px; z-index:50; }
+.bars i { flex:1; height:4px; background:rgba(255,255,255,.25); border-radius:4px; overflow:hidden; }
+.bars i b { display:block; height:100%; width:0; background:#fff; }
+.brand { position:absolute; top:26px; left:5%; display:flex; gap:10px; align-items:center; z-index:50;
+color:#fff; font-weight:700; font-size:clamp(14px,2.2vmin,22px); }
+.brand .logo { width:clamp(30px,4.5vmin,46px); height:clamp(30px,4.5vmin,46px); border-radius:50%;
+background:linear-gradient(135deg,#2E6DB4,#F5C542); display:flex; align-items:center; justify-content:center;
+font-size:clamp(16px,2.4vmin,26px); }
+.slide { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center;
+text-align:center; padding:0 6%; opacity:0; transform:scale(1.04); transition:opacity .5s, transform .5s; }
+.slide.on { opacity:1; transform:scale(1); }
+.tag { background:#F5C542; color:#0B1F3A; font-weight:800; padding:.4em .9em; border-radius:.4em;
+font-size:clamp(16px,3vmin,30px); margin-bottom:.6em; }
+h1 { color:#fff; font-size:clamp(30px, 7.5vmin, 92px); line-height:1.1; font-weight:800; max-width:20em; }
+h1 em { font-style:normal; color:#F5C542; }
+.sub { color:rgba(255,255,255,.85); font-size:clamp(15px, 3vmin, 30px); margin-top:.7em; max-width:30em; }
+.phone { margin-top:clamp(16px,4vmin,40px); width:min(430px, 70%); background:#fff; border-radius:26px;
+padding:clamp(12px,2vmin,20px); box-shadow:0 20px 60px rgba(0,0,0,.55); }
+.phone .p-head { display:flex; align-items:center; gap:8px; font-weight:700; color:#0B1F3A;
+font-size:clamp(12px,1.8vmin,17px); margin-bottom:10px; }
+.phone .p-head .dot { width:clamp(22px,3vmin,32px); height:clamp(22px,3vmin,32px); border-radius:50%;
+background:linear-gradient(135deg,#2E6DB4,#F5C542); }
+.card { background:#F1F5FB; border-left:4px solid #2E6DB4; border-radius:10px; padding:9px 10px; margin:8px 0;
+color:#22314e; font-size:clamp(11px,1.7vmin,15px); line-height:1.4; text-align:left; }
+.chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; justify-content:center; }
+.chips span { background:#E3ECF9; color:#1B3B6F; font-weight:700; font-size:clamp(10px,1.5vmin,13px);
+padding:4px 9px; border-radius:20px; }
+.end .big-logo { width:clamp(70px,12vmin,120px); height:clamp(70px,12vmin,120px); border-radius:26px;
+background:linear-gradient(135deg,#2E6DB4,#F5C542); display:flex; align-items:center; justify-content:center;
+font-size:clamp(36px,6vmin,60px); margin-bottom:20px; }
+</style>
+</head>
+<body>
+<div class="stage">
+<div class="bars" id="bars"></div>
+<div class="brand"><span class="logo">&#9999;</span> VideoScribe AI</div>
+<div class="slide"><span class="tag">NOUVEAU</span><h1>VideoScribe <em>AI</em></h1></div>
+<div class="slide"><h1>Transformez vos vidéos YouTube en <em>notes structurées</em></h1>
+<div class="phone">
+<div class="p-head"><span class="dot"></span> Résumé — Vidéo IA</div>
+<div class="card">1. L'IA extrait les sous-titres et résume chaque section…</div>
+<div class="card">2. Traduction automatique dans votre langue…</div>
+<div class="chips"><span>IA</span><span>FR / EN / ES</span><span>PDF</span></div>
+</div>
+</div>
+<div class="slide"><h1>Des résumés en <em>~60 secondes</em></h1><div class="sub">Fini les heures de visionnage.</div></div>
+<div class="slide"><h1>Mots-clés, questions & flashcards <em>automatiques</em></h1>
+<div class="phone">
+<div class="p-head"><span class="dot"></span> Révision</div>
+<div class="chips"><span>#IA</span><span>#vidéo</span><span>#résumé</span><span>#flashcard</span></div>
+<div class="card">Q : Quels sont les points principaux à retenir ?</div>
+</div>
+</div>
+<div class="slide"><h1>Interrogez la vidéo avec l'<em>IA</em></h1><div class="sub">Une question → une réponse ancrée sur le résumé.</div></div>
+<div class="slide"><h1>Export <em>PDF, Notion, Obsidian, Anki</em></h1><div class="sub">Vos notes, partout, en un clic.</div></div>
+<div class="slide"><h1>Essayez VideoScribe AI <em>gratuitement</em> pendant un mois.</h1></div>
+<div class="slide end"><div class="big-logo">&#9999;</div><h1>VideoScribe AI</h1><div class="sub">Mbtech-services</div></div>
+</div>
+<script>
+var slides = document.querySelectorAll('.slide');
+var bars = document.getElementById('bars');
+var DUR = 3800;
+slides.forEach(function(){ var i=document.createElement('i'); i.innerHTML='<b></b>'; bars.appendChild(i); });
+var segs = bars.querySelectorAll('b');
+var idx = 0;
+function show(n){
+slides.forEach(function(s,k){ s.classList.toggle('on', k===n); });
+segs.forEach(function(b,k){ b.style.transition='none'; b.style.width = (k<n? '100%':'0'); });
+var cur = segs[n];
+requestAnimationFrame(function(){ cur.style.transition='width '+DUR+'ms linear'; cur.style.width='100%'; });
+}
+show(0);
+setInterval(function(){ idx = (idx+1) % slides.length; show(idx); }, DUR);
+</script>
+</body>
+</html>
