@@ -10,14 +10,15 @@ numpy<2.0.0
 streamlit>=1.30.0
 
 # Modèles multilingues
-googletrans==4.0.0rc1
+deep-translator
 
 # Export PDF
 fpdf2>=2.7.0
-
+yt-dlp
 # Mots-clés
 keybert>=0.7.0
-
+requests
+beautifulsoup4
 # Cache
 diskcache>=5.6.3
 streamlit-cookies-controller
