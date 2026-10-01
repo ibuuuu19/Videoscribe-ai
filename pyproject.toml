@@ -1,0 +1,25 @@
+[project]
+name = "videoscribe-ai"
+version = "1.0.0"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "streamlit",
+    "streamlit-cookies-controller",
+    "pandas",
+    "numpy",
+    "requests",
+    "beautifulsoup4",
+    "torch",
+    "transformers",
+    "sentencepiece",
+    "googletrans==4.0.0-rc1",
+    "gtts",
+    "fpdf2",
+    "yt-dlp",
+    "youtube-transcript-api",
+    "scikit-learn",
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
