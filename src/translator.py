@@ -21,26 +21,23 @@ def _local(batch, src, dest):
     return [r["translation_text"] for r in pipe(batch, max_length=512)]
 
 def _google(batch, src, dest):
-    """Traduction via deep-translator (remplace googletrans)."""
+    """Traduction via deep-translator (compatible Python 3.13/3.14)."""
     results = []
     for t in batch:
         try:
-            # deep-translator gère les longs textes automatiquement
             translated = GoogleTranslator(source=src, target=dest).translate(t)
             results.append(translated if translated else t)
         except Exception as e:
-            print(f"⚠️ Traduction échouée pour un chunk : {e}")
-            results.append(t)  # Fallback : garde l'original
+            print(f"⚠️ Traduction échouée : {e}")
+            results.append(t)
     return results
 
 def _do(batch, src, dest):
-    # D'abord essayer Helsinki (local, plus rapide pour EN<->FR)
     if (src, dest) in LOCAL_PAIRS:
         try:
             return _local(batch, src, dest)
         except Exception as e:
             print(f"⚠️ Helsinki {src}->{dest} échec : {e}")
-    # Sinon Google Translate
     return _google(batch, src, dest)
 
 def _batch_translate(texts, src, dest):
@@ -50,7 +47,8 @@ def _batch_translate(texts, src, dest):
             results += _do(batch, src, dest)
             batch, size = [], 0
         batch.append(t); size += len(t)
-    if batch: results += _do(batch, src, dest)
+    if batch:
+        results += _do(batch, src, dest)
     return [_clean_spacing(r) for r in results]
 
 def translate_texts(texts, src, dest):
