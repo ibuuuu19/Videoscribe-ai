@@ -2272,108 +2272,180 @@ def render_contact():
                 _contact_tier = 3
         except Exception:
             _contact_tier = 0
+
+    # ═══════════ DÉTECTION DU THÈME ═══════════
     _is_light = st.session_state.get("theme", "light") == "light"
     if _is_light:
-        _c_nav = "#0F1A2E"; _c_soft = "#4A5A7A"; _c_surface = "#FFFFFF"
-        _c_border = "rgba(15,26,46,.10)"
-        _c_hero_bg = "radial-gradient(700px 380px at 50% -10%, rgba(59,130,246,.14), transparent 65%), radial-gradient(500px 280px at 20% 100%, rgba(16,185,129,.10), transparent 65%), radial-gradient(500px 280px at 80% 100%, rgba(212,175,55,.08), transparent 65%), linear-gradient(160deg, #F8FAFC 0%, #EFF4FB 50%, #F5F8FC 100%)"
-        _c_hero_title = _c_nav
-        _c_card_bg = "linear-gradient(180deg, #FFFFFF, #F8FAFC)"
-        _c_card_border = "rgba(15,26,46,.08)"
-        _c_grid_line = "rgba(15,26,46,.02)"
-        _c_kicker_bg = "rgba(15,26,46,.04)"
-        _c_accent = "#2E6DB4"; _c_accent_dark = "#1B3B6F"; _c_ok = "#10B981"
+        _c_nav = "#0F1A2E"; _c_soft = "#4A5A7A"
+        _c_surface = "#FFFFFF"; _c_border = "rgba(15,26,46,.12)"
+        _c_card_bg = "#FFFFFF"
+        _c_card_border = "rgba(15,26,46,.10)"
+        _c_hero_bg = ("radial-gradient(700px 380px at 50% -10%, rgba(59,130,246,.10), transparent 65%), "
+                      "radial-gradient(500px 280px at 20% 100%, rgba(16,185,129,.08), transparent 65%), "
+                      "linear-gradient(160deg, #F8FAFC 0%, #EFF4FB 100%)")
+        _c_hero_title = "#0F1A2E"
+        _c_accent = "#2E6DB4"; _c_ok = "#10B981"
+        _c_faq_bg = "#FFFFFF"; _c_faq_hover = "#F1F5FB"
+        _c_faq_q = "#0F1A2E"; _c_faq_a = "#4A5A7A"
     else:
-        _c_nav = "#F8FAFC"; _c_soft = "rgba(148,163,184,.9)"; _c_surface = "rgba(255,255,255,.045)"
-        _c_border = "rgba(255,255,255,.10)"
-        _c_hero_bg = "radial-gradient(700px 380px at 50% -10%, rgba(59,130,246,.32), transparent 65%), radial-gradient(500px 280px at 20% 100%, rgba(16,185,129,.20), transparent 65%), radial-gradient(500px 280px at 80% 100%, rgba(212,175,55,.16), transparent 65%), linear-gradient(160deg, #05080F 0%, #0A1220 50%, #0D1524 100%)"
+        _c_nav = "#F8FAFC"; _c_soft = "rgba(148,163,184,.9)"
+        _c_surface = "rgba(255,255,255,.045)"; _c_border = "rgba(255,255,255,.12)"
+        _c_card_bg = "rgba(255,255,255,.04)"
+        _c_card_border = "rgba(255,255,255,.10)"
+        _c_hero_bg = ("radial-gradient(700px 380px at 50% -10%, rgba(59,130,246,.28), transparent 65%), "
+                      "radial-gradient(500px 280px at 20% 100%, rgba(16,185,129,.18), transparent 65%), "
+                      "linear-gradient(160deg, #05080F 0%, #0D1524 100%)")
         _c_hero_title = "#F8FAFC"
-        _c_card_bg = "linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015))"
-        _c_card_border = "rgba(255,255,255,.09)"
-        _c_grid_line = "rgba(255,255,255,.02)"
-        _c_kicker_bg = "rgba(255,255,255,.07)"
-        _c_accent = "#60A5FA"; _c_accent_dark = "#3B82F6"; _c_ok = "#34D399"
+        _c_accent = "#60A5FA"; _c_ok = "#34D399"
+        _c_faq_bg = "rgba(255,255,255,.035)"; _c_faq_hover = "rgba(255,255,255,.06)"
+        _c_faq_q = "#F8FAFC"; _c_faq_a = "rgba(203,213,225,.85)"
 
+    # ═══════════ CSS CONTACT ═══════════
     st.markdown(f"""
     <style>
-    .vs-contact-hero {{ position:relative; overflow:hidden; border-radius:34px;
+    .vs-contact-hero {{
+        position:relative; overflow:hidden; border-radius:34px;
         padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1.5rem, 5vw, 4rem);
-        margin:.4rem 0 2.5rem; isolation:isolate; text-align:center;
-        background: {_c_hero_bg}; border:1px solid {_c_border};
-        box-shadow: 0 40px 100px rgba(2,8,18,.10); }}
-    .vs-contact-hero::before {{ content:""; position:absolute; inset:0; z-index:0;
-        background-image: linear-gradient({_c_grid_line} 1px, transparent 1px), linear-gradient(90deg, {_c_grid_line} 1px, transparent 1px);
-        background-size: 50px 50px;
-        mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
-        -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
-        pointer-events:none; }}
-    .vs-contact-kicker {{ display:inline-flex; align-items:center; gap:8px; padding:7px 16px; border-radius:999px;
-        background:{_c_kicker_bg}; border:1px solid {_c_border}; color:{_c_soft} !important; font-size:.74rem; font-weight:800;
-        letter-spacing:.14em; text-transform:uppercase; margin-bottom:1.3rem; position:relative; z-index:1; }}
-    .vs-contact-h1 {{ font-family:'Sora',sans-serif; font-weight:800; letter-spacing:-.045em;
-        line-height:1.05; font-size: clamp(2rem, 4.5vw, 3.6rem);
-        color:{_c_hero_title} !important; margin:0 0 1.2rem; position:relative; z-index:1; }}
-    .vs-contact-h1 .grad {{ background: linear-gradient(92deg,{_c_accent},{_c_ok} 50%,#D4AF37);
-        -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }}
-    .vs-contact-lead {{ color: {_c_soft} !important; max-width: 680px; margin: 0 auto;
-        font-size: clamp(1rem, 1.3vw, 1.15rem); line-height: 1.75; position:relative; z-index:1; }}
-    .vs-contact-badges {{ display:flex; flex-wrap:wrap; gap:.6rem; justify-content:center;
-        margin-top:1.8rem; position:relative; z-index:1; }}
-    .vs-contact-badge {{ display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border-radius:999px;
-        background:{_c_surface}; border:1px solid {_c_border}; color:{_c_nav} !important; font-size:.8rem; font-weight:700; }}
-    .vs-channels-grid {{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr));
-        gap:.9rem; margin: 1.5rem 0 2.5rem; }}
-    .vs-channel {{ position:relative; overflow:hidden; border-radius:20px;
-        padding:1.3rem 1.15rem; text-align:left; background: {_c_card_bg};
+        margin:.4rem 0 2.5rem; text-align:center;
+        background: {_c_hero_bg};
+        border:1px solid {_c_border};
+        box-shadow: 0 20px 60px rgba(15,26,46,.08);
+    }}
+    .vs-contact-kicker {{
+        display:inline-flex; align-items:center; gap:8px; padding:7px 16px; border-radius:999px;
+        background:{_c_surface}; border:1px solid {_c_border};
+        color:{_c_soft} !important; font-size:.74rem; font-weight:800;
+        letter-spacing:.14em; text-transform:uppercase; margin-bottom:1.3rem;
+    }}
+    .vs-contact-h1 {{
+        font-family:'Sora',sans-serif; font-weight:800; letter-spacing:-.045em;
+        line-height:1.05; font-size: clamp(2rem, 4.5vw, 3.4rem);
+        color:{_c_hero_title} !important; margin:0 0 1.2rem;
+    }}
+    .vs-contact-h1 .grad {{
+        background: linear-gradient(92deg,{_c_accent},{_c_ok} 50%,#D4AF37);
+        -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    }}
+    .vs-contact-lead {{
+        color: {_c_soft} !important; max-width: 680px; margin: 0 auto;
+        font-size: clamp(1rem, 1.3vw, 1.15rem); line-height: 1.75;
+    }}
+    .vs-contact-badges {{ display:flex; flex-wrap:wrap; gap:.6rem; justify-content:center; margin-top:1.8rem; }}
+    .vs-contact-badge {{
+        display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border-radius:999px;
+        background:{_c_surface}; border:1px solid {_c_border};
+        color:{_c_nav} !important; font-size:.8rem; font-weight:700;
+    }}
+
+    /* Cartes canaux */
+    .vs-channels-grid {{
+        display:grid; grid-template-columns:repeat(4, minmax(0,1fr));
+        gap:.9rem; margin: 1.5rem 0 2.5rem;
+    }}
+    .vs-channel {{
+        position:relative; border-radius:20px;
+        padding:1.4rem 1.2rem; text-align:left;
+        background: {_c_card_bg};
         border:1px solid {_c_card_border};
-        transition: transform .35s cubic-bezier(.16,1,.3,1), border-color .3s ease, box-shadow .35s ease; }}
-    .vs-channel:hover {{ transform: translateY(-5px); border-color: rgba(46,109,180,.35);
-        box-shadow: 0 20px 50px rgba(46,109,180,.14); }}
-    .vs-channel-ico {{ width:44px; height:44px; border-radius:12px;
+        transition: transform .35s cubic-bezier(.16,1,.3,1), border-color .3s ease, box-shadow .35s ease;
+    }}
+    .vs-channel:hover {{
+        transform: translateY(-5px);
+        border-color: {_c_accent}66;
+        box-shadow: 0 20px 50px {_c_accent}22;
+    }}
+    .vs-channel-ico {{
+        width:44px; height:44px; border-radius:12px;
         display:flex; align-items:center; justify-content:center;
-        margin-bottom:.9rem; color:#fff !important; box-shadow: 0 10px 22px rgba(46,109,180,.22); }}
-    .vs-channel-label {{ font-size:.68rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
-        color:{_c_soft} !important; margin-bottom:.3rem; }}
-    .vs-channel-title {{ font-family:'Sora',sans-serif; font-weight:800;
-        color:{_c_nav} !important; font-size:.98rem; margin-bottom:.4rem; }}
-    .vs-channel-value {{ color:{_c_soft} !important; font-size:.86rem; line-height:1.55; word-break:break-word; }}
+        margin-bottom:.9rem; color:#fff !important;
+        box-shadow: 0 10px 22px rgba(46,109,180,.22);
+    }}
+    .vs-channel-label {{
+        font-size:.68rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+        color:{_c_soft} !important; margin-bottom:.3rem;
+    }}
+    .vs-channel-title {{
+        font-family:'Sora',sans-serif; font-weight:800;
+        color:{_c_nav} !important; font-size:.98rem; margin-bottom:.4rem;
+    }}
+    .vs-channel-value {{
+        color:{_c_soft} !important; font-size:.86rem; line-height:1.55; word-break:break-word;
+    }}
     .vs-channel-value a {{ color:{_c_accent} !important; text-decoration:none; font-weight:600; }}
     .vs-channel-value a:hover {{ text-decoration:underline; }}
-    .vs-section-title {{ display:flex; align-items:center; gap:10px;
+
+    /* Section titles */
+    .vs-section-title {{
+        display:flex; align-items:center; gap:10px;
         font-family:'Sora',sans-serif; font-weight:800; color:{_c_nav} !important;
-        font-size:1.35rem; margin: 2rem 0 1rem; }}
-    .vs-section-title .bar {{ width:5px; height:26px; border-radius:3px;
-        background: linear-gradient(180deg, {_c_accent}, {_c_ok}); }}
-    .vs-map-wrap {{ border-radius:22px; overflow:hidden; border:1px solid {_c_border};
-        box-shadow: 0 20px 50px rgba(2,8,18,.10); margin-bottom:1rem; }}
-    .vs-map-wrap iframe {{ border-radius:22px !important; border: none !important; display:block; }}
-    .vs-map-link {{ display:inline-flex; align-items:center; gap:6px;
+        font-size:1.35rem; margin: 2rem 0 1rem;
+    }}
+    .vs-section-title .bar {{
+        width:5px; height:26px; border-radius:3px;
+        background: linear-gradient(180deg, {_c_accent}, {_c_ok});
+    }}
+
+    /* Map */
+    .vs-map-wrap {{
+        border-radius:22px; overflow:hidden;
+        border:1px solid {_c_border};
+        box-shadow: 0 20px 50px rgba(2,8,18,.10);
+        margin-bottom:1rem;
+    }}
+    .vs-map-wrap iframe {{ border-radius:22px !important; border:none !important; display:block; }}
+    .vs-map-link {{
+        display:inline-flex; align-items:center; gap:6px;
         color:{_c_accent} !important; font-weight:700; font-size:.88rem;
-        text-decoration:none; margin-top:.5rem; }}
+        text-decoration:none; margin-top:.5rem;
+    }}
     .vs-map-link:hover {{ text-decoration:underline; }}
-    .vs-faq-item {{ border:1px solid {_c_border}; border-radius:16px; margin-bottom:.6rem;
-        background: {_c_card_bg}; overflow:hidden;
-        transition: border-color .3s ease, background .3s ease; }}
-    .vs-faq-item:hover {{ border-color: rgba(46,109,180,.28); }}
-    .vs-faq-q {{ display:flex; align-items:center; gap:12px; padding:1rem 1.2rem; cursor:pointer;
-        font-weight:700; color:{_c_nav} !important; font-size:.94rem; }}
-    .vs-faq-q::after {{ content:"+"; margin-left:auto; font-size:1.3rem; color:{_c_accent} !important;
-        transition: transform .3s ease; font-weight:400; }}
+
+    /* FAQ — CORRIGÉ pour light/dark */
+    .vs-faq-item {{
+        border:1px solid {_c_border};
+        border-radius:16px; margin-bottom:.6rem;
+        background: {_c_faq_bg};
+        overflow:hidden;
+        transition: border-color .3s ease, background .3s ease;
+    }}
+    .vs-faq-item:hover {{ border-color: {_c_accent}66; background: {_c_faq_hover}; }}
+    .vs-faq-q {{
+        display:flex; align-items:center; gap:12px;
+        padding:1rem 1.2rem; cursor:pointer;
+        font-weight:700; color:{_c_faq_q} !important; font-size:.94rem;
+        list-style:none;
+    }}
+    .vs-faq-q::-webkit-details-marker {{ display:none; }}
+    .vs-faq-q::after {{
+        content:"+"; margin-left:auto; font-size:1.3rem; color:{_c_accent} !important;
+        transition: transform .3s ease; font-weight:400;
+    }}
     details[open] .vs-faq-q::after {{ transform: rotate(45deg); }}
-    .vs-faq-a {{ padding: 0 1.2rem 1.1rem 3.1rem;
-        color:{_c_soft} !important; font-size:.88rem; line-height:1.7; }}
-    .vs-form-wrap {{ border-radius:24px; padding:1.8rem 1.6rem;
-        background: {_c_card_bg}; border:1px solid {_c_card_border};
-        box-shadow: 0 20px 50px rgba(2,8,18,.08); }}
-    .vs-form-title {{ font-family:'Sora',sans-serif; font-weight:800;
+    .vs-faq-a {{
+        padding: 0 1.2rem 1.1rem 3.1rem;
+        color:{_c_faq_a} !important; font-size:.88rem; line-height:1.7;
+    }}
+
+    /* Formulaire */
+    .vs-form-wrap {{
+        border-radius:24px; padding:1.8rem 1.6rem;
+        background: {_c_card_bg};
+        border:1px solid {_c_card_border};
+        box-shadow: 0 20px 50px rgba(2,8,18,.08);
+    }}
+    .vs-form-title {{
+        font-family:'Sora',sans-serif; font-weight:800;
         color:{_c_nav} !important; font-size:1.2rem; margin-bottom:.4rem;
-        display:flex; align-items:center; gap:10px; }}
+        display:flex; align-items:center; gap:10px;
+    }}
     .vs-form-sub {{ color:{_c_soft} !important; font-size:.86rem; margin-bottom:1.3rem; }}
+
     @media (max-width: 900px) {{ .vs-channels-grid {{ grid-template-columns: repeat(2, 1fr); }} }}
     @media (max-width: 560px) {{ .vs-channels-grid {{ grid-template-columns: 1fr; }} }}
     </style>
     """, unsafe_allow_html=True)
 
+    # ═══════════ HERO ═══════════
     st.markdown(f"""
     <div class="vs-contact-hero">
         <div class="vs-contact-kicker">{ic("phone", 13)} Contact & Support</div>
@@ -2393,6 +2465,7 @@ def render_contact():
     </div>
     """, unsafe_allow_html=True)
 
+    # ═══════════ CANAUX ═══════════
     _delay = "< 2 h" if _contact_tier >= 3 else "< 24 h"
     st.markdown(f"""
     <div class="vs-channels-grid">
@@ -2423,9 +2496,8 @@ def render_contact():
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown(f"""
-    <div class="vs-section-title"><div class="bar"></div>{ic("map", 20)} Notre localisation</div>
-    """, unsafe_allow_html=True)
+    # ═══════════ LOCALISATION ═══════════
+    st.markdown(f"""<div class="vs-section-title"><div class="bar"></div>{ic("map", 20)} Notre localisation</div>""", unsafe_allow_html=True)
 
     _map_left, _map_right = st.columns([1.6, 1], gap="large")
     with _map_left:
@@ -2450,9 +2522,8 @@ def render_contact():
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown(f"""
-    <div class="vs-section-title" style="margin-top:2.5rem;"><div class="bar"></div>{ic("bulb", 20)} FAQ express</div>
-    """, unsafe_allow_html=True)
+    # ═══════════ FAQ ═══════════
+    st.markdown(f"""<div class="vs-section-title" style="margin-top:2.5rem;"><div class="bar"></div>{ic("bulb", 20)} FAQ express</div>""", unsafe_allow_html=True)
 
     _faqs = [
         ("J'ai oublié mon mot de passe, que faire ?",
@@ -2474,9 +2545,8 @@ def render_contact():
         </details>
         """, unsafe_allow_html=True)
 
-    st.markdown(f"""
-    <div class="vs-section-title" style="margin-top:2.5rem;"><div class="bar"></div>{ic("send", 20)} Envoyer un message</div>
-    """, unsafe_allow_html=True)
+    # ═══════════ FORMULAIRE ═══════════
+    st.markdown(f"""<div class="vs-section-title" style="margin-top:2.5rem;"><div class="bar"></div>{ic("send", 20)} Envoyer un message</div>""", unsafe_allow_html=True)
 
     st.markdown('<div class="vs-form-wrap">', unsafe_allow_html=True)
     st.markdown(f"""
@@ -2529,7 +2599,7 @@ def render_contact():
 
     st.markdown("<div style='height:2rem;'></div>", unsafe_allow_html=True)
     render_footer(compact=True)
-
+    
 def render_notifs():
     _acc, _acc_dark = get_accent()
     hero("bell", T("notifs_title"), T("notifs_sub"))
