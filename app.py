@@ -554,19 +554,33 @@ if (window.top) window.top.document.cookie = c;
     time.sleep(0.3)
 
 def delete_cookie(name):
+    # 1. Essayer via la lib streamlit-cookies-controller
     try:
-        if cookie_mgr.get(name): cookie_mgr.remove(name)
+        if cookie_mgr.get(name):
+            cookie_mgr.remove(name)
     except Exception: pass
+    # 2. Injecter du JS qui supprime le cookie à TOUS les niveaux (top, parent, iframe)
     js = f"""<script>try {{
-var c = '{name}=; path=/; max-age=0; SameSite=Lax';
-document.cookie = c;
-if (window.parent && window.parent !== window) window.parent.document.cookie = c;
-if (window.top) window.top.document.cookie = c;
-}} catch(e) {{}}</script>"""
+        var names = ['{name}'];
+        var paths = ['/', '/app', window.location.pathname];
+        var domains = [null, window.location.hostname, '.' + window.location.hostname];
+        names.forEach(function(n) {{
+            paths.forEach(function(p) {{
+                domains.forEach(function(d) {{
+                    var c = n + '=; path=' + p + '; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+                    if (d) c += '; domain=' + d;
+                    document.cookie = c;
+                    if (window.parent && window.parent !== window) window.parent.document.cookie = c;
+                    if (window.top) window.top.document.cookie = c;
+                }});
+            }});
+        }});
+    }} catch(e) {{}}</script>"""
     try: _components.html(js, height=0, width=0)
     except Exception: pass
-    time.sleep(0.3)
-
+    # 3. Délai plus long pour laisser le navigateur traiter
+    time.sleep(0.5)
+    
 def read_cookie(name):
     try:
         val = st.context.cookies.get(name)
@@ -3087,7 +3101,12 @@ def render_register_wizard():
         st.markdown(f"### {T('reg_title')}"); st.caption(T("reg_sub"))
         u = st.text_input(T("username")+" (3 min)", value=st.session_state.get("reg_u",""))
         e = st.text_input(T("your_email"), value=st.session_state.get("reg_e",""))
-        lang_sel = st.selectbox(T("language"), list(LANGS.keys()), format_func=lambda l: LANGS[l], key="reg_lang")
+        lang_sel = st.selectbox(
+            T("language"),
+            list(LANGS.keys()),
+            format_func=lambda l: LANGS[l],
+            key="reg_lang_widget"
+        )
         parrain = st.text_input("Code parrain", value="", max_chars=12)
         email = e.strip(); verified = st.session_state.get("reg_email_verified", False)
         if email and not verified:
@@ -3487,9 +3506,31 @@ with st.sidebar:
             if st.button(T("theme_to_light") if _th=="dark" else T("theme_to_dark"), key="um_theme", use_container_width=True): _toggle_theme()
             st.markdown('<div class="um-sep"></div>', unsafe_allow_html=True)
             if st.button(T("m_logout"), key="um_logout", use_container_width=True):
-                if st.session_state.get("token"): delete_session(st.session_state.get("token"))
-                delete_cookie(COOKIE_NAME); delete_cookie("ys_user")
-                st.session_state.update(user=None, role=None, result=None, token=None, page="accueil", show_privacy=False); st.rerun()
+                if st.session_state.get("token"):
+                    try: delete_session(st.session_state.get("token"))
+                    except Exception: pass
+                delete_cookie(COOKIE_NAME)
+                delete_cookie("ys_user")
+                delete_cookie("ys_theme")
+                # Force l'anti-reconnexion
+                st.session_state._logged_out = True
+                st.session_state.user = None
+                st.session_state.role = None
+                st.session_state.token = None
+                st.session_state.page = "accueil"
+                st.session_state.show_privacy = False
+                _components.html("""<script>
+                try {
+                    document.cookie = "ys_token=; path=/; max-age=0; SameSite=Lax";
+                    document.cookie = "ys_user=; path=/; max-age=0; SameSite=Lax";
+                    if (window.parent && window.parent !== window) {
+                        window.parent.document.cookie = "ys_token=; path=/; max-age=0; SameSite=Lax";
+                        window.parent.document.cookie = "ys_user=; path=/; max-age=0; SameSite=Lax";
+                    }
+                } catch(e) {}
+                </script>""", height=0, width=0)
+                time.sleep(1)
+                st.rerun()
     else:
         _th = st.session_state.theme
         with st.container():
