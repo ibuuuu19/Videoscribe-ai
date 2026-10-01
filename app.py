@@ -2630,9 +2630,19 @@ def render_notifs():
         style = "" if n["read"] else "border-left:4px solid #D4AF37;"
         st.markdown(f"<div class='notif-card' style='{style}'><span class='notif-ico'>{ic('bell', 18)}</span><div><b>{n['text']}</b><br><small>{ic('clock', 12)} {n['date']}</small></div></div>", unsafe_allow_html=True)
     render_footer(compact=True)
-
 def render_premium():
-    cur = "premium_plus" if role == "admin" else ("free" if is_guest else get_plan(user))
+    # ═══ Sécurisation : variables globales non définies en mode public ═══
+    _prem_user = st.session_state.get("user")
+    _prem_role = st.session_state.get("role", "client")
+    _prem_is_guest = _prem_user is None
+    
+    if _prem_role == "admin":
+        cur = "premium_plus"
+    elif _prem_is_guest:
+        cur = "free"
+    else:
+        cur = get_plan(_prem_user)
+    
     cur_label = T("plan_free") if cur == "free" else PLANS[cur]["name"]
     st.markdown(f"""<div style="text-align:center; margin:2.2rem 0 .4rem;">
 <div class="g-kicker" style="justify-content:center; display:flex; align-items:center; gap:8px;">{ic("spark",12)} {T("prem_kicker")}</div>
@@ -2659,17 +2669,18 @@ def render_premium():
                 st.session_state.buy_plan = None; st.rerun()
         else:
             info = PLANS[key]; price = info["annual"] if billing_sel==T("annual") else info["monthly"]; days = 365 if billing_sel==T("annual") else 30
+            _prem_display_name = _prem_user if _prem_user else "visiteur"
             st.markdown(f"""
 <div class="pay-panel">
 <div class="pay-title">{ic("card",20)} {T("subscription")} — {info['name']}</div>
 <div class="pay-price">${price:g} <span>/ {days} jours</span></div>
 <ol class="pay-steps">
 <li>Envoyez <b>${price:g}</b> par <b>Wave</b> (<code>{PAYMENT_WAVE}</code>) ou <b>Orange Money</b> (<code>{PAYMENT_OM}</code>)</li>
-<li>Indiquez votre pseudo <b>{user}</b> + la formule <b>{info['name']}</b></li>
+<li>Indiquez votre pseudo <b>{_prem_display_name}</b> + la formule <b>{info['name']}</b></li>
 <li>Activation sous 24 h ({days} jours)</li>
 </ol>
 </div>""", unsafe_allow_html=True)
-            if is_guest:
+            if _prem_is_guest:
                 st.info(T("login_sub"))
             elif CINETPAY_APIKEY and CINETPAY_SITE_ID:
                 if st.session_state.get("pay_url"):
@@ -2677,16 +2688,16 @@ def render_premium():
                     if st.button(T("verify"), use_container_width=True):
                         with st.spinner("..."): status = check_payment(st.session_state.pay_tx, CINETPAY_APIKEY, CINETPAY_SITE_ID)
                         if status == "ACCEPTED":
-                            set_plan(user, key, days); record_revenue(user, key, price, days, "cinetpay")
-                            notify(user, "card", f"Paiement de **${price:g}** confirmé — formule {info['name']} activée ({days} j).")
-                            sync_notif_cursor(user)
+                            set_plan(_prem_user, key, days); record_revenue(_prem_user, key, price, days, "cinetpay")
+                            notify(_prem_user, "card", f"Paiement de **${price:g}** confirmé — formule {info['name']} activée ({days} j).")
+                            sync_notif_cursor(_prem_user)
                             st.session_state.pay_url = None; st.session_state.buy_plan = None; st.balloons(); st.rerun()
                         else: st.info(f"Paiement non confirmé ({status}).")
                 else:
                     if st.button(f"Générer le paiement de ${price:g}", use_container_width=True):
                         with st.spinner("..."):
                             try:
-                                tx, url = create_payment(user, price, CINETPAY_APIKEY, CINETPAY_SITE_ID)
+                                tx, url = create_payment(_prem_user, price, CINETPAY_APIKEY, CINETPAY_SITE_ID)
                                 st.session_state.pay_tx, st.session_state.pay_url = tx, url; st.rerun()
                             except Exception as e: st.error(f"{e}")
             bb1, bb2 = st.columns([3,1])
@@ -2742,10 +2753,10 @@ def render_premium():
 <div class="newfeat">{ic("target", 18)} <span><b>{T("fp9")}</b> · Premium</span></div>
 <div class="newfeat">{ic("calendar", 18)} <span><b>{T("fx10")}</b> · Premium+</span></div>
 <div class="newfeat">{ic("compass", 18)} <span><b>{T("fx12")}</b> · Premium+</span></div>""", unsafe_allow_html=True)
-    if not is_guest:
+    if not _prem_is_guest:
         st.markdown("---")
         st.markdown(f"<h3 style='display:flex;align-items:center;'>{ic('users', 22)} {T('referral_title')}</h3>", unsafe_allow_html=True)
-        code = get_referral_code(user)
+        code = get_referral_code(_prem_user)
         st.markdown(f"<div class='newfeat'>{ic('key', 18)} <span>{T('referral_share')} <b>{code}</b> {T('referral_each')}</span></div>", unsafe_allow_html=True)
     st.markdown("<div style='height:2rem;'></div>", unsafe_allow_html=True)
     render_footer(compact=True)
