@@ -3157,7 +3157,12 @@ def render_register_wizard():
                 else: st.session_state.update(reg_p=p, reg_step=3); st.rerun()
     elif step == 3:
         st.markdown("### Préférences")
-        th = st.selectbox(T("appearance"), ["light","dark"], format_func=lambda t: T("light") if t=="light" else T("dark"), key="reg_th")
+        th = st.selectbox(
+            T("appearance"),
+            ["light","dark"],
+            format_func=lambda t: T("light") if t=="light" else T("dark"),
+            key="reg_th_widget"
+        )
         tr = st.checkbox(T("chip_tr"), value=st.session_state.get("reg_tr", True))
         b1,b2 = st.columns(2)
         with b1:
