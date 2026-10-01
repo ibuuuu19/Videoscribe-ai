@@ -23,4 +23,5 @@ secrets.toml
 
 # VS Code
 .vscode/
-.idea/
+.idea/.streamlit/secrets.toml
+.streamlit/
