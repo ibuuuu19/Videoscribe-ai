@@ -3,6 +3,7 @@ import time
 import shutil
 import json
 import re
+import os
 import random
 import secrets
 import base64
@@ -31,7 +32,12 @@ from src.notification_manager import notify, get_notifications, unread_count, ma
 from src.revenue_manager import record_revenue, get_revenues
 from src.email_manager import (send_verification_code, send_contact_message, send_contact_ack)
 from src.theme import apply_theme
+from pathlib import Path
 
+# ═══ Créer les dossiers nécessaires (cloud) ═══
+for folder in ["data", "cache", "exports", "output", "data/avatars"]:
+    Path(folder).mkdir(parents=True, exist_ok=True)
+    
 # ═══════════════ i18n (4 langues) ═══════════════
 LANGS = {"fr":"Français","en":"English","es":"Español","de":"Deutsch"}
 I18N = {
@@ -2918,7 +2924,7 @@ def render_config():
 
 def render_admin():
     hero("tool", T("admin_title"), T("admin_sub"), [f'{ic("users", 13)} Clients', f'{ic("chart", 13)} Stats', f'{ic("card", 13)} {T("billing")}', f'{ic("msg", 13)} {T("tab_msgs")}'])
-    if ADMIN_USER == "admin" and ADMIN_PASS == "admin123": st.warning("Mot de passe admin par défaut — personnalisez-le.")
+    if ADMIN_USER ==  os.environ.get("ADMIN_USER", "admin") and ADMIN_PASS ==  os.environ.get("ADMIN_PASS", "admin123"): st.warning("Mot de passe admin par défaut — personnalisez-le.")
     users = list_users(); rows = []
     for uname, u in users.items():
         hist = get_history(uname); pl = get_plan(uname)
