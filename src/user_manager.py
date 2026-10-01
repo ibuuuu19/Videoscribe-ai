@@ -9,10 +9,18 @@ DATA_DIR = Path("data")
 DATA_DIR.mkdir(exist_ok=True)
 USERS_FILE = DATA_DIR / "users.json"
 
-# Compte admin par défaut (modifiable via variables d'environnement)
-ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
-ADMIN_PASS = os.environ.get("ADMIN_PASS", "passer1234")
+import os
+def _get_secret(key, default=""):
+    try:
+        import streamlit as st
+        if key in st.secrets:
+            return str(st.secrets[key])
+    except Exception:
+        pass
+    return os.getenv(key, default)
 
+ADMIN_USER = _get_secret("ADMIN_USER", "admin")
+ADMIN_PASS = _get_secret("ADMIN_PASS", "passer1234")
 # Niveaux d'abonnement (0 = gratuit → 3 = premium+)
 PLAN_TIERS = {"free": 0, "basique": 1, "premium": 2, "premium_plus": 3}
 

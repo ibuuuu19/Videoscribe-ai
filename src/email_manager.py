@@ -3,13 +3,23 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-# ── Config SMTP (lit plusieurs noms de variables d'env possibles) ──
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = (os.getenv("SMTP_USER") or os.getenv("EMAIL_USER")
-             or os.getenv("GMAIL_USER") or "mbtech19.sn@gmail.com")
-SMTP_PASS = (os.getenv("SMTP_PASS") or os.getenv("EMAIL_PASS")
-             or os.getenv("GMAIL_APP_PASSWORD") or "")
+# ── Lecture des secrets : priorité st.secrets (Streamlit Cloud) → os.getenv (local) ──
+def _get_secret(key, default=""):
+    """Lit d'abord st.secrets (Streamlit Cloud), puis os.environ (local)."""
+    try:
+        import streamlit as st
+        if key in st.secrets:
+            return str(st.secrets[key])
+    except Exception:
+        pass
+    return os.getenv(key, default)
+
+SMTP_HOST = _get_secret("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(_get_secret("SMTP_PORT", "587"))
+SMTP_USER = (_get_secret("SMTP_USER") or _get_secret("EMAIL_USER")
+             or _get_secret("GMAIL_USER") or "mbtech19.sn@gmail.com")
+SMTP_PASS = (_get_secret("SMTP_PASS") or _get_secret("EMAIL_PASS")
+             or _get_secret("GMAIL_APP_PASSWORD") or "")
 
 SENDER_NAME = "VideoScribe AI — Mbtech-services"
 BRAND = "VideoScribe AI"
