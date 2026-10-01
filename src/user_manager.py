@@ -13,11 +13,9 @@ import os
 def _get_secret(key, default=""):
     try:
         import streamlit as st
-        if key in st.secrets:
-            return str(st.secrets[key])
+        return st.secrets.get(key, default)
     except Exception:
-        pass
-    return os.getenv(key, default)
+        return os.environ.get(key, default)
 
 ADMIN_USER = _get_secret("ADMIN_USER", "admin")
 ADMIN_PASS = _get_secret("ADMIN_PASS", "passer1234")

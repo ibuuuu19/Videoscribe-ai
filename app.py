@@ -3016,10 +3016,20 @@ def render_config():
         elif sec == "plugins": st.subheader("Plugins"); st.write("—")
         elif sec == "memoire": st.subheader("Memory"); st.write("—")
     render_footer(compact=True)
-
 def render_admin():
     hero("tool", T("admin_title"), T("admin_sub"), [f'{ic("users", 13)} Clients', f'{ic("chart", 13)} Stats', f'{ic("card", 13)} {T("billing")}', f'{ic("msg", 13)} {T("tab_msgs")}'])
-    if ADMIN_USER ==  st.secrets.get("ADMIN_USER", "admin") and ADMIN_PASS ==  st.secrets.get("ADMIN_PASS", "admin123"): st.warning("Mot de passe admin par défaut — personnalisez-le.")
+    
+    # ═══ Sécurisation : lecture des secrets (marche en local ET cloud) ═══
+    try:
+        _sec_admin_user = st.secrets.get("ADMIN_USER", "admin")
+        _sec_admin_pass = st.secrets.get("ADMIN_PASS", "admin123")
+    except Exception:
+        _sec_admin_user = "admin"
+        _sec_admin_pass = "admin123"
+    
+    if ADMIN_USER == _sec_admin_user and ADMIN_PASS == _sec_admin_pass:
+        st.warning("Mot de passe admin par défaut — personnalisez-le.")
+    
     users = list_users(); rows = []
     for uname, u in users.items():
         hist = get_history(uname); pl = get_plan(uname)
@@ -3094,7 +3104,7 @@ def render_admin():
                         if st.button("Suppr", key=f"del_{m['id']}"): delete_message(m['id']); st.rerun()
         else: st.caption("—")
     render_footer(compact=True)
-
+    
 def _step_indicator(current):
     parts = ['<div class="wizard-steps">']
     for s in [1,2,3,4]:
