@@ -1345,6 +1345,33 @@ details[open] summary[class*="vs-faq-q"]::after { transform: rotate(45deg); }
     .hist-card, .note-card, .notif-card { padding: 11px 12px !important; }
     .stButton > button, .stDownloadButton > button { min-height: 42px !important; padding: .6rem .9rem !important; }
 }
+
+/* ═══ Pleine largeur — éliminer les marges latérales ═══ */
+section.main > div.block-container,
+div[data-testid="stMainBlockContainer"] {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 4rem !important;
+}
+
+/* Retirer aussi les marges des colonnes */
+div[data-testid="stColumn"] > div {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Les hero et grandes cartes prennent toute la largeur */
+.main-header,
+.vs-home-hero,
+.vs-hero-mockup,
+.g-cta,
+.footer-dark {
+    max-width: 100% !important;
+    width: 100% !important;
+}
 </style>
 """
 st.markdown(APP_CSS, unsafe_allow_html=True)
@@ -1441,6 +1468,7 @@ div[data-testid="stColumn"] > div[data-testid="stVerticalBlock"]:has(.setnav) .q
 div[data-testid="stColumn"] > div[data-testid="stVerticalBlock"]:has(.setnav) .stButton > button {{
 padding: .55rem .5rem !important; font-size: .85rem !important; justify-content: center !important; text-align: center !important; }}
 }}
+
 </style>
 """, unsafe_allow_html=True)
 
