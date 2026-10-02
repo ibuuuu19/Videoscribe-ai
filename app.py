@@ -1373,45 +1373,65 @@ div[data-testid="stColumn"] > div {
     width: 100% !important;
 }
 
-/* ═══ Éliminer la marge du haut (navbar) ═══ */
-/* 1. Header Streamlit */
+
+
+
+/* ═══ Éliminer la marge du haut mais GARDER le bouton sidebar ═══ */
 header[data-testid="stHeader"] {
     display: none !important;
     height: 0 !important;
 }
 
-/* 2. Container principal Streamlit */
-div[data-testid="stAppViewContainer"] {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
+/* ═══ Bouton pour réduire/ouvrir la sidebar — TOUJOURS VISIBLE ═══ */
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"],
+[data-testid="baseButton-headerNoPadding"],
+button[kind="header"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: fixed !important;
+    top: 0.5rem !important;
+    left: 0.5rem !important;
+    z-index: 999999 !important;
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 12px !important;
+    background: rgba(15,26,46,.85) !important;
+    border: 1px solid rgba(128,128,128,.35) !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,.3) !important;
+    color: #fff !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
 }
 
-/* 3. Le bloc principal */
-section.main > div.block-container,
-div[data-testid="stMainBlockContainer"] {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
+[data-testid="stSidebarCollapseButton"]:hover,
+[data-testid="stSidebarCollapsedControl"]:hover,
+[data-testid="collapsedControl"]:hover,
+[data-testid="baseButton-headerNoPadding"]:hover,
+button[kind="header"]:hover {
+    background: rgba(46,109,180,.9) !important;
+    transform: scale(1.05) !important;
 }
 
-/* 4. La barre navbar (lnav) colle au top */
-div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) {
-    top: 0 !important;
-    margin-top: 0 !important;
-    padding-top: 0.55rem !important;
-    border-radius: 0 !important;
+/* Les SVG à l'intérieur */
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="collapsedControl"] svg,
+[data-testid="baseButton-headerNoPadding"] svg,
+button[kind="header"] svg {
+    display: block !important;
+    width: 20px !important;
+    height: 20px !important;
+    color: #fff !important;
+    fill: #fff !important;
+    stroke: #fff !important;
 }
 
-/* 5. Le body / stApp */
-html body .stApp,
-html body .stApp > div:first-child {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-}
 
-/* 6. Retirer le padding top global de l'app */
-#root > div:nth-child(1) > div > div > div {
-    padding-top: 0 !important;
-}
+
 
 /* ═══ Navbar mobile responsive (style compact) ═══ */
 @media (max-width: 768px) {
