@@ -1412,6 +1412,53 @@ html body .stApp > div:first-child {
 #root > div:nth-child(1) > div > div > div {
     padding-top: 0 !important;
 }
+
+/* ═══ Navbar mobile responsive (style compact) ═══ */
+@media (max-width: 768px) {
+    /* Navbar : compacte et scrollable horizontalement */
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) {
+        padding: .4rem .5rem !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        scrollbar-width: none !important;
+    }
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero))::-webkit-scrollbar {
+        display: none !important;
+    }
+    
+    /* Réduire les colonnes de la navbar */
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        gap: .3rem !important;
+        min-width: max-content !important;
+    }
+    
+    /* Logo plus compact */
+    .lnav-brand {
+        font-size: 1rem !important;
+        gap: 5px !important;
+    }
+    
+    /* Boutons de nav : petits et lisibles */
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button,
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stBaseButton-primary"] {
+        min-height: 36px !important;
+        padding: .35rem .7rem !important;
+        font-size: .78rem !important;
+        border-radius: 999px !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Le bouton thème tout à droite */
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stColumn"]:last-child .stButton > button {
+        min-width: 36px !important;
+        padding: .35rem !important;
+        font-size: 1rem !important;
+    }
+}
 </style>
 """
 st.markdown(APP_CSS, unsafe_allow_html=True)
