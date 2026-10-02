@@ -1372,6 +1372,46 @@ div[data-testid="stColumn"] > div {
     max-width: 100% !important;
     width: 100% !important;
 }
+
+/* ═══ Éliminer la marge du haut (navbar) ═══ */
+/* 1. Header Streamlit */
+header[data-testid="stHeader"] {
+    display: none !important;
+    height: 0 !important;
+}
+
+/* 2. Container principal Streamlit */
+div[data-testid="stAppViewContainer"] {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* 3. Le bloc principal */
+section.main > div.block-container,
+div[data-testid="stMainBlockContainer"] {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* 4. La barre navbar (lnav) colle au top */
+div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) {
+    top: 0 !important;
+    margin-top: 0 !important;
+    padding-top: 0.55rem !important;
+    border-radius: 0 !important;
+}
+
+/* 5. Le body / stApp */
+html body .stApp,
+html body .stApp > div:first-child {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* 6. Retirer le padding top global de l'app */
+#root > div:nth-child(1) > div > div > div {
+    padding-top: 0 !important;
+}
 </style>
 """
 st.markdown(APP_CSS, unsafe_allow_html=True)
