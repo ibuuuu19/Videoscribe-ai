@@ -1375,64 +1375,6 @@ div[data-testid="stColumn"] > div {
 
 
 
-
-/* ═══ Éliminer la marge du haut mais GARDER le bouton sidebar ═══ */
-header[data-testid="stHeader"] {
-    display: none !important;
-    height: 0 !important;
-}
-
-/* ═══ Bouton pour réduire/ouvrir la sidebar — TOUJOURS VISIBLE ═══ */
-[data-testid="stSidebarCollapseButton"],
-[data-testid="stSidebarCollapsedControl"],
-[data-testid="collapsedControl"],
-[data-testid="baseButton-headerNoPadding"],
-button[kind="header"] {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    position: fixed !important;
-    top: 0.5rem !important;
-    left: 0.5rem !important;
-    z-index: 999999 !important;
-    width: 42px !important;
-    height: 42px !important;
-    border-radius: 12px !important;
-    background: rgba(15,26,46,.85) !important;
-    border: 1px solid rgba(128,128,128,.35) !important;
-    box-shadow: 0 6px 18px rgba(0,0,0,.3) !important;
-    color: #fff !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-}
-
-[data-testid="stSidebarCollapseButton"]:hover,
-[data-testid="stSidebarCollapsedControl"]:hover,
-[data-testid="collapsedControl"]:hover,
-[data-testid="baseButton-headerNoPadding"]:hover,
-button[kind="header"]:hover {
-    background: rgba(46,109,180,.9) !important;
-    transform: scale(1.05) !important;
-}
-
-/* Les SVG à l'intérieur */
-[data-testid="stSidebarCollapseButton"] svg,
-[data-testid="stSidebarCollapsedControl"] svg,
-[data-testid="collapsedControl"] svg,
-[data-testid="baseButton-headerNoPadding"] svg,
-button[kind="header"] svg {
-    display: block !important;
-    width: 20px !important;
-    height: 20px !important;
-    color: #fff !important;
-    fill: #fff !important;
-    stroke: #fff !important;
-}
-
-
-
-
 /* ═══ Navbar mobile responsive (style compact) ═══ */
 @media (max-width: 768px) {
     /* Navbar : compacte et scrollable horizontalement */
