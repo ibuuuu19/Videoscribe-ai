@@ -1422,7 +1422,9 @@ div[data-testid="stColumn"] > div {
     }
 }
 
-/* ═══ Bouton sidebar — CIBLER TOUS LES SÉLECTEURS POSSIBLES ═══ */
+/* ═══════════════════════════════════════════════════════════
+   BOUTON SIDEBAR — STYLE PREMIUM
+   ═══════════════════════════════════════════════════════════ */
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="stSidebarCollapseButton"],
 [data-testid="collapsedControl"],
@@ -1441,45 +1443,78 @@ button[aria-label*="Sidebar"],
 button[aria-label*="collapse"],
 button[aria-label*="réduire"],
 button[aria-label*="ouvrir"] {
+    /* ═══ Position & taille ═══ */
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
     position: fixed !important;
-    top: 0.6rem !important;
-    left: 0.6rem !important;
+    top: 0.75rem !important;
+    left: 0.75rem !important;
     z-index: 2147483647 !important;
-    width: 42px !important;
-    height: 42px !important;
-    min-width: 42px !important;
-    min-height: 42px !important;
-    border-radius: 12px !important;
-    background: rgba(15,26,46,.85) !important;
-    border: 1px solid rgba(128,128,128,.35) !important;
-    box-shadow: 0 6px 18px rgba(0,0,0,.3) !important;
-    color: #fff !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    
+    /* ═══ Couleur & fond premium ═══ */
+    border-radius: 14px !important;
+    background: linear-gradient(135deg, rgba(46,109,180,.95), rgba(27,59,111,.95)) !important;
+    border: 1px solid rgba(96,165,250,.35) !important;
+    color: #ffffff !important;
+    
+    /* ═══ Ombre profonde ═══ */
+    box-shadow: 
+        0 8px 24px rgba(46,109,180,.35),
+        0 4px 12px rgba(0,0,0,.15),
+        inset 0 1px 0 rgba(255,255,255,.15) !important;
+    
+    /* ═══ Alignement ═══ */
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
-    transition: all .25s ease !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    overflow: hidden !important;
+    
+    /* ═══ Animation fluide ═══ */
+    transition: all .3s cubic-bezier(.16,1,.3,1) !important;
+    backdrop-filter: blur(10px) !important;
 }
 
-/* Hover */
+/* ═══ Hover — effet de brillance ═══ */
 [data-testid="stSidebarCollapsedControl"]:hover,
 [data-testid="stSidebarCollapseButton"]:hover,
 [data-testid="collapsedControl"]:hover,
 [data-testid="baseButton-headerNoPadding"]:hover,
-[data-testid="stSidebarNavCollapseButton"]:hover,
 [data-testid*="SidebarCollapse"]:hover,
 [data-testid*="CollapseButton"]:hover,
 button[kind="headerNoPadding"]:hover,
 button[kind="header"]:hover {
-    background: rgba(46,109,180,.95) !important;
-    transform: scale(1.08) !important;
+    background: linear-gradient(135deg, rgba(76,154,255,1), rgba(46,109,180,1)) !important;
+    transform: translateY(-2px) scale(1.05) !important;
+    box-shadow: 
+        0 14px 32px rgba(46,109,180,.5),
+        0 6px 16px rgba(0,0,0,.2),
+        inset 0 1px 0 rgba(255,255,255,.25) !important;
+    border-color: rgba(96,165,250,.55) !important;
 }
 
-/* Icônes SVG */
+/* ═══ Click — effet d'enfoncement ═══ */
+[data-testid="stSidebarCollapsedControl"]:active,
+[data-testid="stSidebarCollapseButton"]:active,
+[data-testid="collapsedControl"]:active,
+[data-testid="baseButton-headerNoPadding"]:active,
+[data-testid*="SidebarCollapse"]:active,
+[data-testid*="CollapseButton"]:active,
+button[kind="headerNoPadding"]:active,
+button[kind="header"]:active {
+    transform: translateY(0) scale(.98) !important;
+    box-shadow: 
+        0 4px 12px rgba(46,109,180,.3),
+        inset 0 2px 6px rgba(0,0,0,.15) !important;
+}
+
+/* ═══ Icônes SVG — brillantes ═══ */
 [data-testid="stSidebarCollapsedControl"] svg,
 [data-testid="stSidebarCollapseButton"] svg,
 [data-testid="collapsedControl"] svg,
@@ -1490,13 +1525,67 @@ button[kind="header"]:hover {
 button[kind="headerNoPadding"] svg,
 button[kind="header"] svg {
     display: block !important;
-    width: 22px !important;
-    height: 22px !important;
+    width: 20px !important;
+    height: 20px !important;
     color: #ffffff !important;
     fill: #ffffff !important;
     stroke: #ffffff !important;
+    stroke-width: 2.5 !important;
     opacity: 1 !important;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,.2)) !important;
+    transition: transform .3s cubic-bezier(.16,1,.3,1) !important;
 }
+
+/* ═══ Animation de l'icône au hover ═══ */
+[data-testid*="SidebarCollapse"]:hover svg,
+[data-testid*="CollapseButton"]:hover svg,
+button[kind="headerNoPadding"]:hover svg,
+button[kind="header"]:hover svg {
+    transform: scale(1.15) !important;
+}
+
+/* ═══ Effet de brillance au survol (shine) ═══ */
+[data-testid*="SidebarCollapse"]::before,
+[data-testid*="CollapseButton"]::before,
+button[kind="headerNoPadding"]::before,
+button[kind="header"]::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent) !important;
+    transition: left .6s ease !important;
+}
+
+[data-testid*="SidebarCollapse"]:hover::before,
+[data-testid*="CollapseButton"]:hover::before,
+button[kind="headerNoPadding"]:hover::before,
+button[kind="header"]:hover::before {
+    left: 100% !important;
+}
+
+/* ═══ Mobile : bouton plus petit ═══ */
+@media (max-width: 768px) {
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="collapsedControl"],
+    [data-testid*="SidebarCollapse"],
+    [data-testid*="CollapseButton"],
+    button[kind="headerNoPadding"],
+    button[kind="header"] {
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        top: 0.5rem !important;
+        left: 0.5rem !important;
+        border-radius: 12px !important;
+    }
+}
+
+
 </style>
 """
 st.markdown(APP_CSS, unsafe_allow_html=True)
