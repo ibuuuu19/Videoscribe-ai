@@ -851,22 +851,29 @@ div[data-testid="stColumn"] > div[data-testid="stVerticalBlock"] {
     margin-top: 1rem;
     align-items: start;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   CARTES UNIFIÉES — Style clair (référence Contact)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Feature cards (Accueil) */
 .vs-feat {
     position: relative;
     overflow: hidden;
     border-radius: 20px;
     padding: 1.15rem 1.15rem !important;
-    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015));
-    border: 1px solid rgba(255,255,255,.09);
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15,26,46,.10) !important;
     text-align: left;
     height: auto !important;
     min-height: unset !important;
+    box-shadow: 0 4px 20px rgba(15,26,46,.06) !important;
     transition: transform .4s var(--vs-ease), border-color .35s ease, box-shadow .35s ease;
 }
 .vs-feat:hover {
     transform: translateY(-5px);
-    border-color: rgba(96,165,250,.35);
-    box-shadow: 0 20px 50px rgba(46,109,180,.18);
+    border-color: rgba(46,109,180,.35) !important;
+    box-shadow: 0 20px 50px rgba(46,109,180,.18) !important;
 }
 .vs-feat-ico {
     width: 40px; height: 40px; border-radius: 12px;
@@ -876,71 +883,114 @@ div[data-testid="stColumn"] > div[data-testid="stVerticalBlock"] {
 }
 .vs-feat-title {
     font-family: 'Sora', sans-serif; font-weight: 800;
-    color: #F8FAFC !important; font-size: .98rem !important;
+    color: #0F1A2E !important; font-size: .98rem !important;
     margin-bottom: .3rem !important; letter-spacing: -.02em;
 }
-.vs-feat-desc { color: rgba(203,213,225,.82) !important; font-size: .84rem !important; line-height: 1.55 !important; }
+.vs-feat-desc {
+    color: #4A5A7A !important;
+    font-size: .84rem !important;
+    line-height: 1.55 !important;
+}
 .vs-feat-tag {
     position: absolute; top: 12px; right: 12px;
     font-size: .58rem; font-weight: 800;
     letter-spacing: .06em; text-transform: uppercase;
     padding: 3px 8px; border-radius: 999px;
-    background: rgba(16,185,129,.18);
-    color: #34D399 !important;
+    background: rgba(16,185,129,.15);
+    color: #059669 !important;
     border: 1px solid rgba(16,185,129,.35);
     z-index: 2;
 }
+
+/* Testimonials (Accueil) */
 .vs-testi {
     position: relative;
     border-radius: 20px;
     padding: 1.2rem !important;
-    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015));
-    border: 1px solid rgba(255,255,255,.09);
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15,26,46,.10) !important;
     height: auto !important;
-    transition: transform .35s ease, border-color .3s ease;
+    box-shadow: 0 4px 20px rgba(15,26,46,.06) !important;
+    transition: transform .35s ease, border-color .3s ease, box-shadow .35s ease;
 }
-.vs-testi:hover { transform: translateY(-4px); border-color: rgba(212,175,55,.35); }
+.vs-testi:hover {
+    transform: translateY(-4px);
+    border-color: rgba(212,175,55,.5) !important;
+    box-shadow: 0 20px 50px rgba(212,175,55,.15) !important;
+}
 .vs-testi-stars { display: flex; gap: 2px; margin-bottom: .75rem; }
-.vs-testi-quote { color: rgba(226,232,240,.92) !important; font-size: .9rem; line-height: 1.65; margin-bottom: .9rem; font-style: italic; }
-.vs-testi-author { display: flex; align-items: center; gap: 10px; padding-top: .8rem; border-top: 1px solid rgba(255,255,255,.08); }
+.vs-testi-quote {
+    color: #0F1A2E !important;
+    font-size: .9rem;
+    line-height: 1.65;
+    margin-bottom: .9rem;
+    font-style: italic;
+}
+.vs-testi-author {
+    display: flex; align-items: center; gap: 10px;
+    padding-top: .8rem;
+    border-top: 1px solid rgba(15,26,46,.10);
+}
 .vs-testi-avatar {
     width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    color: #fff !important; font-weight: 800; font-size: .78rem; font-family: 'Sora', sans-serif;
+    color: #fff !important; font-weight: 800; font-size: .78rem;
+    font-family: 'Sora', sans-serif;
 }
-.vs-testi-author b { color: #F8FAFC !important; font-size: .86rem; display: block; }
-.vs-testi-author small { color: rgba(148,163,184,.9) !important; font-size: .72rem; }
+.vs-testi-author b { color: #0F1A2E !important; font-size: .86rem; display: block; }
+.vs-testi-author small { color: #4A5A7A !important; font-size: .72rem; }
+
+/* Value cards (À propos) */
 .vs-value {
     position: relative;
     overflow: hidden;
     border-radius: 20px;
     padding: 1.2rem !important;
-    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015));
-    border: 1px solid rgba(255,255,255,.09);
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15,26,46,.10) !important;
     text-align: left;
     height: auto !important;
-    transition: transform .35s ease, border-color .3s ease;
+    box-shadow: 0 4px 20px rgba(15,26,46,.06) !important;
+    transition: transform .35s ease, border-color .3s ease, box-shadow .35s ease;
 }
-.vs-value:hover { transform: translateY(-5px); border-color: rgba(96,165,250,.35); }
+.vs-value:hover {
+    transform: translateY(-5px);
+    border-color: rgba(46,109,180,.35) !important;
+    box-shadow: 0 20px 50px rgba(46,109,180,.15) !important;
+}
 .vs-value-ico {
     width: 38px !important; height: 38px !important; border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     margin-bottom: .7rem !important; color: #fff !important;
-    background: linear-gradient(135deg, #1E293B, #334155);
-    border: 1px solid rgba(96,165,250,.3);
+    background: linear-gradient(135deg, #1B3B6F, #2E6DB4) !important;
+    box-shadow: 0 8px 18px rgba(46,109,180,.20) !important;
 }
-.vs-value h4 { font-family: 'Sora', sans-serif; font-weight: 800; color: #F8FAFC !important; font-size: 1rem !important; margin-bottom: .35rem !important; }
-.vs-value p { color: rgba(203,213,225,.8) !important; font-size: .86rem !important; line-height: 1.6 !important; }
+.vs-value h4 {
+    font-family: 'Sora', sans-serif; font-weight: 800;
+    color: #0F1A2E !important; font-size: 1rem !important;
+    margin-bottom: .35rem !important;
+}
+.vs-value p {
+    color: #4A5A7A !important;
+    font-size: .86rem !important;
+    line-height: 1.6 !important;
+}
+
+/* Team cards (À propos) */
 .vs-team {
     text-align: center;
     border-radius: 20px;
     padding: 1.3rem 1rem !important;
-    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015));
-    border: 1px solid rgba(255,255,255,.09);
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15,26,46,.10) !important;
     height: auto !important;
-    transition: transform .35s ease;
+    box-shadow: 0 4px 20px rgba(15,26,46,.06) !important;
+    transition: transform .35s ease, box-shadow .35s ease;
 }
-.vs-team:hover { transform: translateY(-5px); }
+.vs-team:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(46,109,180,.12) !important;
+}
 .vs-team-avatar {
     width: 64px; height: 64px; border-radius: 50%; margin: 0 auto .8rem;
     display: flex; align-items: center; justify-content: center;
@@ -948,9 +998,102 @@ div[data-testid="stColumn"] > div[data-testid="stVerticalBlock"] {
     font-family: 'Sora', sans-serif;
     box-shadow: 0 12px 28px rgba(46,109,180,.22);
 }
-.vs-team h4 { font-family: 'Sora', sans-serif; font-weight: 800; color: #F8FAFC !important; font-size: 1rem !important; }
-.vs-team .role { color: #60A5FA !important; font-size: .78rem; font-weight: 700; margin: .25rem 0 .5rem; }
-.vs-team p { color: rgba(203,213,225,.78) !important; font-size: .84rem; line-height: 1.55; }
+.vs-team h4 {
+    font-family: 'Sora', sans-serif; font-weight: 800;
+    color: #0F1A2E !important; font-size: 1rem !important;
+}
+.vs-team .role {
+    color: #2E6DB4 !important; font-size: .78rem; font-weight: 700;
+    margin: .25rem 0 .5rem;
+}
+.vs-team p {
+    color: #4A5A7A !important;
+    font-size: .84rem; line-height: 1.55;
+}
+
+/* Insight cards (Analyse — Synthèse) */
+.vs-insight {
+    border-radius: 18px;
+    padding: .9rem;
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15,26,46,.10) !important;
+    color: #0F1A2E !important;
+    box-shadow: 0 4px 20px rgba(15,26,46,.06) !important;
+    transition: transform .25s ease;
+}
+.vs-insight:hover { transform: translateY(-3px); }
+.vs-insight b { display: block; color: #0F1A2E !important; font-size: .88rem; margin-bottom: .35rem; }
+.vs-insight span { color: #4A5A7A !important; font-size: .82rem; line-height: 1.5; }
+
+/* Section cards (Notes structurées) */
+.vs-section-card {
+    display: flex; gap: 14px; padding: 1rem 1.1rem; margin: .8rem 0;
+    border-radius: 20px;
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15,26,46,.10) !important;
+    box-shadow: 0 8px 26px rgba(15,26,46,.06) !important;
+    color: #0F1A2E !important;
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+.vs-section-card:hover {
+    transform: translateX(3px);
+    box-shadow: 0 14px 32px rgba(15,26,46,.10) !important;
+}
+.vs-section-num {
+    width: 38px; height: 38px; flex-shrink: 0; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #2E6DB4, #34D399);
+    color: #FFFFFF !important; font-weight: 900;
+    font-family: 'Sora', sans-serif;
+}
+.vs-section-text {
+    color: #0F1A2E !important;
+    line-height: 1.75; font-size: .96rem;
+}
+
+/* ═══ Adaptation THÈME SOMBRE pour les cartes claires ═══ */
+html[data-theme="dark"] .vs-feat,
+html[data-theme="dark"] .vs-testi,
+html[data-theme="dark"] .vs-value,
+html[data-theme="dark"] .vs-team,
+html[data-theme="dark"] .vs-insight,
+html[data-theme="dark"] .vs-section-card,
+body.dark .vs-feat,
+body.dark .vs-testi,
+body.dark .vs-value,
+body.dark .vs-team,
+body.dark .vs-insight,
+body.dark .vs-section-card {
+    background: rgba(255,255,255,.04) !important;
+    border-color: rgba(255,255,255,.10) !important;
+}
+html[data-theme="dark"] .vs-feat-title,
+html[data-theme="dark"] .vs-value h4,
+html[data-theme="dark"] .vs-team h4,
+html[data-theme="dark"] .vs-insight b,
+html[data-theme="dark"] .vs-section-text,
+html[data-theme="dark"] .vs-testi-quote,
+body.dark .vs-feat-title,
+body.dark .vs-value h4,
+body.dark .vs-team h4,
+body.dark .vs-insight b,
+body.dark .vs-section-text,
+body.dark .vs-testi-quote {
+    color: #F8FAFC !important;
+}
+html[data-theme="dark"] .vs-feat-desc,
+html[data-theme="dark"] .vs-value p,
+html[data-theme="dark"] .vs-team p,
+html[data-theme="dark"] .vs-insight span,
+html[data-theme="dark"] .vs-testi-author small,
+body.dark .vs-feat-desc,
+body.dark .vs-value p,
+body.dark .vs-team p,
+body.dark .vs-insight span,
+body.dark .vs-testi-author small {
+    color: rgba(203,213,225,.85) !important;
+}
+
 .g-card {
     width: 100% !important;
     height: auto !important;
@@ -1356,14 +1499,10 @@ div[data-testid="stMainBlockContainer"] {
     padding-top: 0.5rem !important;
     padding-bottom: 4rem !important;
 }
-
-/* Retirer aussi les marges des colonnes */
 div[data-testid="stColumn"] > div {
     padding-left: 0 !important;
     padding-right: 0 !important;
 }
-
-/* Les hero et grandes cartes prennent toute la largeur */
 .main-header,
 .vs-home-hero,
 .vs-hero-mockup,
@@ -1373,11 +1512,8 @@ div[data-testid="stColumn"] > div {
     width: 100% !important;
 }
 
-
-
 /* ═══ Navbar mobile responsive (style compact) ═══ */
 @media (max-width: 768px) {
-    /* Navbar : compacte et scrollable horizontalement */
     div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) {
         padding: .4rem .5rem !important;
         margin: 0 !important;
@@ -1389,22 +1525,16 @@ div[data-testid="stColumn"] > div {
     div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero))::-webkit-scrollbar {
         display: none !important;
     }
-    
-    /* Réduire les colonnes de la navbar */
     div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-wrap: nowrap !important;
         gap: .3rem !important;
         min-width: max-content !important;
     }
-    
-    /* Logo plus compact */
     .lnav-brand {
         font-size: 1rem !important;
         gap: 5px !important;
     }
-    
-    /* Boutons de nav : petits et lisibles */
     div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button,
     div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stBaseButton-primary"] {
         min-height: 36px !important;
@@ -1413,8 +1543,6 @@ div[data-testid="stColumn"] > div {
         border-radius: 999px !important;
         white-space: nowrap !important;
     }
-    
-    /* Le bouton thème tout à droite */
     div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stColumn"]:last-child .stButton > button {
         min-width: 36px !important;
         padding: .35rem !important;
@@ -1436,18 +1564,15 @@ div[data-testid="stColumn"] > div {
 [data-testid*="CollapsedControl"],
 button[kind="headerNoPadding"],
 button[kind="header"] {
-    /* Position : EN HAUT À GAUCHE */
     position: fixed !important;
     top: 0.6rem !important;
     left: 0.6rem !important;
     right: auto !important;
     z-index: 2147483647 !important;
-    /* Taille */
     width: 42px !important;
     height: 42px !important;
     min-width: 42px !important;
     min-height: 42px !important;
-    /* Style natif Streamlit conservé — juste repositionné */
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -1455,8 +1580,6 @@ button[kind="header"] {
     justify-content: center !important;
     cursor: pointer !important;
 }
-
-/* Mobile : position ajustée */
 @media (max-width: 768px) {
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="stSidebarCollapseButton"],
@@ -1473,10 +1596,10 @@ button[kind="header"] {
         min-height: 40px !important;
     }
 }
-
 </style>
 """
 st.markdown(APP_CSS, unsafe_allow_html=True)
+
 
 # ═══════════════ CSS DYNAMIQUE (thème + accent) ═══════════════
 _nav = "#0F1A2E" if st.session_state.theme == "light" else "#F5F7FB"
