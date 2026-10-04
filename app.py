@@ -1596,6 +1596,152 @@ button[kind="header"] {
         min-height: 40px !important;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   NAVBAR SAAS MODERNE — Style premium
+   ═══════════════════════════════════════════════════════════ */
+
+/* Container navbar glassmorphism */
+div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 9999 !important;
+    background: rgba(255,255,255,.72) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(15,26,46,.06) !important;
+    box-shadow: 0 4px 24px rgba(15,26,46,.04) !important;
+    border-radius: 0 !important;
+    padding: .6rem 1.5rem !important;
+    margin: 0 0 1.5rem !important;
+}
+
+/* Dark mode navbar */
+html[data-theme="dark"] div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)),
+body.dark div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) {
+    background: rgba(10,15,26,.72) !important;
+    border-bottom: 1px solid rgba(255,255,255,.06) !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,.3) !important;
+}
+
+/* Brand / Logo */
+.lnav-brand {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    font-family: 'Sora', sans-serif !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+}
+.lnav-brand-text {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 2px !important;
+    font-size: 1.18rem !important;
+    letter-spacing: -.03em !important;
+}
+.lnav-brand-name {
+    color: #0F1A2E !important;
+    font-weight: 800 !important;
+}
+html[data-theme="dark"] .lnav-brand-name,
+body.dark .lnav-brand-name {
+    color: #F8FAFC !important;
+}
+.lnav-brand-ai {
+    background: linear-gradient(92deg, #2E6DB4, #10B981);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800 !important;
+    font-size: 1.18rem !important;
+}
+
+/* Liens de navigation (boutons secondaires) */
+div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button:not([data-testid="stBaseButton-primary"]) {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 999px !important;
+    font-weight: 600 !important;
+    font-size: .94rem !important;
+    color: #4A5A7A !important;
+    padding: .5rem 1rem !important;
+    min-height: 40px !important;
+    position: relative !important;
+    transition: all .25s cubic-bezier(.16,1,.3,1) !important;
+}
+div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button:not([data-testid="stBaseButton-primary"]) p,
+div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button:not([data-testid="stBaseButton-primary"]) span {
+    color: #4A5A7A !important;
+    font-weight: 600 !important;
+}
+html[data-theme="dark"] div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button:not([data-testid="stBaseButton-primary"]) p,
+html[data-theme="dark"] div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button:not([data-testid="stBaseButton-primary"]) span,
+body.dark div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button:not([data-testid="stBaseButton-primary"]) p,
+body.dark div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button:not([data-testid="stBaseButton-primary"]) span {
+    color: rgba(203,213,225,.9) !important;
+}
+div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button:not([data-testid="stBaseButton-primary"]):hover {
+    background: rgba(46,109,180,.08) !important;
+    color: #0F1A2E !important;
+    transform: none !important;
+}
+div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button:not([data-testid="stBaseButton-primary"]):hover p,
+div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button:not([data-testid="stBaseButton-primary"]):hover span {
+    color: #2E6DB4 !important;
+}
+
+/* CTA bouton (Créer un compte) — Gradient premium */
+div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stBaseButton-primary"] {
+    background: linear-gradient(135deg, #1B3B6F 0%, #2E6DB4 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(96,165,250,.35) !important;
+    box-shadow: 0 8px 24px rgba(46,109,180,.28), inset 0 1px 0 rgba(255,255,255,.15) !important;
+    border-radius: 999px !important;
+    font-weight: 800 !important;
+    padding: .55rem 1.3rem !important;
+    min-height: 42px !important;
+    font-size: .94rem !important;
+    transition: all .3s cubic-bezier(.16,1,.3,1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stBaseButton-primary"]::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent) !important;
+    transition: left .6s ease !important;
+}
+div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stBaseButton-primary"]:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 14px 32px rgba(46,109,180,.4), inset 0 1px 0 rgba(255,255,255,.2) !important;
+}
+div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stBaseButton-primary"]:hover::before {
+    left: 100% !important;
+}
+
+/* Bouton thème (🌙/☀️) */
+div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stColumn"]:last-child .stButton > button {
+    width: 42px !important;
+    min-width: 42px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    background: rgba(46,109,180,.08) !important;
+    border: 1px solid rgba(46,109,180,.15) !important;
+    font-size: 1.1rem !important;
+    transition: all .3s ease !important;
+}
+div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stColumn"]:last-child .stButton > button:hover {
+    background: rgba(46,109,180,.15) !important;
+    transform: rotate(15deg) scale(1.05) !important;
+}
 </style>
 """
 st.markdown(APP_CSS, unsafe_allow_html=True)
@@ -1737,88 +1883,42 @@ def _toggle_theme():
     set_cookie("ys_theme", st.session_state.theme, max_age=365*24*3600)
     st.rerun()
 
+
 def render_navbar():
     with st.container():
         st.markdown('<div class="lnav"></div>', unsafe_allow_html=True)
         b1, b2, b3, b4, b5, b6, b7 = st.columns([2.2, 1, 1, 1, 1.2, 1.6, .6])
         with b1:
-            st.markdown(f'<div class="lnav-brand">{logo_html(30)}<span><b>VideoScribe</b> AI</span></div>', unsafe_allow_html=True)
+            st.markdown(f'''
+                <div class="lnav-brand">
+                    {logo_html(32)}
+                    <div class="lnav-brand-text">
+                        <span class="lnav-brand-name">VideoScribe</span>
+                        <span class="lnav-brand-ai">AI</span>
+                    </div>
+                </div>
+            ''', unsafe_allow_html=True)
         with b2:
-            if st.button(T("home"), key="ln_home", use_container_width=True): st.session_state.page="accueil"; st.rerun()
+            if st.button(T("home"), key="ln_home", use_container_width=True): 
+                st.session_state.page = "accueil"; st.rerun()
         with b3:
-            if st.button(T("about"), key="ln_about", use_container_width=True): st.session_state.page="about"; st.rerun()
+            if st.button(T("about"), key="ln_about", use_container_width=True): 
+                st.session_state.page = "about"; st.rerun()
         with b4:
-            if st.button(T("m_contact"), key="ln_contact", use_container_width=True): st.session_state.page="contact"; st.rerun()
+            if st.button(T("m_contact"), key="ln_contact", use_container_width=True): 
+                st.session_state.page = "contact"; st.rerun()
         with b5:
-            if st.button(T("login"), key="ln_login", use_container_width=True): st.session_state.page="login"; st.rerun()
+            if st.button(T("login"), key="ln_login", use_container_width=True): 
+                st.session_state.page = "login"; st.rerun()
         with b6:
-            if st.button(T("register"), key="ln_register", type="primary", use_container_width=True): st.session_state.page="register"; st.rerun()
+            if st.button(f"{T('register')} →", key="ln_register", type="primary", use_container_width=True): 
+                st.session_state.page = "register"; st.rerun()
         with b7:
             if st.button("🌙" if st.session_state.theme == "light" else "☀️", key="ln_theme", use_container_width=True):
                 _toggle_theme()
 
-def render_footer(compact=False):
-    if compact:
-        st.markdown(f"""
-        <div class="footer-dark" style="margin-top:2.5rem; padding:1.8rem 1.5rem;">
-            <div style="text-align:center; color:#cbd5e1; font-size:.88rem; line-height:1.7;">
-                © 2026 VideoScribe AI — Mbtech-services<br>
-                <span style="opacity:.75; font-size:.82rem;">
-                    {CONTACT_EMAIL} • {PAYMENT_WAVE} • Cambérène, Dakar — Sénégal
-                </span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        return
-    st.markdown(f"""
-    <div class="footer-dark">
-        <div class="fd-grid">
-            <div>
-                <div class="fd-logo">{logo_html(30)} <b>VideoScribe</b> AI</div>
-                <p>Application de résumé IA de vidéos YouTube, spécialisée dans la création de notes structurées personnalisées.</p>
-                <div style="display:flex; gap:10px; margin-top:1.1rem;">
-                    <span class="fd-social">{ic("globe",16)}</span>
-                    <span class="fd-social">{ic("mail",16)}</span>
-                    <span class="fd-social">{ic("phone",16)}</span>
-                </div>
-            </div>
-            <div>
-                <h5>Fonctionnalités</h5>
-                <ul>
-                    <li>Résumés IA</li>
-                    <li>Traduction automatique</li>
-                    <li>Mots-clés & flashcards</li>
-                    <li>Quiz interactif</li>
-                    <li>Exports pro</li>
-                </ul>
-            </div>
-            <div>
-                <h5>{T("ft_links")}</h5>
-                <ul>
-                    <li><a class="fd-link" href="?page=accueil">{T("home")}</a></li>
-                    <li><a class="fd-link" href="?page=about">{T("about")}</a></li>
-                    <li><a class="fd-link" href="?page=login">{T("login")}</a></li>
-                    <li><a class="fd-link" href="?page=register">{T("register")}</a></li>
-                </ul>
-            </div>
-            <div>
-                <h5>Contact & Newsletter</h5>
-                <ul>
-                    <li>{CONTACT_EMAIL}</li>
-                    <li>{PAYMENT_WAVE}</li>
-                    <li>Cambérène, Dakar — Sénégal</li>
-                </ul>
-                <div style="display:flex; gap:8px; margin-top:1.1rem;">
-                    <input class="fd-input" placeholder="Votre email" />
-                    <span class="fd-send">{ic("send",16)}</span>
-                </div>
-            </div>
-        </div>
-        <div class="fd-copy">© 2026 VideoScribe AI — Mbtech-services. Tous droits réservés.</div>
-    </div>
-    """, unsafe_allow_html=True)
-
 def render_home():
+    render_navbar()
     st.markdown("""
     <style>
     .vs-home-hero {
