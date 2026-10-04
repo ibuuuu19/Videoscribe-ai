@@ -2268,90 +2268,106 @@ def render_about():
         "radial-gradient(700px 380px at 50% -10%, rgba(59,130,246,.32), transparent 65%), "
         "linear-gradient(160deg, #05080F 0%, #0D1524 100%)"
     )
-    st.markdown("""
+    _about_border = "rgba(15,26,46,.10)" if _is_light else "rgba(255,255,255,.10)"
+    _about_shadow = "0 20px 60px rgba(15,26,46,.08)" if _is_light else "0 40px 100px rgba(2,8,18,.45)"
+    _about_card_bg = "#FFFFFF" if _is_light else "rgba(255,255,255,.04)"
+    _about_card_border = "rgba(15,26,46,.10)" if _is_light else "rgba(255,255,255,.09)"
+    _about_grid_line = "rgba(15,26,46,.03)" if _is_light else "rgba(255,255,255,.02)"
+
+    st.markdown(f"""
     <style>
-    .vs-about-hero {
+    .vs-about-hero {{
         position:relative; overflow:hidden; border-radius:34px;
         padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1.5rem, 5vw, 4rem);
         margin:.4rem 0 2.5rem; isolation:isolate; text-align:center;
-        background: {_c_hero_bg};
-        border:1px solid rgba(255,255,255,.10);
-        box-shadow: 0 40px 100px rgba(2,8,18,.45);
-    }
-    .vs-about-hero::before {
+        background: {_about_hero_bg};
+        border:1px solid {_about_border};
+        box-shadow: {_about_shadow};
+    }}
+    .vs-about-hero::before {{
         content:""; position:absolute; inset:0; z-index:0;
         background-image:
-            linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+            linear-gradient({_about_grid_line} 1px, transparent 1px),
+            linear-gradient(90deg, {_about_grid_line} 1px, transparent 1px);
         background-size: 50px 50px;
         mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
         -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
-    }
-    .vs-about-kicker {
+    }}
+    .vs-about-kicker {{
         display:inline-flex; align-items:center; gap:8px; padding:7px 16px; border-radius:999px;
-        background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14);
-        color:rgba(241,245,249,.85) !important; font-size:.74rem; font-weight:800;
+        background:{_about_card_bg}; border:1px solid {_about_border};
+        color:{_about_soft} !important; font-size:.74rem; font-weight:800;
         letter-spacing:.14em; text-transform:uppercase; margin-bottom:1.3rem; position:relative; z-index:1;
-    }
-    .vs-about-h1 {
+    }}
+    .vs-about-h1 {{
         font-family:'Sora',sans-serif; font-weight:800; letter-spacing:-.045em;
         line-height:1.05; font-size: clamp(2rem, 4.5vw, 3.6rem);
-        color:#F8FAFC !important; margin:0 0 1.2rem; position:relative; z-index:1;
-    }
-    .vs-about-h1 .grad {
+        color:{_about_nav} !important; margin:0 0 1.2rem; position:relative; z-index:1;
+    }}
+    .vs-about-h1 .grad {{
         background: linear-gradient(92deg,#60A5FA,#34D399 50%,#FBBF24);
         -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-    }
-    .vs-about-lead {
-        color: rgba(226,232,240,.78) !important; max-width: 720px; margin: 0 auto;
+    }}
+    .vs-about-lead {{
+        color: {_about_soft} !important; max-width: 720px; margin: 0 auto;
         font-size: clamp(1rem, 1.3vw, 1.15rem); line-height: 1.75; position:relative; z-index:1;
-    }
-    .vs-about-stats {
+    }}
+    .vs-about-stats {{
         display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:2rem;
         position:relative; z-index:1; max-width: 820px; margin-left:auto; margin-right:auto;
-    }
-    .vs-about-stat {
-        background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
+    }}
+    .vs-about-stat {{
+        background: {_about_card_bg}; border:1px solid {_about_card_border};
         border-radius:16px; padding:1.1rem .8rem; text-align:center;
-    }
-    .vs-about-stat b {
+    }}
+    .vs-about-stat b {{
         display:block; font-family:'Sora',sans-serif; font-weight:800;
-        font-size:1.7rem; color:#F8FAFC !important; letter-spacing:-.03em;
-    }
-    .vs-about-stat span {
-        display:block; color:rgba(148,163,184,.9) !important; font-size:.74rem;
+        font-size:1.7rem; color:{_about_nav} !important; letter-spacing:-.03em;
+    }}
+    .vs-about-stat span {{
+        display:block; color:{_about_soft} !important; font-size:.74rem;
         font-weight:700; letter-spacing:.08em; text-transform:uppercase; margin-top:.3rem;
-    }
-    .vs-history { position:relative; padding-left: 2rem; margin-top: 1.4rem; }
-    .vs-history::before {
+    }}
+    .vs-history {{ position:relative; padding-left: 2rem; margin-top: 1.4rem; }}
+    .vs-history::before {{
         content:""; position:absolute; left:11px; top: 12px; bottom: 12px; width:2px;
         background: linear-gradient(180deg, #3B82F6, #10B981, #D4AF37, #EF4444);
         border-radius:2px; opacity:.6;
-    }
-    .vs-hist-item { position:relative; padding: 0 0 1.6rem 2.4rem; }
-    .vs-hist-item:last-child { padding-bottom: 0; }
-    .vs-hist-dot {
+    }}
+    .vs-hist-item {{ position:relative; padding: 0 0 1.6rem 2.4rem; }}
+    .vs-hist-item:last-child {{ padding-bottom: 0; }}
+    .vs-hist-dot {{
         position:absolute; left:0; top:4px; width:24px; height:24px; border-radius:50%;
         background: linear-gradient(135deg,#0F172A,#1E293B);
         border:2px solid #3B82F6; display:flex; align-items:center; justify-content:center;
         box-shadow: 0 0 0 4px rgba(59,130,246,.12);
-    }
-    .vs-hist-dot::after {
+    }}
+    .vs-hist-dot::after {{
         content:""; width:8px; height:8px; border-radius:50%;
         background: linear-gradient(135deg,#60A5FA,#34D399);
-    }
-    .vs-hist-year {
-        font-family:'Sora',sans-serif; font-weight:800; color:#60A5FA !important;
+    }}
+    .vs-hist-year {{
+        font-family:'Sora',sans-serif; font-weight:800; color:#2E6DB4 !important;
         font-size:.82rem; letter-spacing:.08em; text-transform:uppercase;
-    }
-    .vs-hist-item h4 {
-        font-family:'Sora',sans-serif; font-weight:800; color:#F8FAFC !important;
+    }}
+    .vs-hist-item h4 {{
+        font-family:'Sora',sans-serif; font-weight:800; color:{_about_nav} !important;
         font-size:1.02rem; margin:.3rem 0 .35rem;
-    }
-    .vs-hist-item p { color: rgba(203,213,225,.8) !important; font-size:.88rem; line-height:1.6; }
-    @media (max-width: 900px) {
-        .vs-about-stats { grid-template-columns: repeat(2,1fr); }
-    }
+    }}
+    .vs-hist-item p {{ color: {_about_soft} !important; font-size:.88rem; line-height:1.6; }}
+
+    /* Cartes valeurs + équipe — texte adapté au thème */
+    .vs-value h4,
+    .vs-team h4 {{ color: {_about_nav} !important; }}
+    .vs-value p,
+    .vs-team p {{ color: {_about_soft} !important; }}
+    .vs-team .role {{ color: #2E6DB4 !important; }}
+    .vs-value {{ background: {_about_card_bg} !important; border:1px solid {_about_card_border} !important; }}
+    .vs-team {{ background: {_about_card_bg} !important; border:1px solid {_about_card_border} !important; }}
+
+    @media (max-width: 900px) {{
+        .vs-about-stats {{ grid-template-columns: repeat(2,1fr); }}
+    }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -2517,7 +2533,7 @@ def render_about():
                 st.session_state.page = "accueil"; st.rerun()
 
     render_footer(compact=False)
-
+    
 def render_privacy(show_back=True):
     hero("lock", T("priv_title"), T("priv_sub"), [f'{ic("shield", 13)} RGPD', f'{ic("check", 13)} CNIL', f'{ic("mail", 13)} Contact'])
     st.markdown(f"""### 1. Responsable — **Mbtech-services** — `{CONTACT_EMAIL}`
@@ -2675,25 +2691,31 @@ def render_contact():
     .vs-map-link:hover {{ text-decoration:underline; }}
 
     /* FAQ — CORRIGÉ pour light/dark */
-    .vs-faq-item {{
-        border:1px solid {_c_border};
-        border-radius:16px; margin-bottom:.6rem;
-        background: {_c_faq_bg};
-        overflow:hidden;
-        transition: border-color .3s ease, background .3s ease;
-    }}
-    .vs-faq-item:hover {{ border-color: {_c_accent}66; background: {_c_faq_hover}; }}
-    .vs-faq-q {{
-        display:flex; align-items:center; gap:12px;
-        padding:1rem 1.2rem; cursor:pointer;
-        font-weight:700; color:{_c_faq_q} !important; font-size:.94rem;
-        list-style:none;
-    }}
-    .vs-faq-q::-webkit-details-marker {{ display:none; }}
-    .vs-faq-q::after {{
-        content:"+"; margin-left:auto; font-size:1.3rem; color:{_c_accent} !important;
-        transition: transform .3s ease; font-weight:400;
-    }}
+    /* FAQ — light/dark */
+details.vs-faq-item {{
+    border:1px solid {_c_border};
+    border-radius:16px; margin-bottom:.6rem;
+    background: {_c_faq_bg};
+    overflow:hidden;
+    transition: border-color .3s ease, background .3s ease;
+}}
+details.vs-faq-item:hover {{ border-color: {_c_accent}66; background: {_c_faq_hover}; }}
+summary.vs-faq-q {{
+    display:flex; align-items:center; gap:12px;
+    padding:1rem 1.2rem; cursor:pointer;
+    font-weight:700; color:{_c_faq_q} !important; font-size:.94rem;
+    list-style:none;
+}}
+summary.vs-faq-q::-webkit-details-marker {{ display:none; }}
+summary.vs-faq-q::after {{
+    content:"+"; margin-left:auto; font-size:1.3rem; color:{_c_accent} !important;
+    transition: transform .3s ease; font-weight:400;
+}}
+details.vs-faq-item[open] summary.vs-faq-q::after {{ transform: rotate(45deg); }}
+.vs-faq-a {{
+    padding: 0 1.2rem 1.1rem 3.1rem;
+    color:{_c_faq_a} !important; font-size:.88rem; line-height:1.7;
+}}
     details[open] .vs-faq-q::after {{ transform: rotate(45deg); }}
     .vs-faq-a {{
         padding: 0 1.2rem 1.1rem 3.1rem;
