@@ -1862,6 +1862,254 @@ def hero(icon_name, title, subtitle, badges=None, use_logo=False):
     icon_html = logo_html(44) if use_logo else ic(icon_name, 34)
     st.markdown(f"""<div class="main-header"><div style="color:#FFFFFF !important; font-family:'Sora',sans-serif; font-size:2.1rem; font-weight:800; letter-spacing:-.02em; margin:0; display:flex; align-items:center; justify-content:center; gap:14px;"><span style="display:inline-flex;">{icon_html}</span>{title}</div><div style="color:rgba(255,255,255,.9) !important; margin:.6rem 0 0; font-size:1rem;">{subtitle}</div>{b}</div>""", unsafe_allow_html=True)
 
+def render_footer(compact=False):
+    """Footer unifié pour toutes les pages.
+    compact=True → version courte (1 ligne).
+    compact=False → version complète avec 4 colonnes (défaut)."""
+    
+    # ═══ Détection thème ═══
+    _is_light = st.session_state.get("theme", "light") == "light"
+    _f_nav = "#0F1A2E" if _is_light else "#F8FAFC"
+    _f_soft = "#4A5A7A" if _is_light else "rgba(148,163,184,.9)"
+    _f_bg = "linear-gradient(145deg, #F8FAFC, #EFF4FB)" if _is_light else "linear-gradient(145deg, #080E18, #0C1728)"
+    _f_border = "rgba(15,26,46,.10)" if _is_light else "rgba(255,255,255,.08)"
+    _f_link = "#4A5A7A" if _is_light else "#cbd5e1"
+    _f_link_hover = "#2E6DB4" if _is_light else "#FFFFFF"
+    _f_head = "#0F1A2E" if _is_light else "#FFFFFF"
+    _f_copy = "#4A5A7A" if _is_light else "#94a3b8"
+    _f_copy_border = "rgba(15,26,46,.12)" if _is_light else "rgba(255,255,255,.12)"
+
+    # ═══ Version compacte (1 ligne) ═══
+    if compact:
+        st.markdown(f"""
+        <style>
+        .footer-compact {{
+            background: {_f_bg};
+            border: 1px solid {_f_border};
+            border-radius: 20px;
+            margin-top: 3rem;
+            padding: 1.8rem 1.5rem;
+            text-align: center;
+        }}
+        .footer-compact .copy {{
+            color: {_f_copy};
+            font-size: .88rem;
+            line-height: 1.7;
+        }}
+        .footer-compact .copy b {{
+            color: {_f_nav};
+            font-weight: 700;
+        }}
+        .footer-compact .links {{
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: .8rem;
+            padding-top: .8rem;
+            border-top: 1px solid {_f_copy_border};
+        }}
+        .footer-compact .links a {{
+            color: {_f_link} !important;
+            text-decoration: none;
+            font-size: .82rem;
+            font-weight: 600;
+            transition: color .25s ease;
+        }}
+        .footer-compact .links a:hover {{
+            color: {_f_link_hover} !important;
+            text-decoration: underline;
+        }}
+        </style>
+        <div class="footer-compact">
+            <div class="copy">
+                © 2026 <b>VideoScribe AI</b> — Mbtech-services<br>
+                <span style="opacity:.75; font-size:.82rem;">
+                    {CONTACT_EMAIL} • {PAYMENT_WAVE} • Cambérène, Dakar — Sénégal
+                </span>
+            </div>
+            <div class="links">
+                <a href="?page=accueil">{T("home")}</a>
+                <a href="?page=about">{T("about")}</a>
+                <a href="?page=contact">{T("m_contact")}</a>
+                <a href="?page=premium">{T("m_premium")}</a>
+                <a href="?page=login">{T("login")}</a>
+                <a href="?page=register">{T("register")}</a>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        return
+
+    # ═══ Version complète (4 colonnes) ═══
+    st.markdown(f"""
+    <style>
+    .footer-dark {{
+        background: {_f_bg};
+        color: {_f_soft};
+        border-radius: 24px;
+        border: 1px solid {_f_border};
+        box-shadow: 0 24px 60px rgba(4,16,31,.15);
+        margin-top: 3rem;
+        padding: 2.6rem 2.2rem 1.4rem;
+    }}
+    .fd-grid {{
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr 1fr;
+        gap: 2rem;
+    }}
+    .fd-logo {{
+        display: flex; align-items: center; gap: 9px;
+        color: {_f_head}; font-size: 1.15rem;
+        font-family: 'Sora', sans-serif;
+        margin-bottom: .9rem;
+        font-weight: 700;
+    }}
+    .footer-dark h5 {{
+        color: {_f_head};
+        font-size: 1rem;
+        margin-bottom: .8rem;
+        font-family: 'Sora', sans-serif;
+        font-weight: 700;
+    }}
+    .footer-dark ul {{
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }}
+    .footer-dark li {{
+        padding: .3rem 0;
+        font-size: .92rem;
+        color: {_f_soft};
+    }}
+    .footer-dark p {{
+        color: {_f_soft};
+        font-size: .92rem;
+        line-height: 1.6;
+    }}
+    .fd-copy {{
+        border-top: 1px solid {_f_copy_border};
+        margin-top: 2rem;
+        padding-top: 1rem;
+        text-align: center;
+        font-size: .85rem;
+        color: {_f_copy};
+    }}
+    .fd-social {{
+        width: 40px; height: 40px; border-radius: 12px;
+        background: rgba(46,109,180,.10);
+        border: 1px solid rgba(46,109,180,.20);
+        display: inline-flex; align-items: center; justify-content: center;
+        color: {_f_link} !important;
+        transition: all .3s cubic-bezier(.16,1,.3,1);
+        text-decoration: none;
+    }}
+    .fd-social:hover {{
+        transform: translateY(-3px);
+        background: rgba(46,109,180,.20) !important;
+        border-color: rgba(76,154,255,.40) !important;
+        color: {_f_link_hover} !important;
+    }}
+    .fd-input {{
+        flex: 1;
+        background: {"rgba(15,26,46,.04)" if _is_light else "rgba(255,255,255,.06)"};
+        border: 1px solid {_f_border};
+        border-radius: 999px;
+        padding: 10px 16px;
+        color: {_f_nav};
+        outline: none;
+        font-size: .9rem;
+    }}
+    .fd-input::placeholder {{
+        color: {_f_copy};
+    }}
+    .fd-send {{
+        width: 42px; height: 42px; border-radius: 50%;
+        background: linear-gradient(135deg, #1B3B6F, #2E6DB4);
+        display: inline-flex; align-items: center; justify-content: center;
+        color: #fff !important;
+        flex-shrink: 0;
+        transition: all .3s ease;
+        cursor: pointer;
+    }}
+    .fd-send:hover {{
+        transform: scale(1.08);
+        box-shadow: 0 8px 24px rgba(46,109,180,.4);
+    }}
+    .fd-link {{
+        color: {_f_link} !important;
+        text-decoration: none;
+        transition: color .25s ease;
+    }}
+    .fd-link:hover {{
+        color: {_f_link_hover} !important;
+        text-decoration: underline;
+    }}
+    @media (max-width: 900px) {{
+        .fd-grid {{ grid-template-columns: 1fr 1fr; gap: 1.5rem; }}
+    }}
+    @media (max-width: 560px) {{
+        .fd-grid {{ grid-template-columns: 1fr; }}
+    }}
+    </style>
+    <div class="footer-dark">
+        <div class="fd-grid">
+            <!-- Colonne 1 : Logo + description -->
+            <div>
+                <div class="fd-logo">{logo_html(30)} <b>VideoScribe</b> AI</div>
+                <p>Application de résumé IA de vidéos YouTube, spécialisée dans la création de notes structurées personnalisées.</p>
+                <div style="display:flex; gap:10px; margin-top:1.1rem;">
+                    <a class="fd-social" href="mailto:{CONTACT_EMAIL}" title="Email">{ic("mail",16)}</a>
+                    <a class="fd-social" href="https://wa.me/{PAYMENT_WAVE.replace(' ', '')}" target="_blank" title="WhatsApp">{ic("msg",16)}</a>
+                    <a class="fd-social" href="https://github.com/ibuuuu19" target="_blank" title="GitHub">{ic("code",16)}</a>
+                </div>
+            </div>
+
+            <!-- Colonne 2 : Fonctionnalités -->
+            <div>
+                <h5>Fonctionnalités</h5>
+                <ul>
+                    <li>Résumés IA</li>
+                    <li>Traduction automatique</li>
+                    <li>Mots-clés & flashcards</li>
+                    <li>Quiz interactif</li>
+                    <li>Exports pro</li>
+                </ul>
+            </div>
+
+            <!-- Colonne 3 : Liens rapides -->
+            <div>
+                <h5>{T("ft_links")}</h5>
+                <ul>
+                    <li><a class="fd-link" href="?page=accueil">{T("home")}</a></li>
+                    <li><a class="fd-link" href="?page=about">{T("about")}</a></li>
+                    <li><a class="fd-link" href="?page=contact">{T("m_contact")}</a></li>
+                    <li><a class="fd-link" href="?page=premium">{T("m_premium")}</a></li>
+                    <li><a class="fd-link" href="?page=login">{T("login")}</a></li>
+                    <li><a class="fd-link" href="?page=register">{T("register")}</a></li>
+                </ul>
+            </div>
+
+            <!-- Colonne 4 : Contact & Newsletter -->
+            <div>
+                <h5>Contact & Newsletter</h5>
+                <ul>
+                    <li>{ic("mail",13)} {CONTACT_EMAIL}</li>
+                    <li>{ic("phone",13)} {PAYMENT_WAVE}</li>
+                    <li>{ic("map",13)} Cambérène, Dakar — Sénégal</li>
+                </ul>
+                <div style="display:flex; gap:8px; margin-top:1.1rem;">
+                    <input class="fd-input" placeholder="Votre email" />
+                    <span class="fd-send">{ic("send",16)}</span>
+                </div>
+            </div>
+        </div>
+        <div class="fd-copy">
+            © 2026 VideoScribe AI — Mbtech-services. Tous droits réservés.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    
 def notify_admins(icon, text):
     for uname, u in list_users().items():
         if u.get("role") == "admin": notify(uname, icon, text)
