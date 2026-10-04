@@ -1423,117 +1423,24 @@ div[data-testid="stColumn"] > div {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   BOUTON SIDEBAR — Position à DROITE (ne cache plus le logo)
+   Bouton sidebar — laisser le style NATIF Streamlit
+   On ajuste juste un peu la position pour ne pas gêner le logo
    ═══════════════════════════════════════════════════════════ */
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="stSidebarCollapseButton"],
 [data-testid="collapsedControl"],
 [data-testid="baseButton-headerNoPadding"],
-[data-testid="stSidebarNavCollapseButton"],
-[data-testid="stSidebarHeaderCollapse"],
-[data-testid="stSidebarHeader"],
-[data-testid*="SidebarCollapse"],
-[data-testid*="SidebarCollapsed"],
-[data-testid*="CollapseButton"],
-[data-testid*="CollapsedControl"],
 button[kind="headerNoPadding"],
-button[kind="header"],
-button[aria-label*="sidebar"],
-button[aria-label*="Sidebar"],
-button[aria-label*="collapse"],
-button[aria-label*="réduire"],
-button[aria-label*="ouvrir"] {
-    /* ═══ Position : EN HAUT À DROITE (au lieu de gauche) ═══ */
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+button[kind="header"] {
+    /* Repositionner en haut à droite pour ne pas gêner le logo */
     position: fixed !important;
     top: 0.75rem !important;
-    right: 0.75rem !important;   /* ⬅️ Changé : right au lieu de left */
-    left: auto !important;        /* ⬅️ Annule le left */
-    z-index: 2147483647 !important;
-    width: 44px !important;
-    height: 44px !important;
-    min-width: 44px !important;
-    min-height: 44px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    
-    /* Couleur & fond premium */
-    border-radius: 14px !important;
-    background: linear-gradient(135deg, rgba(46,109,180,.95), rgba(27,59,111,.95)) !important;
-    border: 1px solid rgba(96,165,250,.35) !important;
-    color: #ffffff !important;
-    
-    box-shadow: 
-        0 8px 24px rgba(46,109,180,.35),
-        0 4px 12px rgba(0,0,0,.15),
-        inset 0 1px 0 rgba(255,255,255,.15) !important;
-    
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    overflow: hidden !important;
-    transition: all .3s cubic-bezier(.16,1,.3,1) !important;
-    backdrop-filter: blur(10px) !important;
-}
-
-/* Hover */
-[data-testid="stSidebarCollapsedControl"]:hover,
-[data-testid="stSidebarCollapseButton"]:hover,
-[data-testid="collapsedControl"]:hover,
-[data-testid="baseButton-headerNoPadding"]:hover,
-[data-testid*="SidebarCollapse"]:hover,
-[data-testid*="CollapseButton"]:hover,
-button[kind="headerNoPadding"]:hover,
-button[kind="header"]:hover {
-    background: linear-gradient(135deg, rgba(76,154,255,1), rgba(46,109,180,1)) !important;
-    transform: translateY(-2px) scale(1.05) !important;
-    box-shadow: 
-        0 14px 32px rgba(46,109,180,.5),
-        0 6px 16px rgba(0,0,0,.2),
-        inset 0 1px 0 rgba(255,255,255,.25) !important;
-    border-color: rgba(96,165,250,.55) !important;
-}
-
-/* Icônes SVG */
-[data-testid="stSidebarCollapsedControl"] svg,
-[data-testid="stSidebarCollapseButton"] svg,
-[data-testid="collapsedControl"] svg,
-[data-testid="baseButton-headerNoPadding"] svg,
-[data-testid*="SidebarCollapse"] svg,
-[data-testid*="CollapseButton"] svg,
-button[kind="headerNoPadding"] svg,
-button[kind="header"] svg {
-    display: block !important;
-    width: 20px !important;
-    height: 20px !important;
-    color: #ffffff !important;
-    fill: #ffffff !important;
-    stroke: #ffffff !important;
-    stroke-width: 2.5 !important;
-    opacity: 1 !important;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,.2)) !important;
-}
-
-/* Mobile : ajuster la position */
-@media (max-width: 768px) {
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="stSidebarCollapseButton"],
-    [data-testid="collapsedControl"],
-    [data-testid*="SidebarCollapse"],
-    [data-testid*="CollapseButton"],
-    button[kind="headerNoPadding"],
-    button[kind="header"] {
-        width: 40px !important;
-        height: 40px !important;
-        min-width: 40px !important;
-        min-height: 40px !important;
-        top: 0.5rem !important;
-        right: 0.5rem !important;
-        left: auto !important;
-        border-radius: 12px !important;
-    }
+    right: 0.75rem !important;
+    left: auto !important;
+    z-index: 9999 !important;
+    /* Taille normale Streamlit */
+    width: 42px !important;
+    height: 42px !important;
 }
 
 </style>
