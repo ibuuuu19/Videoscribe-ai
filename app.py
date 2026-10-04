@@ -1374,78 +1374,6 @@ div[data-testid="stColumn"] > div {
 }
 
 
-/* ═══ Éliminer la marge du haut (navbar) ═══ */
-header[data-testid="stHeader"] {
-    display: none !important;
-    height: 0 !important;
-}
-
-/* Container principal : coller en haut */
-div[data-testid="stAppViewContainer"] {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-}
-
-section.main > div.block-container,
-div[data-testid="stMainBlockContainer"] {
-    padding-top: 0.5rem !important;
-    margin-top: 0 !important;
-}
-
-/* La navbar lnav colle au top */
-div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) {
-    top: 0 !important;
-    margin-top: 0 !important;
-    padding-top: 0.55rem !important;
-    border-radius: 0 !important;
-}
-
-/* Body / stApp */
-html body .stApp,
-html body .stApp > div:first-child {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-}
-
-/* ═══ Bouton pour réduire/ouvrir la sidebar — VISIBLE ET BIEN POSITIONNÉ ═══ */
-[data-testid="stSidebarCollapsedControl"],
-[data-testid="collapsedControl"] {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    position: fixed !important;
-    top: 0.6rem !important;
-    left: 0.6rem !important;
-    z-index: 99999 !important;
-    width: 42px !important;
-    height: 42px !important;
-    border-radius: 12px !important;
-    background: rgba(15,26,46,.85) !important;
-    border: 1px solid rgba(128,128,128,.35) !important;
-    box-shadow: 0 6px 18px rgba(0,0,0,.3) !important;
-    color: #fff !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    transition: all .25s ease !important;
-}
-
-[data-testid="stSidebarCollapsedControl"]:hover,
-[data-testid="collapsedControl"]:hover {
-    background: rgba(46,109,180,.95) !important;
-    transform: scale(1.08) !important;
-}
-
-[data-testid="stSidebarCollapsedControl"] svg,
-[data-testid="collapsedControl"] svg {
-    display: block !important;
-    width: 20px !important;
-    height: 20px !important;
-    color: #fff !important;
-    fill: #fff !important;
-   stroke: #fff !important;
-}
-
 
 /* ═══ Navbar mobile responsive (style compact) ═══ */
 @media (max-width: 768px) {
@@ -1492,6 +1420,82 @@ html body .stApp > div:first-child {
         padding: .35rem !important;
         font-size: 1rem !important;
     }
+}
+
+/* ═══ Bouton sidebar — CIBLER TOUS LES SÉLECTEURS POSSIBLES ═══ */
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapseButton"],
+[data-testid="collapsedControl"],
+[data-testid="baseButton-headerNoPadding"],
+[data-testid="stSidebarNavCollapseButton"],
+[data-testid="stSidebarHeaderCollapse"],
+[data-testid="stSidebarHeader"],
+[data-testid*="SidebarCollapse"],
+[data-testid*="SidebarCollapsed"],
+[data-testid*="CollapseButton"],
+[data-testid*="CollapsedControl"],
+button[kind="headerNoPadding"],
+button[kind="header"],
+button[aria-label*="sidebar"],
+button[aria-label*="Sidebar"],
+button[aria-label*="collapse"],
+button[aria-label*="réduire"],
+button[aria-label*="ouvrir"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: fixed !important;
+    top: 0.6rem !important;
+    left: 0.6rem !important;
+    z-index: 2147483647 !important;
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+    border-radius: 12px !important;
+    background: rgba(15,26,46,.85) !important;
+    border: 1px solid rgba(128,128,128,.35) !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,.3) !important;
+    color: #fff !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all .25s ease !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Hover */
+[data-testid="stSidebarCollapsedControl"]:hover,
+[data-testid="stSidebarCollapseButton"]:hover,
+[data-testid="collapsedControl"]:hover,
+[data-testid="baseButton-headerNoPadding"]:hover,
+[data-testid="stSidebarNavCollapseButton"]:hover,
+[data-testid*="SidebarCollapse"]:hover,
+[data-testid*="CollapseButton"]:hover,
+button[kind="headerNoPadding"]:hover,
+button[kind="header"]:hover {
+    background: rgba(46,109,180,.95) !important;
+    transform: scale(1.08) !important;
+}
+
+/* Icônes SVG */
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="collapsedControl"] svg,
+[data-testid="baseButton-headerNoPadding"] svg,
+[data-testid="stSidebarNavCollapseButton"] svg,
+[data-testid*="SidebarCollapse"] svg,
+[data-testid*="CollapseButton"] svg,
+button[kind="headerNoPadding"] svg,
+button[kind="header"] svg {
+    display: block !important;
+    width: 22px !important;
+    height: 22px !important;
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    stroke: #ffffff !important;
+    opacity: 1 !important;
 }
 </style>
 """
