@@ -2274,11 +2274,7 @@ def render_about():
         position:relative; overflow:hidden; border-radius:34px;
         padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1.5rem, 5vw, 4rem);
         margin:.4rem 0 2.5rem; isolation:isolate; text-align:center;
-        background:
-            radial-gradient(700px 380px at 50% -10%, rgba(59,130,246,.32), transparent 65%),
-            radial-gradient(500px 280px at 20% 100%, rgba(16,185,129,.20), transparent 65%),
-            radial-gradient(500px 280px at 80% 100%, rgba(212,175,55,.16), transparent 65%),
-            linear-gradient(160deg, #05080F 0%, #0A1220 50%, #0D1524 100%);
+        background: {_c_hero_bg};
         border:1px solid rgba(255,255,255,.10);
         box-shadow: 0 40px 100px rgba(2,8,18,.45);
     }
