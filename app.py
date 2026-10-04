@@ -1479,6 +1479,89 @@ body.dark .g-h1, body.dark .g-h2, body.dark .g-kicker { color: #F8FAFC !importan
 """
 st.markdown(APP_CSS, unsafe_allow_html=True)
 
+# ═══════════════ CSS DYNAMIQUE — Thème sombre FORCÉ ═══════════════
+_theme_now = st.session_state.get("theme", "light")
+if _theme_now == "dark":
+    st.markdown("""
+    <style>
+    /* ═══ FOND NOIR PROFOND — Mode sombre ═══ */
+    html, body, .stApp,
+    div[data-testid="stAppViewContainer"],
+    div[data-testid="stMain"],
+    section.main,
+    section.main > div.block-container,
+    div[data-testid="stMainBlockContainer"] {
+        background-color: #05080F !important;
+        color: #F8FAFC !important;
+    }
+    /* Sidebar */
+    section[data-testid="stSidebar"],
+    section[data-testid="stSidebar"] > div {
+        background-color: #0A1019 !important;
+    }
+    /* Header */
+    header[data-testid="stHeader"] {
+        background-color: transparent !important;
+    }
+    /* Navbar glassmorphism dark */
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) {
+        background: rgba(10,16,25,.85) !important;
+        backdrop-filter: blur(24px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+        border-bottom: 1px solid rgba(255,255,255,.08) !important;
+        box-shadow: 0 4px 24px rgba(0,0,0,.4) !important;
+    }
+    /* Textes */
+    h1, h2, h3, h4, h5, h6, p, span, label, div {
+        color: #F8FAFC !important;
+    }
+    .g-lead, .vs-about-lead, .g-step p, .g-kicker {
+        color: rgba(203,213,225,.85) !important;
+    }
+    /* Navbar name */
+    .lnav-brand-name { color: #F8FAFC !important; }
+    /* Navbar links */
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button:not([data-testid="stBaseButton-primary"]) p,
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button:not([data-testid="stBaseButton-primary"]) span {
+        color: rgba(203,213,225,.9) !important;
+    }
+    /* Formulaires */
+    [data-testid="stForm"] {
+        background: rgba(255,255,255,.03) !important;
+        border-color: rgba(255,255,255,.10) !important;
+    }
+    /* Inputs */
+    [data-testid="stTextInput"] input,
+    [data-testid="stTextArea"] textarea,
+    [data-testid="stNumberInput"] input,
+    [data-testid="stSelectbox"] > div > div {
+        background: #0F1A2E !important;
+        color: #F8FAFC !important;
+        border-color: rgba(255,255,255,.15) !important;
+    }
+    /* Wizard */
+    .wizard-card, .wizard-card * { color: #F8FAFC !important; }
+    .wstep {
+        background: rgba(255,255,255,.08) !important;
+        color: rgba(203,213,225,.9) !important;
+        border-color: rgba(255,255,255,.2) !important;
+    }
+    .wline { background: rgba(255,255,255,.15) !important; }
+    /* Cartes claires → sombres */
+    .vs-feat, .vs-testi, .vs-value, .vs-team, .vs-insight, .vs-section-card {
+        background: rgba(255,255,255,.04) !important;
+        border-color: rgba(255,255,255,.10) !important;
+    }
+    .vs-feat-title, .vs-value h4, .vs-team h4, .vs-insight b, .vs-section-text, .vs-testi-quote {
+        color: #F8FAFC !important;
+    }
+    .vs-feat-desc, .vs-value p, .vs-team p, .vs-insight span, .vs-testi-author small {
+        color: rgba(203,213,225,.85) !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
 # ═══════════════ CSS DYNAMIQUE (thème + accent) ═══════════════
 _nav = "#0F1A2E" if st.session_state.theme == "light" else "#F5F7FB"
 _soft = "#4A5A7A" if st.session_state.theme == "light" else "#B9C6E2"
