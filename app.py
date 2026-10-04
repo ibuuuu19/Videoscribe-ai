@@ -3605,7 +3605,7 @@ if st.session_state.user is None:
     if _gpage == "about": render_about(); st.stop()
     if _gpage == "contact": render_contact(); st.stop()
     if _gpage == "premium": render_premium(); st.stop()
-    render_home(); st.stop()
+    render_landing(); st.stop()
 
 # ═══════════════ SIDEBAR ═══════════════
 user = st.session_state.user; role = st.session_state.get("role", "client"); is_guest = role == "visiteur"
