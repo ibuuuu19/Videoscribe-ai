@@ -3376,6 +3376,7 @@ def render_notifs():
         st.markdown(f"<div class='notif-card' style='{style}'><span class='notif-ico'>{ic('bell', 18)}</span><div><b>{n['text']}</b><br><small>{ic('clock', 12)} {n['date']}</small></div></div>", unsafe_allow_html=True)
     render_footer(compact=True)
 def render_premium():
+    render_navbar()
     # ═══ Sécurisation : variables globales non définies en mode public ═══
     _prem_user = st.session_state.get("user")
     _prem_role = st.session_state.get("role", "client")
