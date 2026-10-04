@@ -1742,6 +1742,135 @@ div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="
     background: rgba(46,109,180,.15) !important;
     transform: rotate(15deg) scale(1.05) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   FOND SOMBRE PROFOND — Correction du gris moyen
+   ═══════════════════════════════════════════════════════════ */
+
+/* Body et conteneur principal en mode sombre */
+html[data-theme="dark"] body,
+html[data-theme="dark"] .stApp,
+html[data-theme="dark"] div[data-testid="stAppViewContainer"],
+html[data-theme="dark"] div[data-testid="stMain"],
+html[data-theme="dark"] section.main,
+html[data-theme="dark"] section.main > div.block-container,
+html[data-theme="dark"] div[data-testid="stMainBlockContainer"],
+body.dark,
+body.dark .stApp,
+body.dark div[data-testid="stAppViewContainer"],
+body.dark div[data-testid="stMain"],
+body.dark section.main,
+body.dark section.main > div.block-container,
+body.dark div[data-testid="stMainBlockContainer"] {
+    background-color: #05080F !important;
+    color: #F8FAFC !important;
+}
+
+/* Sidebar */
+html[data-theme="dark"] section[data-testid="stSidebar"],
+html[data-theme="dark"] section[data-testid="stSidebar"] > div,
+body.dark section[data-testid="stSidebar"],
+body.dark section[data-testid="stSidebar"] > div {
+    background-color: #0A1019 !important;
+}
+
+/* Header Streamlit (transparent) */
+html[data-theme="dark"] header[data-testid="stHeader"],
+body.dark header[data-testid="stHeader"] {
+    background-color: transparent !important;
+}
+
+/* ═══ Navbar glassmorphism dark (corrigée) ═══ */
+html[data-theme="dark"] div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)),
+body.dark div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) {
+    background: rgba(10,16,25,.85) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(255,255,255,.08) !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,.4) !important;
+}
+
+/* ═══ Textes — Assurer la lisibilité en dark ═══ */
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] h4,
+html[data-theme="dark"] h5,
+html[data-theme="dark"] h6,
+html[data-theme="dark"] p,
+html[data-theme="dark"] span,
+html[data-theme="dark"] label,
+html[data-theme="dark"] div,
+body.dark h1,
+body.dark h2,
+body.dark h3,
+body.dark h4,
+body.dark h5,
+body.dark h6,
+body.dark p,
+body.dark span,
+body.dark label {
+    color: #F8FAFC !important;
+}
+
+/* Textes secondaires (soft) */
+html[data-theme="dark"] .g-lead,
+html[data-theme="dark"] .vs-about-lead,
+html[data-theme="dark"] .g-step p,
+body.dark .g-lead,
+body.dark .vs-about-lead,
+body.dark .g-step p {
+    color: rgba(203,213,225,.85) !important;
+}
+
+/* ═══ Wizard register (étape 1/2/3/4) ═══ */
+html[data-theme="dark"] .wizard-card,
+html[data-theme="dark"] .wizard-card *,
+body.dark .wizard-card,
+body.dark .wizard-card * {
+    color: #F8FAFC !important;
+}
+html[data-theme="dark"] .wstep,
+body.dark .wstep {
+    background: rgba(255,255,255,.08) !important;
+    color: rgba(203,213,225,.9) !important;
+    border-color: rgba(255,255,255,.2) !important;
+}
+html[data-theme="dark"] .wline,
+body.dark .wline {
+    background: rgba(255,255,255,.15) !important;
+}
+
+/* ═══ Formulaires en dark ═══ */
+html[data-theme="dark"] [data-testid="stForm"],
+body.dark [data-testid="stForm"] {
+    background: rgba(255,255,255,.03) !important;
+    border-color: rgba(255,255,255,.10) !important;
+}
+
+/* ═══ Inputs en dark ═══ */
+html[data-theme="dark"] [data-testid="stTextInput"] input,
+html[data-theme="dark"] [data-testid="stTextArea"] textarea,
+html[data-theme="dark"] [data-testid="stNumberInput"] input,
+html[data-theme="dark"] [data-testid="stSelectbox"] > div > div,
+body.dark [data-testid="stTextInput"] input,
+body.dark [data-testid="stTextArea"] textarea,
+body.dark [data-testid="stNumberInput"] input,
+body.dark [data-testid="stSelectbox"] > div > div {
+    background: #0F1A2E !important;
+    color: #F8FAFC !important;
+    border-color: rgba(255,255,255,.15) !important;
+}
+
+/* ═══ Register — Titre "Créer un compte" en dark ═══ */
+html[data-theme="dark"] .g-h1,
+html[data-theme="dark"] .g-h2,
+html[data-theme="dark"] .g-kicker,
+body.dark .g-h1,
+body.dark .g-h2,
+body.dark .g-kicker {
+    color: #F8FAFC !important;
+}
 </style>
 """
 st.markdown(APP_CSS, unsafe_allow_html=True)
