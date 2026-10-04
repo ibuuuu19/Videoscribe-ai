@@ -1423,24 +1423,55 @@ div[data-testid="stColumn"] > div {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Bouton sidebar — laisser le style NATIF Streamlit
-   On ajuste juste un peu la position pour ne pas gêner le logo
+   Bouton sidebar — Position GAUCHE + Style natif (rapide)
    ═══════════════════════════════════════════════════════════ */
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="stSidebarCollapseButton"],
 [data-testid="collapsedControl"],
 [data-testid="baseButton-headerNoPadding"],
+[data-testid="stSidebarNavCollapseButton"],
+[data-testid*="SidebarCollapse"],
+[data-testid*="SidebarCollapsed"],
+[data-testid*="CollapseButton"],
+[data-testid*="CollapsedControl"],
 button[kind="headerNoPadding"],
 button[kind="header"] {
-    /* Repositionner en haut à droite pour ne pas gêner le logo */
+    /* Position : EN HAUT À GAUCHE */
     position: fixed !important;
-    top: 0.75rem !important;
-    right: 0.75rem !important;
-    left: auto !important;
-    z-index: 9999 !important;
-    /* Taille normale Streamlit */
+    top: 0.6rem !important;
+    left: 0.6rem !important;
+    right: auto !important;
+    z-index: 2147483647 !important;
+    /* Taille */
     width: 42px !important;
     height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+    /* Style natif Streamlit conservé — juste repositionné */
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+}
+
+/* Mobile : position ajustée */
+@media (max-width: 768px) {
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="collapsedControl"],
+    [data-testid*="SidebarCollapse"],
+    [data-testid*="CollapseButton"],
+    button[kind="headerNoPadding"],
+    button[kind="header"] {
+        top: 0.5rem !important;
+        left: 0.5rem !important;
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+    }
 }
 
 </style>
