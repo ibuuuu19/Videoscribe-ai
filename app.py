@@ -2257,6 +2257,17 @@ def render_home():
 
 def render_about():
     render_navbar()
+    # ═══ Détection du thème ═══
+    _is_light = st.session_state.get("theme", "light") == "light"
+    _about_nav = "#0F1A2E" if _is_light else "#F8FAFC"
+    _about_soft = "#4A5A7A" if _is_light else "rgba(148,163,184,.9)"
+    _about_hero_bg = (
+        "radial-gradient(700px 380px at 50% -10%, rgba(59,130,246,.10), transparent 65%), "
+        "linear-gradient(160deg, #F8FAFC 0%, #EFF4FB 100%)"
+    ) if _is_light else (
+        "radial-gradient(700px 380px at 50% -10%, rgba(59,130,246,.32), transparent 65%), "
+        "linear-gradient(160deg, #05080F 0%, #0D1524 100%)"
+    )
     st.markdown("""
     <style>
     .vs-about-hero {
