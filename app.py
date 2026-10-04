@@ -1992,11 +1992,8 @@ def hero(icon_name, title, subtitle, badges=None, use_logo=False):
     st.markdown(f"""<div class="main-header"><div style="color:#FFFFFF !important; font-family:'Sora',sans-serif; font-size:2.1rem; font-weight:800; letter-spacing:-.02em; margin:0; display:flex; align-items:center; justify-content:center; gap:14px;"><span style="display:inline-flex;">{icon_html}</span>{title}</div><div style="color:rgba(255,255,255,.9) !important; margin:.6rem 0 0; font-size:1rem;">{subtitle}</div>{b}</div>""", unsafe_allow_html=True)
 
 def render_footer(compact=False):
-    """Footer unifié pour toutes les pages.
-    compact=True → version courte (1 ligne).
-    compact=False → version complète avec 4 colonnes (défaut)."""
+    """Footer unifié pour toutes les pages."""
     
-    # ═══ Détection thème ═══
     _is_light = st.session_state.get("theme", "light") == "light"
     _f_nav = "#0F1A2E" if _is_light else "#F8FAFC"
     _f_soft = "#4A5A7A" if _is_light else "rgba(148,163,184,.9)"
@@ -2008,7 +2005,6 @@ def render_footer(compact=False):
     _f_copy = "#4A5A7A" if _is_light else "#94a3b8"
     _f_copy_border = "rgba(15,26,46,.12)" if _is_light else "rgba(255,255,255,.12)"
 
-    # ═══ Version compacte (1 ligne) ═══
     if compact:
         st.markdown(f"""
         <style>
@@ -2069,7 +2065,6 @@ def render_footer(compact=False):
         """, unsafe_allow_html=True)
         return
 
-    # ═══ Version complète (4 colonnes) ═══
     st.markdown(f"""
     <style>
     .footer-dark {{
@@ -2182,7 +2177,6 @@ def render_footer(compact=False):
     </style>
     <div class="footer-dark">
         <div class="fd-grid">
-            <!-- Colonne 1 : Logo + description -->
             <div>
                 <div class="fd-logo">{logo_html(30)} <b>VideoScribe</b> AI</div>
                 <p>Application de résumé IA de vidéos YouTube, spécialisée dans la création de notes structurées personnalisées.</p>
@@ -2192,8 +2186,6 @@ def render_footer(compact=False):
                     <a class="fd-social" href="https://github.com/ibuuuu19" target="_blank" title="GitHub">{ic("code",16)}</a>
                 </div>
             </div>
-
-            <!-- Colonne 2 : Fonctionnalités -->
             <div>
                 <h5>Fonctionnalités</h5>
                 <ul>
@@ -2204,8 +2196,6 @@ def render_footer(compact=False):
                     <li>Exports pro</li>
                 </ul>
             </div>
-
-            <!-- Colonne 3 : Liens rapides -->
             <div>
                 <h5>{T("ft_links")}</h5>
                 <ul>
@@ -2217,8 +2207,6 @@ def render_footer(compact=False):
                     <li><a class="fd-link" href="?page=register">{T("register")}</a></li>
                 </ul>
             </div>
-
-            <!-- Colonne 4 : Contact & Newsletter -->
             <div>
                 <h5>Contact & Newsletter</h5>
                 <ul>
@@ -2236,8 +2224,7 @@ def render_footer(compact=False):
             © 2026 VideoScribe AI — Mbtech-services. Tous droits réservés.
         </div>
     </div>
-    """, unsafe_allow_html=True)
-    
+    """, unsafe_allow_html=True)    
     
 def notify_admins(icon, text):
     for uname, u in list_users().items():
