@@ -1918,7 +1918,6 @@ def render_navbar():
                 _toggle_theme()
 
 def render_home():
-    render_navbar()
     st.markdown("""
     <style>
     .vs-home-hero {
