@@ -16,26 +16,38 @@ def chunk_text(text, chunk_size=1200):
     return chunks
 
 
-def remove_repetitions(text, threshold=0.72):
-    """Supprime les phrases identiques OU presque identiques (fuzzy)."""
-    sentences = [s.strip() for s in text.split(". ") if s.strip()]
+def remove_repetitions(text, threshold=0.85):
+    """Supprime les phrases identiques OU presque identiques (fuzzy).
+    
+    Un seuil de 0.85 (au lieu de 0.72) évite de supprimer des phrases
+    différentes mais qui partagent la même structure.
+    """
+    sentences = [s.strip().rstrip(".") for s in text.split(". ") if s.strip()]
     kept = []
     for s in sentences:
         sl = s.lower().strip()
         dup = False
         for k in kept:
             kl = k.lower().strip()
-            if sl == kl or sl in kl or kl in sl:
+            # Doublon exact
+            if sl == kl:
                 dup = True
                 break
+            # Inclusion stricte (une phrase contient l'autre)
+            # On exige une longueur minimale pour éviter les faux positifs
+            if len(sl) > 15 and len(kl) > 15:
+                if sl in kl or kl in sl:
+                    dup = True
+                    break
+            # Similarité fuzzy stricte
             if SequenceMatcher(None, sl, kl).ratio() > threshold:
                 dup = True
                 break
         if not dup:
             kept.append(s)
+    # Reconstruire avec un seul point final
     out = ". ".join(kept)
-    return out + "." if out else text
-
+    return out + "." if out and not out.endswith(".") else out
 
 def format_notes(notes_list):
     formatted = "📝 RÉSUMÉ DE LA VIDÉO\n" + "=" * 50 + "\n\n"
@@ -64,7 +76,7 @@ GLOSSAIRE = [
 
 def polish_translation(text):
     for pattern, repl in GLOSSAIRE:
-        text = re.sub(pattern, repl, text)
+        text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
     text = re.sub(r"\s+", " ", text).strip()
     text = _dedup_words(text)
     return text
