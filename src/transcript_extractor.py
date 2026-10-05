@@ -8,6 +8,9 @@ CACHE_DIR = Path("cache")
 CACHE_DIR.mkdir(exist_ok=True)
 
 def extract_video_id(url):
+    # ✅ Garde : si url n'est pas une chaîne valide, on retourne None tout de suite
+    if not url or not isinstance(url, str):
+        return None
     patterns = [
         r"(?:v=|youtu\.be/|embed/|v/)([a-zA-Z0-9_-]{11})",
         r"^([a-zA-Z0-9_-]{11})$"
