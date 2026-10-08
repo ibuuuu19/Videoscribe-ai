@@ -53,6 +53,12 @@ from src.ui.utils import (
     build_quiz, better_extract_action_points,
     _BAD_KW, _STOP, _FILLER_RE,
 )
+# ═══════════════ PRÉFÉRENCES D'APPARENCE ═══════════════
+# ⚠️ Extrait dans src/ui/prefs.py
+from src.ui.prefs import (
+    _prefs_file, _load_prefs, get_prefs, set_pref,
+    _save_appearance, _load_appearance, set_language,
+)
 
 
 
@@ -216,44 +222,6 @@ def generate_audio(text, filename):
         gTTS(text=text, lang="fr").save(str(p)); return str(p)
     except Exception: return None
 
-# ═══════════════ PRÉFÉRENCES D'APPARENCE ═══════════════
-def _prefs_file(): return Path("data") / "prefs.json"
-
-def _load_prefs():
-    p = _prefs_file()
-    if p.exists():
-        try: return json.loads(p.read_text(encoding="utf-8"))
-        except Exception: return {}
-    return {}
-
-def get_prefs(uname): return _load_prefs().get(uname, {}) if uname else {}
-
-def set_pref(uname, key, val):
-    allp = _load_prefs(); allp.setdefault(uname, {})[key] = val
-    p = _prefs_file(); p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(allp, ensure_ascii=False), encoding="utf-8")
-
-
-def _save_appearance():
-    u = st.session_state.get("user")
-    if u:
-        set_pref(u, "accent", st.session_state.get("cfg_accent", "#2E6DB4"))
-        set_pref(u, "font_size", st.session_state.get("cfg_font_size", 16))
-        set_pref(u, "line_height", st.session_state.get("cfg_line_height", 1.6))
-
-def _load_appearance(uname):
-    pr = get_prefs(uname)
-    st.session_state.cfg_lang = pr.get("lang", st.session_state.get("cfg_lang","fr"))
-    st.session_state.cfg_accent = pr.get("accent", "#2E6DB4")
-    st.session_state.cfg_font_size = pr.get("font_size", 16)
-    st.session_state.cfg_line_height = pr.get("line_height", 1.6)
-
-def set_language(lang):
-    st.session_state.cfg_lang = lang
-    st.session_state.cfg_target = lang if lang != "fr" else "fr"
-    u = st.session_state.get("user")
-    if u: set_pref(u, "lang", lang)
-    st.rerun()
 
 # ═══════════════ CONFIG ═══════════════
 FREE_DAILY_LIMIT = 3; PAYMENT_WAVE = "77 629 50 40"; PAYMENT_OM = "77 629 50 40"
