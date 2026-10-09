@@ -32,6 +32,8 @@ from src.email_manager import send_contact_message, send_contact_ack
 # render_home(), render_about(), render_privacy(), render_contact(), render_landing()
 
 def render_home():
+    if st.session_state.get("user") is None:
+        render_navbar()
     st.markdown("""
     <style>
     .vs-home-hero {
@@ -470,7 +472,8 @@ def render_home():
 
 
 def render_about():
-    render_navbar()
+    if st.session_state.get("user") is None:
+        render_navbar()
     # ═══ Détection du thème ═══
     _is_light = st.session_state.get("theme", "light") == "light"
     _about_nav = "#0F1A2E" if _is_light else "#F8FAFC"
@@ -750,6 +753,8 @@ def render_about():
 
 
 def render_privacy(show_back=True):
+    if st.session_state.get("user") is None:
+        render_navbar()
     hero("lock", T("priv_title"), T("priv_sub"), [f'{ic("shield", 13)} RGPD', f'{ic("check", 13)} CNIL', f'{ic("mail", 13)} Contact'])
     st.markdown(f"""### 1. Responsable — **Mbtech-services** — `{CONTACT_EMAIL}`
 ### 2. Données — nom, email, photo, historique, cookies.
@@ -1117,7 +1122,8 @@ details.vs-faq-item[open] summary.vs-faq-q::after {{ transform: rotate(45deg); }
 
 
 def render_landing():
-    render_navbar()
+    if st.session_state.get("user") is None:
+        render_navbar()
     l, r = st.columns([1, 1], gap="large", vertical_alignment="center")
     with l:
         st.markdown(f"""<div class="g-kicker">Résumé IA de vidéos YouTube</div>
