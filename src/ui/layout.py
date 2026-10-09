@@ -216,6 +216,24 @@ def render_footer(compact=False):
             </div>
         </div>
         """, unsafe_allow_html=True)
+                # Force l'ouverture des liens du footer dans le même onglet
+        _components.html("""
+        <script>
+        (function() {
+            try {
+                var doc = window.parent.document;
+                function fixLinks() {
+                    doc.querySelectorAll('a[href^="?page="]').forEach(function(a) {
+                        a.setAttribute('target', '_top');
+                    });
+                }
+                fixLinks();
+                setInterval(fixLinks, 500);
+            } catch(e) {}
+        })();
+        </script>
+        """, height=0, width=0)
+        
         return
 
     st.markdown(f"""
@@ -352,12 +370,12 @@ def render_footer(compact=False):
             <div>
                 <h5>{T("ft_links")}</h5>
                 <ul>
-                    <li><a class="fd-link" href="?page=accueil">{T("home")}</a></li>
-                    <li><a class="fd-link" href="?page=about">{T("about")}</a></li>
-                    <li><a class="fd-link" href="?page=contact">{T("m_contact")}</a></li>
-                    <li><a class="fd-link" href="?page=premium">{T("m_premium")}</a></li>
-                    <li><a class="fd-link" href="?page=login">{T("login")}</a></li>
-                    <li><a class="fd-link" href="?page=register">{T("register")}</a></li>
+                    <li><a class="fd-link" href="?page=accueil"  >{T("home")}</a></li>
+                    <li><a class="fd-link" href="?page=about"    >{T("about")}</a></li>
+                    <li><a class="fd-link" href="?page=contact"  >{T("m_contact")}</a></li>
+                    <li><a class="fd-link" href="?page=premium"  >{T("m_premium")}</a></li>
+                    <li><a class="fd-link" href="?page=login"    >{T("login")}</a></li>
+                    <li><a class="fd-link" href="?page=register" >{T("register")}</a></li>
                 </ul>
             </div>
             <div>
