@@ -59,6 +59,13 @@ from src.ui.prefs import (
     _prefs_file, _load_prefs, get_prefs, set_pref,
     _save_appearance, _load_appearance, set_language,
 )
+# ═══════════════ STORAGE (favoris, partages, exports) ═══════════════
+# ⚠️ Extrait dans src/ui/storage.py
+from src.ui.storage import (
+    get_referral_code, load_favs, toggle_fav,
+    load_shares, save_share, export_anki, generate_audio,
+)
+
 
 
 
@@ -158,69 +165,6 @@ setInterval(function(){ idx = (idx+1) % slides.length; show(idx); }, DUR);
 </html>"""
 Path("teaser.html").write_text(TEASER_HTML, encoding="utf-8")
 
-
-
-
-# ═══════════════ NOUVELLES FONCTIONNALITÉS ═══════════════
-def get_referral_code(uname):
-    info = list_users().get(uname, {}) or {}
-    created = info.get("created_at", "")
-    digits = re.sub(r"\D", "", created)[:6]
-    name_part = re.sub(r"[^a-zA-Z0-9]", "", uname)[:6].upper()
-    return f"{name_part}{digits}"
-
-def _fav_file(): return Path("data") / "favoris.json"
-
-def load_favs(uname):
-    p = _fav_file()
-    if p.exists():
-        try: return json.loads(p.read_text(encoding="utf-8")).get(uname, [])
-        except Exception: return []
-    return []
-
-def toggle_fav(uname, vid):
-    p = _fav_file(); allf = {}
-    if p.exists():
-        try: allf = json.loads(p.read_text(encoding="utf-8"))
-        except Exception: allf = {}
-    lst = allf.get(uname, [])
-    if vid in lst: lst.remove(vid)
-    else: lst.append(vid)
-    allf[uname] = lst; p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(allf, ensure_ascii=False), encoding="utf-8"); return vid in lst
-
-def _shares_file(): return Path("data") / "shares.json"
-
-def load_shares():
-    p = _shares_file()
-    if p.exists():
-        try: return json.loads(p.read_text(encoding="utf-8"))
-        except Exception: return {}
-    return {}
-
-def save_share(data, owner):
-    shares = load_shares()
-    sid = hashlib.md5((data["video_id"] + str(time.time())).encode()).hexdigest()[:8]
-    shares[sid] = {"video_id": data["video_id"], "notes": data["notes"],
-    "keywords": data.get("keywords", []), "date": data["date"], "owner": owner}
-    _shares_file().parent.mkdir(parents=True, exist_ok=True)
-    _shares_file().write_text(json.dumps(shares, ensure_ascii=False), encoding="utf-8"); return sid
-
-def export_anki(data, filename):
-    lines = []
-    for kw, _ in data.get("keywords", []):
-        ans = next((n for n in data["notes"] if kw.split()[0].lower() in n.lower()), "")
-        lines.append(f"{kw}\t{ans}")
-    for q in data.get("questions", []): lines.append(f"{q}\tVoir le résumé VideoScribe AI")
-    p = Path("exports") / f"{filename}.anki.txt"; p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text("\n".join(lines), encoding="utf-8"); return str(p)
-
-def generate_audio(text, filename):
-    try:
-        from gtts import gTTS
-        p = Path("exports") / f"{filename}.mp3"; p.parent.mkdir(parents=True, exist_ok=True)
-        gTTS(text=text, lang="fr").save(str(p)); return str(p)
-    except Exception: return None
 
 
 # ═══════════════ CONFIG ═══════════════
