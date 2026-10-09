@@ -924,15 +924,6 @@ def render_admin():
         else: st.caption("—")
     render_footer(compact=True)
     
-def _step_indicator(current):
-    parts = ['<div class="wizard-steps">']
-    for s in [1,2,3,4]:
-        cls = "active" if s == current else ("done" if s < current else "")
-        label = "✓" if s < current else str(s)
-        parts.append(f'<div class="wstep {cls}">{label}</div>')
-        if s < 4: parts.append(f'<div class="wline{" done" if s < current else ""}"></div>')
-    parts.append('</div>')
-    st.markdown("".join(parts), unsafe_allow_html=True)
 
 # ⚠️ render_register_wizard, render_login, render_register_page extraits dans src/pages/auth.py
 # ═══════════════ ROUTAGE ═══════════════

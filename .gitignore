@@ -59,3 +59,7 @@ coverage.xml
 htmlcov/
 .pytest_cache/
 .backup/
+
+
+# Scripts temporaires d'extraction (à garder en local)
+scripts/

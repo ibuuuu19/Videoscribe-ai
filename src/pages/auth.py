@@ -19,7 +19,9 @@ import streamlit as st
 
 from src.ui.i18n import T, LANGS
 from src.ui.components import ic, logo_html
-from src.ui.layout import render_footer, _toggle_theme
+from src.ui.layout import render_footer, _toggle_theme, render_navbar, notify_admins, notify, sync_notif_cursor
+from src.ui.prefs import _load_appearance
+from src.ui.storage import get_referral_code
 from src.core.config import COOKIE_NAME
 from src.core.cookies import set_cookie
 from src.user_manager import register_user, authenticate, list_users
@@ -31,7 +33,23 @@ from src.email_manager import send_verification_code
 # ⚠️ Les fonctions ci-dessous ont été copiées automatiquement
 #    depuis app.py par le script extract_auth.py
 # ═══════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════
+# HELPERS DU WIZARD
+# ═══════════════════════════════════════════════════════════════
 
+def _step_indicator(current):
+    """Affiche l'indicateur de progression du wizard (4 étapes)."""
+    parts = ['<div class="wizard-steps">']
+    for s in [1, 2, 3, 4]:
+        cls = "active" if s == current else ("done" if s < current else "")
+        label = "✓" if s < current else str(s)
+        parts.append(f'<div class="wstep {cls}">{label}</div>')
+        if s < 4:
+            parts.append(f'<div class="wline{" done" if s < current else ""}"></div>')
+    parts.append('</div>')
+    st.markdown("".join(parts), unsafe_allow_html=True)
+    
+    
 def render_register_wizard():
     step = st.session_state.get("reg_step", 1)
     _step_indicator(step); st.markdown('<div class="wizard-card">', unsafe_allow_html=True)
@@ -46,7 +64,7 @@ def render_register_wizard():
             key="reg_lang_widget"
         )
         parrain = st.text_input("Code parrain", value="", max_chars=12)
-        email = e.strip(); verified = st.session_state.get("reg_email_verified", False)
+        email = (e or "").strip(); verified = st.session_state.get("reg_email_verified", False)
         if email and not verified:
             st.markdown("---"); _m = st.session_state.get("reg_msg")
             if _m:
@@ -66,7 +84,7 @@ def render_register_wizard():
                 with b1:
                     if st.button(T("verify"), use_container_width=True):
                         if time.time() > st.session_state.get("reg_code_exp",0): st.session_state.reg_msg=("err","Code expiré.")
-                        elif cin.strip()==st.session_state.get("reg_code"): st.session_state.reg_email_verified=True; st.session_state.reg_msg=("ok",f"Email vérifié : {email}")
+                        elif (cin or "").strip()==st.session_state.get("reg_code"): st.session_state.reg_email_verified=True; st.session_state.reg_msg=("ok",f"Email vérifié : {email}")
                         else: st.session_state.reg_msg=("err","Code incorrect.")
                         st.rerun()
                 with b2:
@@ -79,9 +97,9 @@ def render_register_wizard():
                     if st.button("Email ↺", use_container_width=True): st.session_state.update(reg_code_sent=False, reg_email_verified=False, reg_msg=None); st.rerun()
         elif email and verified: st.success(f"Email vérifié : {email}")
         if st.button(T("continue"), use_container_width=True):
-            if len(u.strip())<3: st.error("3 caractères minimum.")
+            if len((u or "").strip())<3: st.error("3 caractères minimum.")
             elif email and not verified: st.error("Vérifiez votre email.")
-            else: st.session_state.update(reg_u=u.strip(), reg_e=email, reg_lang=lang_sel, reg_parrain=parrain.strip().upper(), reg_step=2); st.rerun()
+            else: st.session_state.update(reg_u=(u or "").strip(), reg_e=email, reg_lang=lang_sel, reg_parrain=(parrain or "").strip().upper(), reg_step=2); st.rerun()
     elif step == 2:
         st.markdown("### Sécurité")
         p = st.text_input(T("password")+" (6 min)", type="password"); c = st.text_input(T("pwd_confirm"), type="password")
@@ -273,7 +291,7 @@ def render_login():
             if _submit:
                 ok, role_ = authenticate(username, password)
                 if ok:
-                    uname = username.strip().lower()
+                    uname = (username or "").strip().lower()
                     st.session_state.update(user=uname, role=role_, token=create_session(uname), page="analyse")
                     _load_appearance(uname)
                     sync_notif_cursor(uname)
