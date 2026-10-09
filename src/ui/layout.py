@@ -216,24 +216,7 @@ def render_footer(compact=False):
             </div>
         </div>
         """, unsafe_allow_html=True)
-                # Force l'ouverture des liens du footer dans le même onglet
-        _components.html("""
-        <script>
-        (function() {
-            try {
-                var doc = window.parent.document;
-                function fixLinks() {
-                    doc.querySelectorAll('a[href^="?page="]').forEach(function(a) {
-                        a.setAttribute('target', '_top');
-                    });
-                }
-                fixLinks();
-                setInterval(fixLinks, 500);
-            } catch(e) {}
-        })();
-        </script>
-        """, height=0, width=0)
-        
+                        
         return
 
     st.markdown(f"""
