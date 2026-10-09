@@ -68,7 +68,7 @@ from src.ui.storage import (
 # ═══════════════ CONFIG ═══════════════
 # ⚠️ Extrait dans src/core/config.py
 from src.core.config import (
-    FREE_DAILY_LIMIT, PAYMENT_WAVE, PAYMENT_OM, CONTACT_EMAIL,
+    FREE_DAILY_LIMIT, COOKIE_NAME, PAYMENT_WAVE, PAYMENT_OM, CONTACT_EMAIL,
     CINETPAY_APIKEY, CINETPAY_SITE_ID, DEMO_VIDEO_URL,
     MAP_EMBED, MAP_LINK, AVATAR_DIR, PLANS, TIER_CHIP, HIST_KEEP,
 )
@@ -188,58 +188,11 @@ st.set_page_config(page_title="VideoScribe AI", layout="wide",
 page_icon=str(LOGO_FILE) if LOGO_FILE.exists() else "🖊️")
 ensure_admin()
 
-from src.core.config import COOKIE_NAME
-cookie_mgr = CookieController()
+# ⚠️ cookie_mgr, set_cookie, delete_cookie, read_cookie extraits dans src/core/cookies.py
+from src.core.cookies import cookie_mgr, set_cookie, delete_cookie, read_cookie
 
-def set_cookie(name, value, max_age=7*24*3600):
-    try: cookie_mgr.set(name, value, max_age=max_age, path="/", samesite="Lax")
-    except Exception: pass
-    js = f"""<script>try {{
-var c = '{name}={value}; path=/; max-age={max_age}; SameSite=Lax';
-document.cookie = c;
-if (window.parent && window.parent !== window) window.parent.document.cookie = c;
-if (window.top) window.top.document.cookie = c;
-}} catch(e) {{}}</script>"""
-    try: _components.html(js, height=0, width=0)
-    except Exception: pass
-    time.sleep(0.3)
 
-def delete_cookie(name):
-    # 1. Essayer via la lib streamlit-cookies-controller
-    try:
-        if cookie_mgr.get(name):
-            cookie_mgr.remove(name)
-    except Exception: pass
-    # 2. Injecter du JS qui supprime le cookie à TOUS les niveaux (top, parent, iframe)
-    js = f"""<script>try {{
-        var names = ['{name}'];
-        var paths = ['/', '/app', window.location.pathname];
-        var domains = [null, window.location.hostname, '.' + window.location.hostname];
-        names.forEach(function(n) {{
-            paths.forEach(function(p) {{
-                domains.forEach(function(d) {{
-                    var c = n + '=; path=' + p + '; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-                    if (d) c += '; domain=' + d;
-                    document.cookie = c;
-                    if (window.parent && window.parent !== window) window.parent.document.cookie = c;
-                    if (window.top) window.top.document.cookie = c;
-                }});
-            }});
-        }});
-    }} catch(e) {{}}</script>"""
-    try: _components.html(js, height=0, width=0)
-    except Exception: pass
-    # 3. Délai plus long pour laisser le navigateur traiter
-    time.sleep(0.5)
-    
-def read_cookie(name):
-    try:
-        val = st.context.cookies.get(name)
-        if val: return val
-    except Exception: pass
-    try: return cookie_mgr.get(name) or None
-    except Exception: return None
-
+# ═══ Détection du thème par défaut (cookie ou light) ═══
 _theme_default = "light"
 try:
     _t = st.context.cookies.get("ys_theme")
