@@ -47,8 +47,8 @@ def set_cookie(name, value, max_age=7*24*3600):
         max_age: Durée de vie en secondes (défaut : 7 jours)
     """
     # Niveau 1 : via la lib
-    try:
-        cookie_mgr.set(name, value, max_age=max_age, path="/", samesite="Lax")
+    try: 
+        cookie_mgr.set(name, value, max_age=max_age, path="/", samesite="Lax")  # type: ignore
     except Exception:
         pass
 

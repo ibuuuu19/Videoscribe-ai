@@ -1327,7 +1327,7 @@ with studio_col:
         st.checkbox(T("turbo"), key="cfg_turbo")
         if tier >= 3:
             st.markdown('<div class="vs-group-label">Fonctions Premium+</div>', unsafe_allow_html=True)
-            st.selectbox("Langue de sortie", ["fr","en","es","de"], key="cfg_target", format_func=lambda l: LANGS.get(l, l))
+            st.selectbox("Langue de sortie", ["fr","en","es","de"], key="cfg_target", format_func=lambda l: str(LANGS.get(l) or l))
             st.checkbox("TL;DR enrichi", key="studio_tldr", value=st.session_state.get("studio_tldr", True))
             st.checkbox("Questions avancées", key="studio_questions", value=st.session_state.get("studio_questions", True))
             st.checkbox("Actions à faire", key="studio_actions", value=st.session_state.get("studio_actions", True))

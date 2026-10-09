@@ -23,7 +23,7 @@ from src.ui.i18n import T, LANGS
 from src.ui.components import ic, logo_html, STARS
 from src.ui.layout import hero, render_navbar, render_footer, notify_admins
 from src.core.config import CONTACT_EMAIL, PAYMENT_WAVE, MAP_EMBED, MAP_LINK, DEMO_VIDEO_URL
-from src.user_manager import list_users
+from src.user_manager import list_users, get_tier
 from src.contact_manager import save_message
 from src.email_manager import send_contact_message, send_contact_ack
 
@@ -775,17 +775,17 @@ def render_contact():
     _contact_user = st.session_state.get("user")
     _contact_is_guest = _contact_user is None
     _contact_sender = _contact_user or "visiteur_anonyme"
+    
+    # Calcul du tier pour personnaliser la page Contact
     _contact_tier = 0
     try:
-        _contact_tier = tier
-    except NameError:
-        try:
-            if _contact_user:
-                _contact_tier = get_tier(_contact_user)
-            elif st.session_state.get("role") == "admin":
+        if _contact_user:
+            if st.session_state.get("role") == "admin":
                 _contact_tier = 3
-        except Exception:
-            _contact_tier = 0
+            else:
+                _contact_tier = get_tier(_contact_user)
+    except Exception:
+        _contact_tier = 0
 
     # ═══════════ DÉTECTION DU THÈME ═══════════
     _is_light = st.session_state.get("theme", "light") == "light"
