@@ -1249,7 +1249,7 @@ tier = 3 if role == "admin" else (0 if is_guest else get_tier(user))
 with st.sidebar:
     st.markdown(f'<div class="qbrand">{logo_html(34)}<span style="margin-left:8px;"><b>VideoScribe</b> AI</span></div>', unsafe_allow_html=True)
     st.markdown(f'<div class="qcap">{T("menu")}</div>', unsafe_allow_html=True)
-    for label, key in [(T("m_analyse"),"analyse"),(T("m_premium"),"premium"),(T("m_history"),"historique"),(T("m_stats"),"stats")]:
+    for label, key in [(T("m_analyse"),"analyse"),(T("m_premium"),"premium"),(T("m_history"),"historique"),(T("m_stats"),"stats"), (T("m_contact"),"contact")]:
         if is_guest and key in ("profil","historique","stats","config"): continue
         if st.button(label, key=f"nav_{key}", use_container_width=True, type="primary" if st.session_state.page == key else "secondary"): st.session_state.page = key; st.session_state.show_privacy = False; st.rerun()
     if not is_guest:

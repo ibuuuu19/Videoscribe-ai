@@ -763,7 +763,10 @@ def render_privacy(show_back=True):
 
 
 def render_contact():
-    render_navbar()
+    # On n'affiche la navbar QUE si l'utilisateur n'est PAS connecté
+    if st.session_state.get("user") is None:
+        render_navbar()
+        
     _contact_user = st.session_state.get("user")
     _contact_is_guest = _contact_user is None
     _contact_sender = _contact_user or "visiteur_anonyme"
