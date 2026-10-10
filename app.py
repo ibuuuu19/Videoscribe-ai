@@ -63,7 +63,7 @@ from src.ui.prefs import (
 # ⚠️ Extrait dans src/ui/storage.py
 from src.ui.storage import (
     get_referral_code, load_favs, toggle_fav,
-    load_shares, save_share, export_anki, generate_audio,get_avatar_b64,
+    load_shares, save_share, export_anki, generate_audio, get_avatar_b64,
 )
 # ═══════════════ CONFIG ═══════════════
 # ⚠️ Extrait dans src/core/config.py
