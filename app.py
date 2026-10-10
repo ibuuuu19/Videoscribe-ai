@@ -63,7 +63,7 @@ from src.ui.prefs import (
 # ⚠️ Extrait dans src/ui/storage.py
 from src.ui.storage import (
     get_referral_code, load_favs, toggle_fav,
-    load_shares, save_share, export_anki, generate_audio,
+    load_shares, save_share, export_anki, generate_audio,get_avatar_b64,
 )
 # ═══════════════ CONFIG ═══════════════
 # ⚠️ Extrait dans src/core/config.py
@@ -196,13 +196,6 @@ Path("teaser.html").write_text(TEASER_HTML, encoding="utf-8")
 @st.cache_resource
 def get_summarizer(model_key): return VideoSummarizer(MODELS[model_key], model_key=model_key)
 
-def get_avatar_b64(uname):
-    for ext in ("png","jpg","jpeg","webp"):
-        p = AVATAR_DIR / f"{uname}.{ext}"
-        if p.exists():
-            mime = "image/jpeg" if ext == "jpg" else f"image/{ext}"
-            return f"data:{mime};base64," + base64.b64encode(p.read_bytes()).decode()
-    return None
 
 st.set_page_config(page_title="VideoScribe AI", layout="wide",
 page_icon=str(LOGO_FILE) if LOGO_FILE.exists() else "🖊️")

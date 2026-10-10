@@ -143,3 +143,23 @@ def generate_audio(text, filename):
         return str(p)
     except Exception:
         return None
+    
+    
+# ═══════════════════════════════════════════════════════════════
+# AVATARS
+# ═══════════════════════════════════════════════════════════════
+
+def get_avatar_b64(uname):
+    """Récupère l'avatar d'un utilisateur en base64 (data URI) ou None."""
+    import base64
+    from src.core.config import AVATAR_DIR
+
+    if not uname:
+        return None
+
+    for ext in ("png", "jpg", "jpeg", "webp"):
+        p = AVATAR_DIR / f"{uname}.{ext}"
+        if p.exists():
+            mime = "image/jpeg" if ext == "jpg" else f"image/{ext}"
+            return f"data:{mime};base64," + base64.b64encode(p.read_bytes()).decode()
+    return None
