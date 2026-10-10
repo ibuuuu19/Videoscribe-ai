@@ -1,0 +1,6 @@
+# requirements-test.txt
+# Dépendances minimales pour la CI (GitHub Actions)
+# On évite torch, transformers, keybert (2-3 Go) car inutiles pour les tests unitaires
+
+pytest==9.1.1
+pytest-cov==7.1.0
