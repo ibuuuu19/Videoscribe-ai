@@ -164,3 +164,31 @@ def get_plan(username):
 def get_tier(username):
     """Retourne le niveau numérique 0-3 de la formule active."""
     return PLAN_TIERS.get(get_plan(username), 0)
+
+# ═══════════════════════════════════════════════════════════════
+# WRAPPER : Délégation vers PostgreSQL si DATABASE_URL est défini
+# ═══════════════════════════════════════════════════════════════
+def _use_database():
+    """Détecte si on doit utiliser PostgreSQL."""
+    try:
+        import streamlit as st
+        return bool(st.secrets.get("DATABASE_URL"))
+    except Exception:
+        return bool(os.environ.get("DATABASE_URL"))
+
+
+if _use_database():
+    # Délègue à la version PostgreSQL
+    import src.user_manager_db as _db
+    
+    ensure_admin = _db.ensure_admin
+    register_user = _db.register_user  # type: ignore[assignment]
+    authenticate = _db.authenticate
+    list_users = _db.list_users
+    delete_user = _db.delete_user
+    set_active = _db.set_active
+    reset_password = _db.reset_password
+    set_plan = _db.set_plan
+    set_premium = _db.set_premium
+    get_plan = _db.get_plan
+    get_tier = _db.get_tier

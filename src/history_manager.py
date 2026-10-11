@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from datetime import datetime   # ← en haut
 
@@ -44,3 +45,28 @@ def trim_history(username, keep=10):
     h = get_history(username)
     if len(h) > keep:
         rewrite_history(username, h[-keep:])        
+        
+        
+        
+# ═══════════════════════════════════════════════════════════════
+# WRAPPER : Délégation vers PostgreSQL si DATABASE_URL est défini
+# ═══════════════════════════════════════════════════════════════
+def _use_database():
+    """Détecte si on doit utiliser PostgreSQL."""
+    try:
+        import streamlit as st
+        return bool(st.secrets.get("DATABASE_URL"))
+    except Exception:
+        return bool(os.environ.get("DATABASE_URL"))
+
+
+if _use_database():
+    # Délègue à la version PostgreSQL
+    # pylint: disable=redefined-outer-name
+    import src.history_manager_db as _db
+    
+    get_history = _db.get_history
+    save_analysis = _db.save_analysis  # type: ignore[assignment]
+    clear_history = _db.clear_history  # type: ignore[assignment]
+    count_today = _db.count_today
+    trim_history = _db.trim_history
