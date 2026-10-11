@@ -138,6 +138,30 @@ def render_studio_page():
     _a_accent_dark = shade(_a_accent, 0.55)
     _a_gold = "#D4AF37"
     _a_hair = "rgba(15,26,46,.08)" if _a_theme == "light" else "rgba(255,255,255,.08)"
+    # ═══ Couleurs du hero Studio selon le thème ═══
+    _a_studio_bg = (
+        "radial-gradient(820px 340px at 6% -12%, rgba(59,130,246,.12), transparent 62%), "
+        "radial-gradient(780px 340px at 96% -12%, rgba(16,185,129,.10), transparent 60%), "
+        "linear-gradient(178deg, #F8FAFC 0%, #EFF4FB 100%)"
+    ) if _a_theme == "light" else (
+        "radial-gradient(820px 340px at 6% -12%, rgba(59,130,246,.34), transparent 62%), "
+        "radial-gradient(780px 340px at 96% -12%, rgba(16,185,129,.24), transparent 60%), "
+        "linear-gradient(178deg, #070B12 0%, #0A1019 46%, #0D1524 100%)"
+    )
+    _a_studio_border = "rgba(15,26,46,.10)" if _a_theme == "light" else "rgba(255,255,255,.09)"
+    _a_studio_shadow = "0 20px 60px rgba(15,26,46,.08)" if _a_theme == "light" else "0 40px 100px rgba(2,8,18,.38), inset 0 1px 0 rgba(255,255,255,.06)"
+    _a_studio_title = "#0F1A2E" if _a_theme == "light" else "#F8FAFC"
+    _a_studio_sub = "#4A5A7A" if _a_theme == "light" else "rgba(226,232,240,.72)"
+    _a_studio_kicker_bg = "rgba(46,109,180,.08)" if _a_theme == "light" else "rgba(255,255,255,.07)"
+    _a_studio_kicker_border = "rgba(46,109,180,.20)" if _a_theme == "light" else "rgba(255,255,255,.13)"
+    _a_studio_kicker_color = "#2E6DB4" if _a_theme == "light" else "rgba(255,255,255,.86)"
+    _a_studio_quick_bg = "rgba(255,255,255,.85)" if _a_theme == "light" else "rgba(255,255,255,.055)"
+    _a_studio_quick_border = "rgba(15,26,46,.12)" if _a_theme == "light" else "rgba(255,255,255,.11)"
+    _a_studio_quick_color = "#4A5A7A" if _a_theme == "light" else "rgba(241,245,249,.86)"
+    _a_studio_quick_hover_bg = "#FFFFFF" if _a_theme == "light" else "rgba(255,255,255,.10)"
+    _a_studio_quick_hover_border = "rgba(46,109,180,.30)" if _a_theme == "light" else "rgba(255,255,255,.22)"
+    _a_studio_quick_hover_color = "#2E6DB4" if _a_theme == "light" else "rgba(241,245,249,.86)"
+    _a_studio_grad = "linear-gradient(92deg, #2E6DB4 0%, #10B981 50%, #F59E0B 100%)" if _a_theme == "light" else "linear-gradient(92deg, #60A5FA 0%, #34D399 50%, #FBBF24 100%)"
     _a_noise = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E"
     "%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E"
     "%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E")
@@ -145,10 +169,8 @@ def render_studio_page():
     st.markdown(f"""
     <style>
     .vs-studio-top {{ position:relative; overflow:hidden; border-radius:34px; padding:3.3rem 2.3rem 2.8rem; margin:.4rem 0 1.5rem;
-    background: radial-gradient(820px 340px at 6% -12%, rgba(59,130,246,.34), transparent 62%),
-    radial-gradient(780px 340px at 96% -12%, rgba(16,185,129,.24), transparent 60%),
-    linear-gradient(178deg, #070B12 0%, #0A1019 46%, #0D1524 100%);
-    border:1px solid rgba(255,255,255,.09); box-shadow:0 40px 100px rgba(2,8,18,.38), inset 0 1px 0 rgba(255,255,255,.06);
+    background: {_a_studio_bg};
+    border:1px solid {_a_studio_border}; box-shadow:{_a_studio_shadow};
     text-align:center; isolation:isolate; }}
     .vs-studio-top::before {{ content:""; position:absolute; inset:0; z-index:0;
     background:linear-gradient(90deg, transparent, rgba(255,255,255,.055), transparent);
@@ -159,11 +181,11 @@ def render_studio_page():
     background:linear-gradient(90deg, transparent, rgba(96,165,250,.55), rgba(52,211,153,.55), transparent); }}
     @keyframes vsShine {{ 0%,55% {{transform:translateX(-100%);}} 72%,100% {{transform:translateX(100%);}} }}
     .vs-studio-kicker {{ position:relative; z-index:1; display:inline-flex; align-items:center; gap:9px; padding:7px 15px 7px 11px; border-radius:999px;
-    background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.13); color:rgba(255,255,255,.86) !important;
+    background:{_a_studio_kicker_bg}; border:1px solid {_a_studio_kicker_border}; color:{_a_studio_kicker_color} !important;
     font-size:.76rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; margin-bottom:1.15rem; }}
     .vs-kicker-dot {{ width:6px; height:6px; border-radius:50%; background:#34D399; box-shadow:0 0 0 0 rgba(52,211,153,.6); animation:vsPulse 2.2s ease-out infinite; }}
     @keyframes vsPulse {{ 0%{{box-shadow:0 0 0 0 rgba(52,211,153,.55);}} 70%{{box-shadow:0 0 0 8px rgba(52,211,153,0);}} 100%{{box-shadow:0 0 0 0 rgba(52,211,153,0);}} }}
-    .vs-studio-title {{ position:relative; z-index:1; color:#F8FAFC !important; font-family:'Sora',sans-serif; font-weight:800;
+    .vs-studio-title {{ position:relative; z-index:1; color:{_a_studio_title} !important; font-family:'Sora',sans-serif; font-weight:800;
     letter-spacing:-.045em; line-height:1.06; font-size:clamp(1.9rem,4.6vw,4.1rem); margin:0; }}
     .vs-studio-grad {{ background:linear-gradient(92deg,#60A5FA 0%,#34D399 50%,#FBBF24 100%);
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }}
@@ -272,6 +294,49 @@ def render_studio_page():
     background:rgba(46,109,180,.10); border:1px solid rgba(46,109,180,.24); color:{_a_nav} !important; font-weight:750; font-size:.86rem;
     transition:transform .2s ease, border-color .2s ease; }}
     .vs-keyword:hover {{ transform:translateY(-2px); border-color:{_a_accent}66; }}
+        /* ═══ Mode LIGHT : adapter le hero Studio ═══ */
+    html[data-theme="light"] .vs-studio-top,
+    body.light .vs-studio-top {{
+        background:
+            radial-gradient(820px 340px at 6% -12%, rgba(59,130,246,.12), transparent 62%),
+            radial-gradient(780px 340px at 96% -12%, rgba(16,185,129,.10), transparent 60%),
+            linear-gradient(178deg, #F8FAFC 0%, #EFF4FB 100%) !important;
+        border: 1px solid rgba(15,26,46,.10) !important;
+        box-shadow: 0 20px 60px rgba(15,26,46,.08) !important;
+    }}
+    html[data-theme="light"] .vs-studio-title,
+    body.light .vs-studio-title {{
+        color: #0F1A2E !important;
+    }}
+    html[data-theme="light"] .vs-studio-sub,
+    body.light .vs-studio-sub {{
+        color: #4A5A7A !important;
+    }}
+    html[data-theme="light"] .vs-studio-kicker,
+    body.light .vs-studio-kicker {{
+        background: rgba(46,109,180,.08) !important;
+        border-color: rgba(46,109,180,.20) !important;
+        color: #2E6DB4 !important;
+    }}
+    html[data-theme="light"] .vs-quick,
+    body.light .vs-quick {{
+        background: rgba(255,255,255,.85) !important;
+        border-color: rgba(15,26,46,.12) !important;
+        color: #4A5A7A !important;
+    }}
+    html[data-theme="light"] .vs-quick:hover,
+    body.light .vs-quick:hover {{
+        background: #FFFFFF !important;
+        border-color: rgba(46,109,180,.30) !important;
+        color: #2E6DB4 !important;
+    }}
+    html[data-theme="light"] .vs-studio-grad,
+    body.light .vs-studio-grad {{
+        background: linear-gradient(92deg, #2E6DB4 0%, #10B981 50%, #F59E0B 100%) !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+    }}
     @media (max-width:900px) {{ .vs-insight-grid {{grid-template-columns:1fr;}} .vs-studio-panel {{position:relative; top:0;}} .vs-studio-top {{padding:2.2rem 1.2rem; border-radius:24px;}} }}
     </style>
     """, unsafe_allow_html=True)

@@ -233,6 +233,48 @@ def render_login():
     }
     </style>
     """, unsafe_allow_html=True)
+        # ═══ Override : mode LIGHT ═══
+    if st.session_state.get("theme", "light") == "light":
+        st.markdown("""
+        <style>
+        .vs-login-left {
+            background:
+                radial-gradient(600px 340px at 10% 0%, rgba(59,130,246,.12), transparent 62%),
+                radial-gradient(500px 300px at 90% 100%, rgba(16,185,129,.10), transparent 62%),
+                linear-gradient(160deg, #F8FAFC 0%, #EFF4FB 100%) !important;
+            color: #0F1A2E !important;
+            border: 1px solid rgba(15,26,46,.10) !important;
+            box-shadow: 0 20px 60px rgba(15,26,46,.08) !important;
+        }
+        .vs-login-h2 { color: #0F1A2E !important; }
+        .vs-login-h2 .grad {
+            background: linear-gradient(92deg, #2E6DB4, #10B981 55%, #F59E0B) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+        .vs-login-lead { color: #4A5A7A !important; }
+        .vs-login-feat {
+            background: #FFFFFF !important;
+            border: 1px solid rgba(15,26,46,.10) !important;
+            color: #0F1A2E !important;
+        }
+        .vs-login-feat b { color: #0F1A2E !important; }
+        .vs-login-feat small { color: #4A5A7A !important; }
+        .vs-login-feat .ic {
+            background: linear-gradient(135deg, rgba(46,109,180,.15), rgba(16,185,129,.15)) !important;
+            color: #2E6DB4 !important;
+        }
+        .vs-login-quote {
+            color: #4A5A7A !important;
+            border-top: 1px solid rgba(15,26,46,.10) !important;
+        }
+        .vs-login-quote-author b { color: #0F1A2E !important; }
+        .vs-login-quote-author small { color: #4A5A7A !important; }
+        .vs-login-brand { color: #0F1A2E !important; }
+        .vs-login-brand span { color: #0F1A2E !important; }
+        </style>
+        """, unsafe_allow_html=True)
     _left, _right = st.columns([1.05, 1], gap="large")
     with _left:
         st.markdown(f"""
