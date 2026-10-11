@@ -46,7 +46,6 @@ def get_summarizer(model_key):
     """Instance du summarizer (caché)."""
     return VideoSummarizer(MODELS[model_key], model_key=model_key)
 
-
 def _run_one(url_single, chunk_size, turbo, model_choice, translate_to_fr,
              num_keywords, num_questions, extract_kw, generate_qa, tier):
     """Traite une vidéo (utilisé en batch)."""
@@ -57,24 +56,35 @@ def _run_one(url_single, chunk_size, turbo, model_choice, translate_to_fr,
     if transcript.startswith("Error"):
         return None
     ch = chunk_text(transcript, chunk_size=chunk_size)
-    work = ch
-    if lang != "en":
-        work = translate_texts(ch, src=lang, dest="en")
+    # ⚡ Plus de pré-traduction : le summarizer gère la traduction à la volée
     beams = 1 if turbo else 3
     cache_notes = Path("cache") / f"notes_{video_id}_{model_choice}_b{beams}.json"
     if cache_notes.exists():
         notes = json.loads(cache_notes.read_text(encoding="utf-8"))
     else:
         summarizer = get_summarizer(model_choice)
-        notes = summarizer.summarize_video(work, lambda i, t: None, batch_size=6, num_beams=beams)
+        # ✅ On passe src_lang et translate_to_en au summarizer
+        notes = summarizer.summarize_video(
+            ch,
+            progress_callback=lambda i, t: None,
+            batch_size=6,
+            num_beams=beams,
+            src_lang=lang,
+            translate_to_en=(lang != "en"),
+        )
         cache_notes.parent.mkdir(parents=True, exist_ok=True)
         cache_notes.write_text(json.dumps(notes, ensure_ascii=False), encoding="utf-8")
     notes = [clean_summary(remove_repetitions(n)) for n in notes]
     if translate_to_fr:
         target = st.session_state.cfg_target if tier >= 3 else "fr"
-        notes = [polish_translation(n) for n in translate_texts(notes, src="en", dest=target)]
+        # ✅ Filtrer les None après polish_translation
+        translated = translate_texts(notes, src="en", dest=target)
+        notes = [polish_translation(n) if n else n for n in translated]
     kws = better_extract_keywords(transcript, top_n=num_keywords, lang=lang) if extract_kw else []
-    qs = better_generate_questions(notes, keywords=kws, n=num_questions, lang=st.session_state.get("cfg_lang", "fr")) if generate_qa else []
+    qs = better_generate_questions(
+        notes, keywords=kws, n=num_questions,
+        lang=st.session_state.get("cfg_lang", "fr")
+    ) if generate_qa else []
     return {
         "video_id": video_id, "url": url_single,
         "date": datetime.now().strftime("%d/%m/%Y %H:%M"),
@@ -459,14 +469,16 @@ def render_studio_page():
         _step(ph_chunk, "folder", "Découpage intelligent", "run")
         chunks = chunk_text(transcript, chunk_size=chunk_size)
         _step(ph_chunk, "folder", f"{len(chunks)} chunks générés", "ok")
-        work_chunks = chunks
+
+        # ⚡ Traduction à la volée (pas de pré-traduction)
         if lang != "en":
-            _step(ph_tr, "lang", f"Pré-traduction {lang} → EN", "run")
-            work_chunks = translate_texts(chunks, src=lang, dest="en")
-            _step(ph_tr, "lang", f"Pré-traduction {lang} → EN OK", "ok")
-        else: _step(ph_tr, "lang", "Traduction source non nécessaire", "wait")
+            _step(ph_tr, "lang", f"Traduction {lang} → EN à la volée", "run")
+        else:
+            _step(ph_tr, "lang", "Traduction source non nécessaire", "wait")
+        
         _step(ph_sum, "cpu", f"Résumé IA — mode {model_choice}", "run")
         beams = 1 if turbo else 3
+       
         cache_notes = Path("cache") / f"notes_{video_id}_{model_choice}_b{beams}.json"
         force_refresh = st.session_state.get(f"refresh_{video_id}", False)
         if cache_notes.exists() and not force_refresh:
@@ -479,7 +491,14 @@ def render_studio_page():
                 prog_ph.progress(i / total)
             with st.spinner(f"Résumé en cours avec le modèle {model_choice}…"):
                 summarizer = get_summarizer(model_choice)
-                notes = summarizer.summarize_video(work_chunks, update_progress, batch_size=6, num_beams=beams)
+                notes = summarizer.summarize_video(
+                    chunks,
+                    progress_callback=update_progress,
+                    batch_size=6,
+                    num_beams=beams,
+                    src_lang=lang,
+                    translate_to_en=(lang != "en"),
+                )
             txt_ph.empty(); prog_ph.empty()
             cache_notes.parent.mkdir(parents=True, exist_ok=True)
             cache_notes.write_text(json.dumps(notes, ensure_ascii=False), encoding="utf-8")
