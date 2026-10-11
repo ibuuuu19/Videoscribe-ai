@@ -836,8 +836,17 @@ d.querySelectorAll('[data-testid="stForm"] div, [data-testid="stForm"] span').fo
 if (el.childElementCount === 0 && el.textContent.trim() === 'Press Enter to submit form') el.style.display = 'none';
 }});
 }}
-decorate();
-setInterval(decorate, 500);
+// ✅ Limiter à 20 tentatives (10s max) au lieu d'un setInterval infini
+var tries = 0;
+var maxTries = 20;
+function tryDecorate() {{
+    decorate();
+    tries++;
+    if (tries < maxTries) {{
+        setTimeout(tryDecorate, 500);
+    }}
+}}
+tryDecorate();
 }})();
 </script>""", height=0, width=0)
 
