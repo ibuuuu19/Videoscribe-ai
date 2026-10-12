@@ -48,3 +48,26 @@ def mark_read(msg_id):
 
 def delete_message(msg_id):
     _save([m for m in _load() if m["id"] != msg_id])
+    
+# ═══════════════════════════════════════════════════════════════
+# WRAPPER : Délégation vers PostgreSQL si DATABASE_URL est défini
+# ═══════════════════════════════════════════════════════════════
+def _use_database():
+    """Détecte si on doit utiliser PostgreSQL."""
+    import os
+    try:
+        import streamlit as st
+        return bool(st.secrets.get("DATABASE_URL"))
+    except Exception:
+        return bool(os.environ.get("DATABASE_URL"))
+
+
+if _use_database():
+    # Délègue à la version PostgreSQL
+    # pylint: disable=redefined-outer-name
+    import src.contact_manager_db as _db
+    
+    save_message = _db.save_message  # type: ignore[assignment]
+    get_messages = _db.get_messages  
+    mark_read = _db.mark_read  # type: ignore[assignment]
+    delete_message = _db.delete_message  # type: ignore[assignment]

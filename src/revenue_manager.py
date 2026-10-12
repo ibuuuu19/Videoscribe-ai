@@ -31,3 +31,24 @@ def record_revenue(user, plan, amount, days=30, source="manuel"):
 
 def get_revenues():
     return _load()
+
+# ═══════════════════════════════════════════════════════════════
+# WRAPPER : Délégation vers PostgreSQL si DATABASE_URL est défini
+# ═══════════════════════════════════════════════════════════════
+def _use_database():
+    """Détecte si on doit utiliser PostgreSQL."""
+    import os
+    try:
+        import streamlit as st
+        return bool(st.secrets.get("DATABASE_URL"))
+    except Exception:
+        return bool(os.environ.get("DATABASE_URL"))
+
+
+if _use_database():
+    # Délègue à la version PostgreSQL
+    # pylint: disable=redefined-outer-name
+    import src.revenue_manager_db as _db
+    
+    record_revenue = _db.record_revenue  # type: ignore[assignment]
+    get_revenues = _db.get_revenues
