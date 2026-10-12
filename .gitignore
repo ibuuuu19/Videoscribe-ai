@@ -62,4 +62,4 @@ htmlcov/
 
 
 # Scripts temporaires d'extraction (à garder en local)
-scripts/
+#scripts/
