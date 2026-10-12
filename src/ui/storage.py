@@ -163,3 +163,27 @@ def get_avatar_b64(uname):
             mime = "image/jpeg" if ext == "jpg" else f"image/{ext}"
             return f"data:{mime};base64," + base64.b64encode(p.read_bytes()).decode()
     return None
+
+
+# ═══════════════════════════════════════════════════════════════
+# WRAPPER : Délégation vers PostgreSQL si DATABASE_URL est défini
+# ═══════════════════════════════════════════════════════════════
+def _use_database():
+    """Détecte si on doit utiliser PostgreSQL."""
+    import os
+    try:
+        import streamlit as st
+        return bool(st.secrets.get("DATABASE_URL"))
+    except Exception:
+        return bool(os.environ.get("DATABASE_URL"))
+
+
+if _use_database():
+    # Délègue à la version PostgreSQL (favoris + partages)
+    # pylint: disable=redefined-outer-name
+    import src.ui.storage_db as _db
+    
+    load_favs = _db.load_favs
+    toggle_fav = _db.toggle_fav
+    load_shares = _db.load_shares
+    save_share = _db.save_share      # type: ignore[assignment] 

@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from datetime import datetime
 
@@ -45,3 +46,25 @@ def mark_all_read(username):
     for n in d.get(username, []):
         n["read"] = True
     _save(d)
+
+# ═══════════════════════════════════════════════════════════════
+# WRAPPER : Délégation vers PostgreSQL si DATABASE_URL est défini
+# ═══════════════════════════════════════════════════════════════
+def _use_database():
+    """Détecte si on doit utiliser PostgreSQL."""
+    try:
+        import streamlit as st
+        return bool(st.secrets.get("DATABASE_URL"))
+    except Exception:
+        return bool(os.environ.get("DATABASE_URL"))
+
+
+if _use_database():
+    # Délègue à la version PostgreSQL
+    # pylint: disable=redefined-outer-name
+    import src.notification_manager_db as _db
+    
+    notify = _db.notify  # type: ignore[assignment]
+    get_notifications = _db.get_notifications
+    unread_count = _db.unread_count
+    mark_all_read = _db.mark_all_read    # type: ignore[assignment]

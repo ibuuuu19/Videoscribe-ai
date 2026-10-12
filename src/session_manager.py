@@ -1,6 +1,7 @@
 import json
 import secrets
 import time
+import os
 from pathlib import Path
 
 DATA_DIR = Path("data")
@@ -49,3 +50,24 @@ def delete_session(token):
     if token in sessions:
         del sessions[token]
         _save(sessions)
+        
+# ═══════════════════════════════════════════════════════════════
+# WRAPPER : Délégation vers PostgreSQL si DATABASE_URL est défini
+# ═══════════════════════════════════════════════════════════════
+def _use_database():
+    """Détecte si on doit utiliser PostgreSQL."""
+    try:
+        import streamlit as st
+        return bool(st.secrets.get("DATABASE_URL"))
+    except Exception:
+        return bool(os.environ.get("DATABASE_URL"))
+
+
+if _use_database():
+    # Délègue à la version PostgreSQL
+    # pylint: disable=redefined-outer-name
+    import src.session_manager_db as _db
+    
+    create_session = _db.create_session   # type: ignore[assignment]
+    get_session_user = _db.get_session_user
+    delete_session = _db.delete_session

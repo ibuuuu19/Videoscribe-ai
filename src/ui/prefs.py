@@ -86,3 +86,24 @@ def set_language(lang):
     if u:
         set_pref(u, "lang", lang)
     st.rerun()
+    
+ # ═══════════════════════════════════════════════════════════════
+# WRAPPER : Délégation vers PostgreSQL si DATABASE_URL est défini
+# ═══════════════════════════════════════════════════════════════
+def _use_database():
+    """Détecte si on doit utiliser PostgreSQL."""
+    import os
+    try:
+        import streamlit as st
+        return bool(st.secrets.get("DATABASE_URL"))
+    except Exception:
+        return bool(os.environ.get("DATABASE_URL"))
+
+
+if _use_database():
+    # Délègue à la version PostgreSQL
+    # pylint: disable=redefined-outer-name
+    import src.ui.prefs_db as _db
+    
+    get_prefs = _db.get_prefs
+    set_pref = _db.set_pref       # type: ignore[assignment] 
