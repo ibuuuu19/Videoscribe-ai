@@ -48,21 +48,65 @@ def render_admin():
     if ADMIN_USER == _sec_admin_user and ADMIN_PASS == _sec_admin_pass:
         st.warning("Mot de passe admin par défaut — personnalisez-le.")
     
-    users = list_users(); rows = []
+        # ── Chargement des users (tolérant DB down) ──
+    try:
+        users = list_users()
+    except Exception as e:
+        print(f"[admin] list_users failed ({type(e).__name__}) → mode dégradé")
+        users = {}
+
+    rows = []
     for uname, u in users.items():
-        hist = get_history(uname); pl = get_plan(uname)
-        rows.append({"Utilisateur": uname, "Rôle": u.get("role","client"), "Plan": PLANS[pl]["name"] if pl != "free" else "Gratuit",
-        "Email": u.get("email") or "—", "Créé le": u.get("created_at","")[:10], "Analyses": len(hist),
-        "Temps (s)": round(sum(h.get("processing_time",0) for h in hist),1), "Statut": "Actif" if u.get("active", True) else "Suspendu"})
-    df_users = pd.DataFrame(rows); clients = {u: d for u, d in users.items() if d.get("role") != "admin"}
-    revenue = sum(PLANS[get_plan(u)]["monthly"] for u in users if get_plan(u) != "free")
-    tab_stats, tab_clients, tab_create, tab_msgs = st.tabs([T("tab_overview"),T("tab_clients"),T("tab_create"),T("tab_msgs")])
+        try:
+            hist = get_history(uname); pl = get_plan(uname)
+            rows.append({
+                "Utilisateur": uname,
+                "Rôle": u.get("role", "client"),
+                "Plan": PLANS[pl]["name"] if pl != "free" else "Gratuit",
+                "Email": u.get("email") or "—",
+                "Créé le": u.get("created_at", "")[:10],
+                "Analyses": len(hist),
+                "Temps (s)": round(sum(h.get("processing_time", 0) for h in hist), 1),
+                "Statut": "Actif" if u.get("active", True) else "Suspendu",
+            })
+        except Exception as e:
+            print(f"[admin] row build failed for {uname}: {e}")
+            continue
+
+    # ✅ DataFrame avec colonnes par défaut si vide (évite KeyError plus bas)
+    _cols = ["Utilisateur", "Rôle", "Plan", "Email", "Créé le", "Analyses", "Temps (s)", "Statut"]
+    df_users = pd.DataFrame(rows, columns=_cols) if rows else pd.DataFrame(columns=_cols)
+
+    clients = {u: d for u, d in users.items() if d.get("role") != "admin"}
+
+    # ── Revenus (tolérant DB down) ──
+    try:
+        revenue = sum(PLANS[get_plan(u)]["monthly"] for u in users if get_plan(u) != "free")
+    except Exception:
+        revenue = 0
+
+    # ── Indicateur mode dégradé ──
+    if not users:
+        st.warning("⚠️ Base de données indisponible — mode dégradé (aucun client chargé)")
+
+    tab_stats, tab_clients, tab_create, tab_msgs = st.tabs([
+        T("tab_overview"), T("tab_clients"), T("tab_create"), T("tab_msgs")
+    ])
     with tab_stats:
         c1,c2,c3,c4,c5 = st.columns(5)
-        c1.metric(T("accounts"), len(users)); c2.metric(T("total_analyses"), int(df_users["Analyses"].sum())); c3.metric(T("cum_time"), f"{df_users['Temps (s)'].sum():.0f} s")
+        _n_analyses = int(df_users["Analyses"].sum()) if "Analyses" in df_users.columns and not df_users.empty else 0
+        _total_time = df_users["Temps (s)"].sum() if "Temps (s)" in df_users.columns and not df_users.empty else 0
+        c1.metric(T("accounts"), len(users))
+        c2.metric(T("total_analyses"), _n_analyses)
+        c3.metric(T("cum_time"), f"{_total_time:.0f} s")
         c4.metric(T("paying"), sum(1 for u in users if get_plan(u) != "free")); c5.metric(T("rev_month"), f"${revenue:,.2f}")
         st.subheader(T("analyses_by_account")); st.bar_chart(pd.DataFrame({"Analyses": [len(get_history(u)) for u in users]}, index=list(users.keys())))
-        st.subheader(T("revenues")); revs = get_revenues(); gA, gB = st.columns(2)
+        st.subheader(T("revenues"))
+        try:
+            revs = get_revenues()
+        except Exception:
+            revs = []
+        gA, gB = st.columns(2)
         with gA:
             total_collected = sum(r["amount"] for r in revs); st.metric(T("total_collected"), f"${total_collected:,.2f}")
             if revs: daily = pd.DataFrame(revs).groupby("date")["amount"].sum(); st.bar_chart(daily); st.caption("—")
@@ -124,4 +168,3 @@ def render_admin():
     render_footer(compact=True)
     
 
-# ⚠️ render_register_wizard, render_login, render_register_page extraits dans src/pages/auth.py

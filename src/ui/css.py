@@ -883,6 +883,276 @@ body.dark [data-testid="stSelectbox"] > div > div {
 }
 html[data-theme="dark"] .g-h1, html[data-theme="dark"] .g-h2, html[data-theme="dark"] .g-kicker,
 body.dark .g-h1, body.dark .g-h2, body.dark .g-kicker { color: #F8FAFC !important; }
+
+/* ═══════════════════════════════════════════════════════════
+   SIDEBAR — Amélioration des textes (desktop + mobile)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Boutons sidebar — desktop */
+[data-testid="stSidebar"] .stButton > button {
+    min-height: 52px !important;
+    font-size: 1.02rem !important;
+    padding: 0.9rem 1.2rem !important;
+    font-weight: 700 !important;
+}
+
+[data-testid="stSidebar"] .stButton > button p,
+[data-testid="stSidebar"] .stButton > button span {
+    font-size: 1.02rem !important;
+    font-weight: 700 !important;
+}
+
+/* Brand et catégories */
+.qbrand {
+    font-size: 1.55rem !important;
+    padding: 0.4rem 0.6rem 1.2rem !important;
+}
+
+.qcap {
+    font-size: 0.82rem !important;
+    letter-spacing: 0.11em !important;
+    margin: 1.1rem 0.6rem 0.5rem !important;
+}
+
+.uname {
+    font-size: 1.05rem !important;
+}
+
+.tier-chip {
+    font-size: 0.68rem !important;
+    padding: 3px 10px !important;
+}
+
+.avatar {
+    width: 40px !important;
+    height: 40px !important;
+}
+
+/* Mobile — textes encore plus gros */
+@media (max-width: 768px) {
+    [data-testid="stSidebar"] .stButton > button {
+        min-height: 56px !important;
+        font-size: 1.08rem !important;
+        padding: 1rem 1.2rem !important;
+    }
+    [data-testid="stSidebar"] .stButton > button p,
+    [data-testid="stSidebar"] .stButton > button span {
+        font-size: 1.08rem !important;
+    }
+    .qbrand { font-size: 1.6rem !important; }
+    .qcap { font-size: 0.88rem !important; }
+    .uname { font-size: 1.12rem !important; }
+    .avatar { width: 44px !important; height: 44px !important; }
+}
+
+/* Très petits écrans */
+@media (max-width: 480px) {
+    [data-testid="stSidebar"] .stButton > button {
+        min-height: 58px !important;
+        font-size: 1.12rem !important;
+    }
+    [data-testid="stSidebar"] .stButton > button p,
+    [data-testid="stSidebar"] .stButton > button span {
+        font-size: 1.12rem !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE PUBLIC — Colonnes empilées + textes adaptés
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    /* ═══ Container : plein écran ═══ */
+    section.main > div.block-container,
+    div[data-testid="stMainBlockContainer"] {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        padding-top: 0.5rem !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    /* ═══ COLONNES : empilées verticalement ═══ */
+    div[data-testid="stHorizontalBlock"] {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 100% !important;
+    }
+
+    /* ═══ Hero : centré + compact ═══ */
+    .main-header {
+        border-radius: 20px !important;
+        padding: 1.8rem 1rem 1.6rem !important;
+        margin: 0.4rem 0 1.5rem !important;
+        text-align: center !important;
+    }
+    .main-header > div:first-child {
+        font-size: 1.5rem !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+    .main-header > div:nth-child(2) {
+        font-size: 0.95rem !important;
+    }
+
+    /* ═══ Titres : tailles adaptées ═══ */
+    .g-h1 {
+        font-size: clamp(1.8rem, 8vw, 2.4rem) !important;
+        line-height: 1.15 !important;
+    }
+    .g-h2 {
+        font-size: clamp(1.4rem, 6vw, 1.8rem) !important;
+    }
+    .g-lead {
+        font-size: 1rem !important;
+        line-height: 1.65 !important;
+    }
+
+    /* ═══ Stats : 2 colonnes max ═══ */
+    .g-stats {
+        flex-wrap: wrap !important;
+    }
+    .g-stat {
+        flex: 1 1 45% !important;
+        padding: 1rem 0.5rem !important;
+        border-left: none !important;
+        border-bottom: 1px solid rgba(128,128,128,.15) !important;
+    }
+    .g-stat b { font-size: 1.5rem !important; }
+
+    /* ═══ Grilles : 1 colonne ═══ */
+    .vs-feat-grid, .vs-testi-grid, .vs-value-grid, .vs-team-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+    }
+
+    /* ═══ Cartes : padding réduit ═══ */
+    .vs-feat, .vs-testi, .vs-value, .vs-team, .vs-insight,
+    .vs-section-card, .g-card, .kpi-card, .pay-panel {
+        padding: 1rem 0.9rem !important;
+        border-radius: 16px !important;
+    }
+
+    /* ═══ Boutons : pleine largeur ═══ */
+    .stButton > button, .stDownloadButton > button {
+        width: 100% !important;
+        min-height: 48px !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* ═══ CTA final : compact ═══ */
+    .g-cta {
+        padding: 2rem 1.2rem !important;
+        border-radius: 20px !important;
+    }
+    .g-cta h3 { font-size: 1.5rem !important; }
+
+    /* ═══ Footer : compact ═══ */
+    .footer-dark, .footer-compact {
+        border-radius: 18px !important;
+        padding: 1.5rem 1.2rem 1rem !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   USER MENU — user-card visible + popover transparent
+   ═══════════════════════════════════════════════════════════ */
+
+/* User-card : VISIBLE */
+.user-card-trigger {
+    position: relative !important;
+    z-index: 1 !important;
+    margin-bottom: -68px !important;
+    pointer-events: none !important;
+}
+
+/* Popover : wrapper transparent */
+div[data-testid="stPopover"] {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+/* Bouton : invisible MAIS garde les propriétés Streamlit */
+div[data-testid="stPopover"] > button {
+    width: 100% !important;
+    height: 68px !important;
+    min-height: 68px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 14px !important;
+    box-shadow: none !important;
+    opacity: 0 !important;
+    color: transparent !important;
+    font-size: 0 !important;
+    overflow: hidden !important;
+    cursor: pointer !important;
+}
+
+div[data-testid="stPopover"] > button:hover,
+div[data-testid="stPopover"] > button:focus {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* Le body du popover (menu ouvert) */
+div[data-testid="stPopoverBody"] {
+    background: #0f1a2e !important;
+    border: 1px solid rgba(46,109,180,.30) !important;
+    border-radius: 14px !important;
+    padding: 8px !important;
+    box-shadow: 0 16px 48px rgba(0,0,0,.45) !important;
+    animation: vsPopIn .22s cubic-bezier(.16,1,.3,1);
+    min-width: 220px !important;
+    margin-top: 6px !important;
+}
+
+@keyframes vsPopIn {
+    from { opacity: 0; transform: translateY(-8px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+div[data-testid="stPopoverBody"] button {
+    width: 100% !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 9px 12px !important;
+    font-size: .9rem !important;
+    color: #e6edf7 !important;
+    transition: all .15s ease !important;
+}
+
+div[data-testid="stPopoverBody"] button:hover {
+    background: rgba(46,109,180,.20) !important;
+    color: #ffffff !important;
+    padding-left: 16px !important;
+}
+
+div[data-testid="stPopoverBody"] hr {
+    border-color: rgba(128,128,128,.25) !important;
+    margin: 6px 4px !important;
+}
+
+[data-theme="light"] div[data-testid="stPopoverBody"] {
+    background: #ffffff !important;
+    border-color: rgba(46,109,180,.25) !important;
+}
+[data-theme="light"] div[data-testid="stPopoverBody"] button {
+    color: #1a2233 !important;
+}
 </style>
 """
 
