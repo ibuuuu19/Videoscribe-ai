@@ -132,7 +132,7 @@ def get_database_url():
 
 
 def get_connection():
-    """Connexion avec fallback pooler → direct."""
+    """Retourne une connexion PostgreSQL fraîche avec IPv4 forcé + retry."""
     import socket
     
     _orig = socket.getaddrinfo
@@ -140,36 +140,27 @@ def get_connection():
         return [a for a in _orig(host, *args, **kwargs) if a[0] == socket.AF_INET]
     
     url = get_database_url()
-    
-    # URLs alternatives à tester (fallback)
-    urls_to_try = [url]
-    
-    # Si c'est le pooler 6543, tester aussi le 5432 et le direct
-    if ":6543" in url:
-        urls_to_try.append(url.replace(":6543", ":5432"))
-    if "pooler.supabase.com" in url:
-        # host direct (si encore actif)
-        direct = url.replace("aws-0-eu-west-1.pooler.supabase.com", "db.cdgssmyhsyzapaaylsfp.supabase.co")
-        urls_to_try.append(direct)
-    
     last_err = None
-    socket.getaddrinfo = _ipv4_only
     
-    for i, try_url in enumerate(urls_to_try):
-        try:
-            conn = psycopg.connect(
-                try_url,
-                connect_timeout=15,
-                prepare_threshold=None,
-            )
-            print(f"[db] ✅ Connecté via URL #{i+1}")
-            return conn
-        except Exception as e:
-            last_err = e
-            print(f"[db] ❌ URL #{i+1} échouée: {type(e).__name__}")
-            continue
-    finally:                                # type: ignore
-        socket.getaddrinfo = _orig          # type: ignore
+    try:
+        socket.getaddrinfo = _ipv4_only
+        for attempt in range(2):
+            try:
+                conn = psycopg.connect(
+                    url,
+                    connect_timeout=10,
+                    prepare_threshold=None,
+                )
+                print(f"[db] ✅ Connexion OK (tentative {attempt+1})")
+                return conn
+            except Exception as e:
+                last_err = e
+                print(f"[db] ❌ Tentative {attempt+1} échouée: {type(e).__name__}")
+                if attempt == 0:
+                    import time
+                    time.sleep(0.5)
+    finally:
+        socket.getaddrinfo = _orig   # ← Toujours restaurer
     
     raise last_err        # type: ignore
 
