@@ -81,8 +81,7 @@ def register_user(username, password, email="", role="client"):
     _save_users(users)
     return True, "Compte créé avec succès !"
 
-
-def authenticate(username, password):
+def authenticate(username, password):  # type: ignore
     """Retourne (succès, rôle_ou_statut)."""
     users = _load_users()
     user = users.get(username.strip().lower())
@@ -183,7 +182,7 @@ if _use_database():
     
     ensure_admin = _db.ensure_admin
     register_user = _db.register_user  # type: ignore[assignment]
-    authenticate = _db.authenticate
+    authenticate = _db.authenticate    # type: ignore[assignment]
     list_users = _db.list_users
     delete_user = _db.delete_user
     set_active = _db.set_active

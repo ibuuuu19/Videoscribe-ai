@@ -206,7 +206,11 @@ def get_summarizer(model_key): return VideoSummarizer(MODELS[model_key], model_k
 
 st.set_page_config(page_title="VideoScribe AI", layout="wide",
 page_icon=str(LOGO_FILE) if LOGO_FILE.exists() else "🖊️")
-ensure_admin()
+try:
+    ensure_admin()
+except Exception as e:
+    print(f"[app] ensure_admin failed ({type(e).__name__}) → skip")
+    # Continue quand même (mode dégradé)
 
 
 # ═══ Détection du thème par défaut (cookie ou light) ═══
@@ -743,39 +747,40 @@ with st.sidebar:
         if role == "admin":
             if st.button(T("m_admin"), key="nav_admin", use_container_width=True, type="primary" if st.session_state.page == "admin" else "secondary"): st.session_state.page = "admin"; st.session_state.show_privacy = False; st.rerun()
         _av = get_avatar_b64(user); _av_html = f'<img src="{_av}" alt="">' if _av else user[:2].upper(); _th = st.session_state.theme
-        with st.container():
-            st.markdown(f"""<div class="user-card"><div class="user-row"><span class="avatar">{_av_html}</span><span class="uname">{user} <span class="tier-chip">{TIER_CHIP[tier]}</span></span><span class="chev">{ic("chev", 14)}</span></div></div>""", unsafe_allow_html=True)
-            if st.button(T("m_profile"), key="um_profil", use_container_width=True): st.session_state.update(page="profil"); st.rerun()
-            if st.button(T("m_settings"), key="um_config", use_container_width=True): st.session_state.update(page="config"); st.rerun()
-            if st.button(T("m_notifs"), key="um_notifs", use_container_width=True): st.session_state.update(page="notifs"); st.rerun()
-            st.markdown('<div class="um-sep"></div>', unsafe_allow_html=True)
-            if st.button(T("theme_to_light") if _th=="dark" else T("theme_to_dark"), key="um_theme", use_container_width=True): _toggle_theme()
-            st.markdown('<div class="um-sep"></div>', unsafe_allow_html=True)
-            if st.button(T("m_logout"), key="um_logout", use_container_width=True):
+
+        # ── 1. User-card HTML (rendu visuel) — SANS indentation dans le f-string ! ──
+        st.markdown(
+            f'<div class="user-card user-card-trigger">'
+            f'<div class="user-row">'
+            f'<span class="avatar">{_av_html}</span>'
+            f'<span class="uname">{user} <span class="tier-chip">{TIER_CHIP[tier]}</span></span>'
+            f'<span class="chev">{ic("chev", 14)}</span>'
+            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+        # ── 2. Popover invisible superposé (zone cliquable + menu) ──
+        with st.popover(" ", use_container_width=True):
+            if st.button(T('m_profile'), key="um_profil", use_container_width=True):
+                st.session_state.update(page="profil"); st.rerun()
+            if st.button(T('m_settings'), key="um_config", use_container_width=True):
+                st.session_state.update(page="config"); st.rerun()
+            if st.button(T('m_notifs'), key="um_notifs", use_container_width=True):
+                st.session_state.update(page="notifs"); st.rerun()
+            st.divider()
+            _theme_label = T("theme_to_light") if _th == "dark" else T("theme_to_dark")
+            if st.button(_theme_label, key="um_theme", use_container_width=True):
+                _toggle_theme()
+            st.divider()
+            if st.button(T('m_logout'), key="um_logout", use_container_width=True):
                 if st.session_state.get("token"):
                     try: delete_session(st.session_state.get("token"))
                     except Exception: pass
                 delete_cookie(COOKIE_NAME)
                 delete_cookie("ys_user")
                 delete_cookie("ys_theme")
-                # Force l'anti-reconnexion
                 st.session_state._logged_out = True
-                st.session_state.user = None
-                st.session_state.role = None
-                st.session_state.token = None
-                st.session_state.page = "contact"
-                st.session_state.show_privacy = False
-                _components.html("""<script>
-                try {
-                    document.cookie = "ys_token=; path=/; max-age=0; SameSite=Lax";
-                    document.cookie = "ys_user=; path=/; max-age=0; SameSite=Lax";
-                    if (window.parent && window.parent !== window) {
-                        window.parent.document.cookie = "ys_token=; path=/; max-age=0; SameSite=Lax";
-                        window.parent.document.cookie = "ys_user=; path=/; max-age=0; SameSite=Lax";
-                    }
-                } catch(e) {}
-                </script>""", height=0, width=0)
-                time.sleep(1)
                 st.rerun()
     else:
         _th = st.session_state.theme
@@ -825,26 +830,47 @@ _components.html(f"""<script>
 (function () {{
 var d = window.parent.document;
 var icons = {_js_icons};
+var observer = null;
+
 function decorate() {{
-d.querySelectorAll('[data-testid="stSidebar"] button, div[data-testid="stVerticalBlock"]:has(.setnav) button').forEach(function (b) {{
-var p = b.querySelector('p');
-if (!p || p.querySelector('.vs-ic')) return;
-var txt = (p.textContent || '').trim();
-for (var k in icons) {{ if (txt.indexOf(k) === 0) {{ p.insertAdjacentHTML('afterbegin', '<span class="vs-ic">' + icons[k] + '</span>'); return; }} }}
-}});
-d.querySelectorAll('[data-testid="stForm"] div, [data-testid="stForm"] span').forEach(function (el) {{
-if (el.childElementCount === 0 && el.textContent.trim() === 'Press Enter to submit form') el.style.display = 'none';
-}});
+    var selectors = '[data-testid="stSidebar"] button, div[data-testid="stVerticalBlock"]:has(.setnav) button, div[data-testid="stPopoverBody"] button';
+    d.querySelectorAll(selectors).forEach(function (b) {{
+        var p = b.querySelector('p');
+        if (!p || p.querySelector('.vs-ic')) return;
+        var txt = (p.textContent || '').trim();
+        for (var k in icons) {{ 
+            if (txt.indexOf(k) === 0) {{ 
+                p.insertAdjacentHTML('afterbegin', '<span class="vs-ic">' + icons[k] + '</span>'); 
+                return; 
+            }} 
+        }}
+    }});
+    d.querySelectorAll('[data-testid="stForm"] div, [data-testid="stForm"] span').forEach(function (el) {{
+        if (el.childElementCount === 0 && el.textContent.trim() === 'Press Enter to submit form') el.style.display = 'none';
+    }});
 }}
-// ✅ Limiter à 20 tentatives (10s max) au lieu d'un setInterval infini
+
+// ✅ MutationObserver : re-décorer à chaque changement DOM (ouverture popover, etc.)
+observer = new MutationObserver(function (mutations) {{
+    var needsDecorate = false;
+    for (var i = 0; i < mutations.length; i++) {{
+        var t = mutations[i].target;
+        if (t.closest && (t.closest('[data-testid="stPopoverBody"]') || t.closest('[data-testid="stSidebar"]'))) {{
+            needsDecorate = true; break;
+        }}
+    }}
+    if (needsDecorate) decorate();
+}});
+observer.observe(d.body, {{ childList: true, subtree: true }});
+
+// Premier passage immédiat
+decorate();
+// Puis relances rapides au démarrage
 var tries = 0;
-var maxTries = 20;
 function tryDecorate() {{
     decorate();
     tries++;
-    if (tries < maxTries) {{
-        setTimeout(tryDecorate, 500);
-    }}
+    if (tries < 20) setTimeout(tryDecorate, 500);
 }}
 tryDecorate();
 }})();

@@ -66,14 +66,18 @@ def _save_appearance():
 
 
 def _load_appearance(uname):
-    """Charge les préférences d'apparence d'un utilisateur."""
-    pr = get_prefs(uname)
-    st.session_state.cfg_lang = pr.get("lang", st.session_state.get("cfg_lang", "fr"))
-    st.session_state.cfg_accent = pr.get("accent", "#2E6DB4")
-    st.session_state.cfg_font_size = pr.get("font_size", 16)
+    """Charge les préférences d'apparence (avec fallback si DB down)."""
+    try:
+        pr = get_prefs(uname)
+    except Exception as e:
+        print(f"[prefs] _load_appearance failed ({type(e).__name__}) → défauts")
+        pr = {}
+
+    # Valeurs par défaut si rien trouvé
+    st.session_state.cfg_lang        = pr.get("lang", st.session_state.get("cfg_lang", "fr"))
+    st.session_state.cfg_accent      = pr.get("accent", "#2E6DB4")
+    st.session_state.cfg_font_size   = pr.get("font_size", 16)
     st.session_state.cfg_line_height = pr.get("line_height", 1.6)
-
-
 # ═══════════════════════════════════════════════════════════════
 # LANGUE
 # ═══════════════════════════════════════════════════════════════
@@ -88,22 +92,42 @@ def set_language(lang):
     st.rerun()
     
  # ═══════════════════════════════════════════════════════════════
-# WRAPPER : Délégation vers PostgreSQL si DATABASE_URL est défini
+# WRAPPER : Délégation PostgreSQL avec FALLBACK JSON
 # ═══════════════════════════════════════════════════════════════
+
 def _use_database():
     """Détecte si on doit utiliser PostgreSQL."""
     import os
     try:
-        import streamlit as st
         return bool(st.secrets.get("DATABASE_URL"))
     except Exception:
         return bool(os.environ.get("DATABASE_URL"))
 
 
 if _use_database():
-    # Délègue à la version PostgreSQL
-    # pylint: disable=redefined-outer-name
     import src.ui.prefs_db as _db
-    
-    get_prefs = _db.get_prefs
-    set_pref = _db.set_pref       # type: ignore[assignment] 
+
+    def _safe_get_prefs(uname):
+        """get_prefs avec fallback JSON si la DB est injoignable."""
+        if not uname:
+            return {}
+        try:
+            return _db.get_prefs(uname)
+        except Exception as e:
+            print(f"[prefs] DB get_prefs failed ({type(e).__name__}) → fallback JSON")
+            return _load_prefs().get(uname, {})
+
+    def _safe_set_pref(uname, key, val):
+        """set_pref avec fallback JSON si la DB est injoignable."""
+        try:
+            _db.set_pref(uname, key, val)
+        except Exception as e:
+            print(f"[prefs] DB set_pref failed ({type(e).__name__}) → fallback JSON")
+            allp = _load_prefs()
+            allp.setdefault(uname, {})[key] = val
+            p = _prefs_file()
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(json.dumps(allp, ensure_ascii=False), encoding="utf-8")
+
+    get_prefs = _safe_get_prefs
+    set_pref  = _safe_set_pref

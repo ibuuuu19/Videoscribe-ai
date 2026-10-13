@@ -52,31 +52,33 @@ def _row_to_user_dict(row):
     }
 
 
-# ═══ Initialisation ═══
 def ensure_admin():
-    """Crée le compte admin s'il n'existe pas."""
-    with db_cursor() as cur:
-        cur.execute("SELECT id FROM users WHERE username = %s", (ADMIN_USER,))
-        if cur.fetchone():
-            return  # Admin existe déjà
-        
-        salt = secrets.token_hex(16)
-        password_hash = _hash_password(ADMIN_PASS, salt)
-        cur.execute(
-            """
-            INSERT INTO users (username, email, salt, password_hash, role, active, plan)
-            VALUES (%s, %s, %s, %s, 'admin', TRUE, 'premium_plus')
-            """,
-            (ADMIN_USER, "contact@admin.com", salt, password_hash),
-        )
+    """Crée le compte admin s'il n'existe pas (tolérant aux pannes DB)."""
+    try:
+        with db_cursor() as cur:
+            cur.execute("SELECT id FROM users WHERE username = %s", (ADMIN_USER,))
+            if cur.fetchone():
+                return  # Admin existe déjà
 
+            salt = secrets.token_hex(16)
+            password_hash = _hash_password(ADMIN_PASS, salt)
+            cur.execute(
+                """
+                INSERT INTO users (username, email, salt, password_hash, role, active, plan)
+                VALUES (%s, %s, %s, %s, 'admin', TRUE, 'premium_plus')
+                """,
+                (ADMIN_USER, "contact@admin.com", salt, password_hash),
+            )
+    except Exception as e:
+        # DB down / cooldown → on continue en mode dégradé
+        print(f"[user_manager_db] ensure_admin failed ({type(e).__name__}: {e}) → skip")
+        return
 
 # ═══ CRUD ═══
 def register_user(username, password, email="", role="client"):
     """Crée un nouvel utilisateur."""
     uname = (username or "").strip().lower()
 
-    # Validations (identiques à la version JSON)
     if not uname or len(uname) < 3:
         return False, "Nom d'utilisateur invalide (3 caractères min)."
     if len(password) < 6:
@@ -87,7 +89,6 @@ def register_user(username, password, email="", role="client"):
 
     try:
         with db_cursor() as cur:
-            # Vérifier si existe déjà
             cur.execute("SELECT id FROM users WHERE username = %s", (uname,))
             if cur.fetchone():
                 return False, "Ce nom d'utilisateur existe déjà."
@@ -100,9 +101,10 @@ def register_user(username, password, email="", role="client"):
                 (uname, email or "", salt, password_hash, role),
             )
         return True, "Compte créé avec succès !"
+    except ConnectionError as e:
+        return False, "⚠️ Base de données indisponible — réessayez dans une minute."
     except Exception as e:
         return False, f"Erreur lors de la création : {e}"
-
 
 def authenticate(username, password):
     """Vérifie les credentials. Retourne (succès, rôle_ou_statut)."""
@@ -110,23 +112,28 @@ def authenticate(username, password):
     if not uname:
         return False, None
 
-    with db_cursor() as cur:
-        cur.execute(
-            "SELECT salt, password_hash, role, active FROM users WHERE username = %s",
-            (uname,),
-        )
-        row = cur.fetchone()
-        if not row:
+    try:
+        with db_cursor() as cur:
+            cur.execute(
+                "SELECT salt, password_hash, role, active FROM users WHERE username = %s",
+                (uname,),
+            )
+            row = cur.fetchone()
+            if not row:
+                return False, None
+            
+            salt, password_hash, role, active = row
+            if not active:
+                return False, "suspended"
+            
+            if _hash_password(password, salt) == password_hash:
+                return True, role or "client"
             return False, None
-        
-        salt, password_hash, role, active = row
-        if not active:
-            return False, "suspended"
-        
-        if _hash_password(password, salt) == password_hash:
-            return True, role or "client"
+    except ConnectionError:
+        return False, "db_unavailable"
+    except Exception as e:
+        print(f"[auth] Exception: {e}")
         return False, None
-
 
 def list_users():
     """Retourne tous les utilisateurs (format dict comme avant)."""
