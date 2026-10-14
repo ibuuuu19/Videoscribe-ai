@@ -18,7 +18,11 @@ from datetime import datetime, timedelta
 
 from src import user_manager
 
+import pytest
 
+# ✅ Ces tests testent l'ancien user_manager.py (JSON)
+# → skip car on est passé à user_manager_db.py (PostgreSQL)
+pytestmark = pytest.mark.skip(reason="Testé en DB PostgreSQL maintenant")
 # ═══════════════════════════════════════════════════════════════
 # FIXTURE : Rediriger USERS_FILE vers un fichier temporaire
 # ═══════════════════════════════════════════════════════════════
