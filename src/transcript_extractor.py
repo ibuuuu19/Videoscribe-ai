@@ -60,7 +60,7 @@ def get_transcript(video_id, languages=None, use_cache=True):
                 continue
         
         # Fallback : première langue disponible
-        transcript_list = api.list_transcripts(video_id)
+        transcript_list = api.list(video_id)
         for transcript in transcript_list:
             fetched = transcript.fetch()
             text = " ".join([t.text for t in fetched])
