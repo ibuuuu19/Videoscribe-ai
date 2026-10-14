@@ -29,4 +29,7 @@ tomli>=2.0.0
 
 # Data
 pandas>=2.0.0
-EOF
+EOFyt-dlp>=2024.0.0
+
+google-api-python-client>=2.100.0
+google-auth-httplib2>=0.1.1

@@ -227,7 +227,7 @@ for key, default in {"user": None, "role": None, "theme": _theme_default, "resul
 "reg_step": 1, "reg_code_sent": False, "reg_email_verified": False,
 "reg_msg": None, "last_qa": None, "quiz_score": None, "batch_urls": "", "share_link": None,
 "cfg_translate": True, "cfg_kw": True, "cfg_qa": True,
-"cfg_model": "rapide", "cfg_turbo": True,
+"cfg_model": "qualite", "cfg_turbo": True,
 "cfg_kw_n": 7, "cfg_q_n": 5, "cfg_chunk": 2800, "cfg_target": "fr",
 "cfg_font": "Manrope", "cfg_reduce_motion": False,
 "cfg_accent": "#2E6DB4", "cfg_font_size": 16, "cfg_line_height": 1.6,

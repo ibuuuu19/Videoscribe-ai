@@ -53,6 +53,9 @@ def _run_one(url_single, chunk_size, turbo, model_choice, translate_to_fr,
     if not video_id:
         return None
     transcript, lang = get_transcript(video_id)
+    # ✅ Nettoie les répétitions AVANT le résumé (sinon le modèle les recopie)
+    if transcript and not transcript.startswith("Error"):
+        transcript = remove_repetitions(transcript, threshold=0.75)
     if transcript.startswith("Error"):
         return None
     ch = chunk_text(transcript, chunk_size=chunk_size)
@@ -74,13 +77,15 @@ def _run_one(url_single, chunk_size, turbo, model_choice, translate_to_fr,
         )
         cache_notes.parent.mkdir(parents=True, exist_ok=True)
         cache_notes.write_text(json.dumps(notes, ensure_ascii=False), encoding="utf-8")
-    notes = [clean_summary(remove_repetitions(n)) for n in notes]
+    # ✅ Traduire D'ABORD
     if translate_to_fr:
         target = st.session_state.cfg_target if tier >= 3 else "fr"
-        # ✅ Filtrer les None après polish_translation
         translated = translate_texts(notes, src="en", dest=target)
         notes = [polish_translation(n) if n else n for n in translated]
-    kws = better_extract_keywords(transcript, top_n=num_keywords, lang=lang) if extract_kw else []
+
+    # ✅ Nettoyer ENSUITE (supprime les répétitions ajoutées par la traduction)
+    notes = [clean_summary(remove_repetitions(n)) for n in notes]
+    kws = better_extract_keywords(transcript, top_n=num_keywords, lang=lang or "fr")
     qs = better_generate_questions(
         notes, keywords=kws, n=num_questions,
         lang=st.session_state.get("cfg_lang", "fr")
@@ -453,6 +458,8 @@ def render_studio_page():
         video_id = extract_video_id(url_single)
         if not video_id: return None
         transcript, lang = get_transcript(video_id)
+        if transcript and not transcript.startswith("Error"):
+            transcript = remove_repetitions(transcript)
         if transcript.startswith("Error"): return None
         ch = chunk_text(transcript, chunk_size=chunk_size); work = ch
         if lang != "en": work = translate_texts(ch, src=lang, dest="en")
@@ -465,11 +472,12 @@ def render_studio_page():
             notes = summarizer.summarize_video(work, lambda i,t: None, batch_size=6, num_beams=beams)
             cache_notes.parent.mkdir(parents=True, exist_ok=True)
             cache_notes.write_text(json.dumps(notes, ensure_ascii=False), encoding="utf-8")
-        notes = [clean_summary(remove_repetitions(n)) for n in notes]
+        # ✅ Traduire D'ABORD
         if translate_to_fr:
             target = st.session_state.cfg_target if tier >= 3 else "fr"
             notes = [polish_translation(n) for n in translate_texts(notes, src="en", dest=target)]
-        kws = better_extract_keywords(transcript, top_n=num_keywords, lang=lang) if extract_kw else []
+        notes = [clean_summary(remove_repetitions(n)) for n in notes]
+        kws = better_extract_keywords(transcript, top_n=num_keywords, lang=lang or "fr")
         qs = better_generate_questions(notes, keywords=kws, n=num_questions, lang=st.session_state.get("cfg_lang","fr")) if generate_qa else []
         return {"video_id": video_id, "url": url_single, "date": datetime.now().strftime("%d/%m/%Y %H:%M"),
         "lang": lang or "unknown", "num_chunks": len(ch), "total_chars": len(transcript),
@@ -523,6 +531,8 @@ def render_studio_page():
         if tier < 2 and model_choice == "qualite": model_choice = "rapide"
         _step(ph_sub, "film", "Extraction des sous-titres", "run")
         transcript, lang = get_transcript(video_id)
+        if transcript and not transcript.startswith("Error"):
+            transcript = remove_repetitions(transcript)
         if transcript.startswith("Error"):
             low = transcript.lower()
             if "members-only" in low or "join this channel" in low: st.error("Vidéo réservée aux membres.")
@@ -568,14 +578,14 @@ def render_studio_page():
             cache_notes.parent.mkdir(parents=True, exist_ok=True)
             cache_notes.write_text(json.dumps(notes, ensure_ascii=False), encoding="utf-8")
             _step(ph_sum, "cpu", f"{len(notes)} sections générées", "ok")
-        notes = [clean_summary(remove_repetitions(n)) for n in notes]
         if translate_to_fr:
             target = st.session_state.cfg_target if tier >= 3 else "fr"
             _step(ph_tr, "lang", f"Traduction finale → {target.upper()}", "run")
             notes = [polish_translation(n) for n in translate_texts(notes, src="en", dest=target)]
             _step(ph_tr, "lang", f"Traduction finale → {target.upper()} OK", "ok")
+        notes = [clean_summary(remove_repetitions(n)) for n in notes]
         _step(ph_kw, "hash", "Extraction des mots-clés et questions", "run")
-        keywords = better_extract_keywords(transcript, top_n=num_keywords, lang=lang) if extract_kw else []
+        keywords = better_extract_keywords(transcript, top_n=num_keywords, lang=lang or "fr")
         questions = better_generate_questions(notes, keywords=keywords, n=num_questions, lang=st.session_state.get("cfg_lang","fr")) if generate_qa else []
         _step(ph_kw, "hash", f"{len(keywords)} mots-clés | {len(questions)} questions", "ok")
         elapsed = time.time() - start_time

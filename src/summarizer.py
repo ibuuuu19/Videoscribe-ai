@@ -55,33 +55,20 @@ class VideoSummarizer:
         progress_callback=None,
         batch_size=6,
         num_beams=2,
-        max_length=100,
+        max_length=180,
+        min_length=40,
         src_lang=None,
         translate_to_en=False,
     ):
         """
-        Résume une liste de chunks.
-
-        Args:
-            chunks: liste de chunks (str)
-            progress_callback: fn(current, total) pour la progression
-            batch_size: nombre de chunks par batch
-            num_beams: 1 (turbo) ou 2+ (qualité)
-            max_length: longueur max du résumé
-            src_lang: langue source (si traduction à la volée)
-            translate_to_en: si True, traduit chaque batch avant le résumé
+        Résume une liste de chunks (sans prompt — BART ignore les instructions).
         """
-        # Import différé pour éviter les dépendances circulaires
-               # Import différé (évite les dépendances circulaires)
-        # On l'importe TOUJOURS si translate_to_en, même si src_lang n'est pas encore vérifié
-        
         notes = []
 
         with torch.no_grad():
             for i in range(0, len(chunks), batch_size):
                 batch = list(chunks[i:i + batch_size])
 
-                # ⚡ Traduction à la volée (au lieu de tout traduire avant)
                 if translate_to_en and src_lang and src_lang != "en":
                     batch = translate_texts(batch, src=str(src_lang), dest="en")
 
@@ -96,10 +83,11 @@ class VideoSummarizer:
                 ids = self.model.generate(
                     **inputs,
                     max_length=max_length,
-                    min_length=20,
+                    min_length=min_length,
                     num_beams=num_beams,
-                    length_penalty=1.2,
-                    no_repeat_ngram_size=3,
+                    length_penalty=1.5,
+                    no_repeat_ngram_size=4,
+                    repetition_penalty=1.3,
                     early_stopping=True,
                 )
 
