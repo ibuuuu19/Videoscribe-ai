@@ -1062,15 +1062,15 @@ body.dark .g-h1, body.dark .g-h2, body.dark .g-kicker { color: #F8FAFC !importan
    USER MENU — user-card visible + popover transparent
    ═══════════════════════════════════════════════════════════ */
 
-/* User-card : VISIBLE */
+/* User-card : VISIBLE, prend la place, bien contrasté */
 .user-card-trigger {
     position: relative !important;
     z-index: 1 !important;
-    margin-bottom: -68px !important;
+    margin-bottom: -72px !important;
     pointer-events: none !important;
 }
 
-/* Popover : wrapper transparent */
+/* Popover : wrapper invisible */
 div[data-testid="stPopover"] {
     width: 100% !important;
     margin: 0 !important;
@@ -1079,11 +1079,11 @@ div[data-testid="stPopover"] {
     border: none !important;
 }
 
-/* Bouton : invisible MAIS garde les propriétés Streamlit */
+/* Bouton popover : invisible, hauteur ajustée */
 div[data-testid="stPopover"] > button {
     width: 100% !important;
-    height: 68px !important;
-    min-height: 68px !important;
+    height: 72px !important;
+    min-height: 72px !important;
     padding: 0 !important;
     background: transparent !important;
     background-color: transparent !important;
@@ -1146,13 +1146,55 @@ div[data-testid="stPopoverBody"] hr {
     margin: 6px 4px !important;
 }
 
+/* ═══ MODE CLAIR : menu blanc ═══ */
 [data-theme="light"] div[data-testid="stPopoverBody"] {
     background: #ffffff !important;
     border-color: rgba(46,109,180,.25) !important;
+    box-shadow: 0 16px 48px rgba(15,26,46,.15) !important;
 }
 [data-theme="light"] div[data-testid="stPopoverBody"] button {
     color: #1a2233 !important;
 }
+[data-theme="light"] div[data-testid="stPopoverBody"] button:hover {
+    background: rgba(46,109,180,.10) !important;
+    color: #2E6DB4 !important;
+}
+
+/* ═══ USER-CARD : mode clair mieux contrasté ═══ */
+[data-theme="light"] .user-card {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15,26,46,.12) !important;
+    box-shadow: 0 4px 16px rgba(15,26,46,.06) !important;
+}
+[data-theme="light"] .user-card .uname {
+    color: #0F1A2E !important;
+}
+[data-theme="light"] .user-card .tier-chip {
+    background: rgba(46,109,180,.12) !important;
+    color: #2E6DB4 !important;
+    border-color: rgba(46,109,180,.30) !important;
+}
+[data-theme="light"] .user-card .chev svg {
+    stroke: #4A5A7A !important;
+}
+
+/* ═══ USER-CARD : mode sombre ═══ */
+[data-theme="dark"] .user-card {
+    background: rgba(255,255,255,.04) !important;
+    border: 1px solid rgba(255,255,255,.10) !important;
+}
+[data-theme="dark"] .user-card .uname {
+    color: #F8FAFC !important;
+}
+[data-theme="dark"] .user-card .tier-chip {
+    background: rgba(46,109,180,.20) !important;
+    color: #93C5FD !important;
+    border-color: rgba(46,109,180,.40) !important;
+}
+[data-theme="dark"] .user-card .chev svg {
+    stroke: #94A3B8 !important;
+}
+
 </style>
 """
 
