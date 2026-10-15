@@ -1059,35 +1059,32 @@ body.dark .g-h1, body.dark .g-h2, body.dark .g-kicker { color: #F8FAFC !importan
 }
 
 /* ═══════════════════════════════════════════════════════════
-   USER MENU — Fusion parfaite (user-card = popover)
+   USER MENU — user-card visible + popover transparent
    ═══════════════════════════════════════════════════════════ */
 
-/* User-card : visible, fixe la hauteur */
+/* User-card : VISIBLE, prend la place, bien contrasté */
 .user-card-trigger {
     position: relative !important;
     z-index: 1 !important;
-    margin-bottom: -100% !important;   /* le popover remonte totalement dessus */
-    pointer-events: auto !important;
+    margin-bottom: -72px !important;
+    pointer-events: none !important;
 }
 
-/* Popover : wrapper qui vient se superposer EXACTEMENT */
+/* Popover : wrapper invisible */
 div[data-testid="stPopover"] {
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
-    position: relative !important;
-    z-index: 2 !important;
-    pointer-events: none !important;   /* laisse passer les clics SAUF sur le bouton */
+    background: transparent !important;
+    border: none !important;
 }
 
-/* Bouton popover : invisible MAIS cliquable, taille du user-card */
+/* Bouton popover : invisible, hauteur ajustée */
 div[data-testid="stPopover"] > button {
     width: 100% !important;
-    height: 58px !important;           /* même hauteur que le user-card */
-    min-height: 58px !important;
-    max-height: 58px !important;
+    height: 72px !important;
+    min-height: 72px !important;
     padding: 0 !important;
-    margin: 0 !important;
     background: transparent !important;
     background-color: transparent !important;
     border: none !important;
@@ -1097,45 +1094,32 @@ div[data-testid="stPopover"] > button {
     color: transparent !important;
     font-size: 0 !important;
     overflow: hidden !important;
-    pointer-events: auto !important;   /* ← CLICS capturés ICI */
     cursor: pointer !important;
 }
 
-/* Cache TOUT enfant du bouton (le " " du label) */
-div[data-testid="stPopover"] > button * {
-    display: none !important;
-    visibility: hidden !important;
-}
-
-/* Neutralise les états Streamlit par défaut */
 div[data-testid="stPopover"] > button:hover,
-div[data-testid="stPopover"] > button:focus,
-div[data-testid="stPopover"] > button:active {
+div[data-testid="stPopover"] > button:focus {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     transform: none !important;
-    outline: none !important;
 }
 
-/* Supprime le wrapper Streamlit au-dessus du bouton */
-div[data-testid="stPopover"] > div:first-child {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: transparent !important;
-    border: none !important;
-}
-
-/* Le body (menu ouvert) */
+/* Le body du popover (menu ouvert) */
 div[data-testid="stPopoverBody"] {
     background: #0f1a2e !important;
     border: 1px solid rgba(46,109,180,.30) !important;
     border-radius: 14px !important;
     padding: 8px !important;
     box-shadow: 0 16px 48px rgba(0,0,0,.45) !important;
+    animation: vsPopIn .22s cubic-bezier(.16,1,.3,1);
     min-width: 220px !important;
     margin-top: 6px !important;
-    z-index: 9999 !important;
+}
+
+@keyframes vsPopIn {
+    from { opacity: 0; transform: translateY(-8px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 div[data-testid="stPopoverBody"] button {
@@ -1148,6 +1132,7 @@ div[data-testid="stPopoverBody"] button {
     padding: 9px 12px !important;
     font-size: .9rem !important;
     color: #e6edf7 !important;
+    transition: all .15s ease !important;
 }
 
 div[data-testid="stPopoverBody"] button:hover {
@@ -1161,32 +1146,11 @@ div[data-testid="stPopoverBody"] hr {
     margin: 6px 4px !important;
 }
 
-/* ═══ MODE CLAIR ═══ */
-[data-theme="light"] .user-card {
-    background: #FFFFFF !important;
-    border: 1px solid rgba(15,26,46,.12) !important;
-    box-shadow: 0 4px 16px rgba(15,26,46,.08) !important;
-}
-[data-theme="light"] .user-card:hover {
-    background: #F8FAFC !important;
-    border-color: rgba(46,109,180,.30) !important;
-    box-shadow: 0 8px 24px rgba(46,109,180,.15) !important;
-    transform: translateY(-1px);
-}
-[data-theme="light"] .user-card .uname {
-    color: #0F1A2E !important;
-}
-[data-theme="light"] .user-card .tier-chip {
-    background: linear-gradient(135deg, rgba(46,109,180,.15), rgba(46,109,180,.08)) !important;
-    color: #2E6DB4 !important;
-    border: 1px solid rgba(46,109,180,.35) !important;
-}
-[data-theme="light"] .user-card .chev svg {
-    stroke: #4A5A7A !important;
-}
+/* ═══ MODE CLAIR : menu blanc ═══ */
 [data-theme="light"] div[data-testid="stPopoverBody"] {
     background: #ffffff !important;
     border-color: rgba(46,109,180,.25) !important;
+    box-shadow: 0 16px 48px rgba(15,26,46,.15) !important;
 }
 [data-theme="light"] div[data-testid="stPopoverBody"] button {
     color: #1a2233 !important;
@@ -1196,26 +1160,41 @@ div[data-testid="stPopoverBody"] hr {
     color: #2E6DB4 !important;
 }
 
-/* ═══ MODE SOMBRE ═══ */
-[data-theme="dark"] .user-card {
-    background: rgba(255,255,255,.05) !important;
-    border: 1px solid rgba(255,255,255,.12) !important;
+/* ═══ USER-CARD : mode clair mieux contrasté ═══ */
+[data-theme="light"] .user-card {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15,26,46,.12) !important;
+    box-shadow: 0 4px 16px rgba(15,26,46,.06) !important;
 }
-[data-theme="dark"] .user-card:hover {
-    background: rgba(46,109,180,.10) !important;
-    border-color: rgba(46,109,180,.35) !important;
+[data-theme="light"] .user-card .uname {
+    color: #0F1A2E !important;
+}
+[data-theme="light"] .user-card .tier-chip {
+    background: rgba(46,109,180,.12) !important;
+    color: #2E6DB4 !important;
+    border-color: rgba(46,109,180,.30) !important;
+}
+[data-theme="light"] .user-card .chev svg {
+    stroke: #4A5A7A !important;
+}
+
+/* ═══ USER-CARD : mode sombre ═══ */
+[data-theme="dark"] .user-card {
+    background: rgba(255,255,255,.04) !important;
+    border: 1px solid rgba(255,255,255,.10) !important;
 }
 [data-theme="dark"] .user-card .uname {
     color: #F8FAFC !important;
 }
 [data-theme="dark"] .user-card .tier-chip {
-    background: linear-gradient(135deg, rgba(46,109,180,.25), rgba(46,109,180,.15)) !important;
+    background: rgba(46,109,180,.20) !important;
     color: #93C5FD !important;
-    border: 1px solid rgba(46,109,180,.45) !important;
+    border-color: rgba(46,109,180,.40) !important;
 }
 [data-theme="dark"] .user-card .chev svg {
     stroke: #94A3B8 !important;
 }
+
 </style>
 """
 
