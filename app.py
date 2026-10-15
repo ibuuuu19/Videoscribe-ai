@@ -830,49 +830,60 @@ _components.html(f"""<script>
 (function () {{
 var d = window.parent.document;
 var icons = {_js_icons};
-var observer = null;
 
 function decorate() {{
-    var selectors = '[data-testid="stSidebar"] button, div[data-testid="stVerticalBlock"]:has(.setnav) button, div[data-testid="stPopoverBody"] button';
-    d.querySelectorAll(selectors).forEach(function (b) {{
-        var p = b.querySelector('p');
-        if (!p || p.querySelector('.vs-ic')) return;
-        var txt = (p.textContent || '').trim();
-        for (var k in icons) {{ 
-            if (txt.indexOf(k) === 0) {{ 
-                p.insertAdjacentHTML('afterbegin', '<span class="vs-ic">' + icons[k] + '</span>'); 
-                return; 
-            }} 
-        }}
-    }});
-    d.querySelectorAll('[data-testid="stForm"] div, [data-testid="stForm"] span').forEach(function (el) {{
-        if (el.childElementCount === 0 && el.textContent.trim() === 'Press Enter to submit form') el.style.display = 'none';
-    }});
-}}
-
-// ✅ MutationObserver : re-décorer à chaque changement DOM (ouverture popover, etc.)
-observer = new MutationObserver(function (mutations) {{
-    var needsDecorate = false;
-    for (var i = 0; i < mutations.length; i++) {{
-        var t = mutations[i].target;
-        if (t.closest && (t.closest('[data-testid="stPopoverBody"]') || t.closest('[data-testid="stSidebar"]'))) {{
-            needsDecorate = true; break;
-        }}
+    try {{
+        var selectors = '[data-testid="stSidebar"] button, div[data-testid="stVerticalBlock"]:has(.setnav) button, div[data-testid="stPopoverBody"] button';
+        d.querySelectorAll(selectors).forEach(function (b) {{
+            try {{
+                var p = b.querySelector('p');
+                if (!p || p.querySelector('.vs-ic')) return;
+                var txt = (p.textContent || '').trim();
+                for (var k in icons) {{ 
+                    if (txt.indexOf(k) === 0) {{ 
+                        var span = d.createElement('span');
+                        span.className = 'vs-ic';
+                        span.innerHTML = icons[k];
+                        p.insertBefore(span, p.firstChild);
+                        return; 
+                    }} 
+                }}
+            }} catch (e) {{
+                // Ignore silencieusement les erreurs par élément
+            }}
+        }});
+        // Cache le "Press Enter to submit form" résiduel
+        try {{
+            d.querySelectorAll('[data-testid="stForm"] div, [data-testid="stForm"] span').forEach(function (el) {{
+                if (el.childElementCount === 0 && el.textContent.trim() === 'Press Enter to submit form') {{
+                    el.style.display = 'none';
+                }}
+            }});
+        }} catch (e) {{}}
+    }} catch (e) {{
+        console.warn('[vs-ic] decorate error:', e);
     }}
-    if (needsDecorate) decorate();
-}});
-observer.observe(d.body, {{ childList: true, subtree: true }});
-
-// Premier passage immédiat
-decorate();
-// Puis relances rapides au démarrage
-var tries = 0;
-function tryDecorate() {{
-    decorate();
-    tries++;
-    if (tries < 20) setTimeout(tryDecorate, 500);
 }}
-tryDecorate();
+
+// ✅ MutationObserver AVEC debounce pour éviter les conflits React
+var _decorateTimer = null;
+var observer = new MutationObserver(function () {{
+    if (_decorateTimer) clearTimeout(_decorateTimer);
+    _decorateTimer = setTimeout(function() {{
+        decorate();
+    }}, 200);  // debounce 200ms
+}});
+
+try {{
+    observer.observe(d.body, {{ childList: true, subtree: true }});
+}} catch (e) {{
+    console.warn('[vs-ic] observer error:', e);
+}}
+
+// Premier passage
+setTimeout(decorate, 300);
+setTimeout(decorate, 800);
+setTimeout(decorate, 1500);
 }})();
 </script>""", height=0, width=0)
 
