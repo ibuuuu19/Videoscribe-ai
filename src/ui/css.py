@@ -1146,42 +1146,92 @@ div[data-testid="stPopoverBody"] hr {
     margin: 6px 4px !important;
 }
 
-/* ═══ MODE CLAIR : menu blanc ═══ */
-[data-theme="light"] div[data-testid="stPopoverBody"] {
-    background: #ffffff !important;
-    border-color: rgba(46,109,180,.25) !important;
-    box-shadow: 0 16px 48px rgba(15,26,46,.15) !important;
-}
-[data-theme="light"] div[data-testid="stPopoverBody"] button {
-    color: #1a2233 !important;
-}
-[data-theme="light"] div[data-testid="stPopoverBody"] button:hover {
-    background: rgba(46,109,180,.10) !important;
-    color: #2E6DB4 !important;
+/* ═══════════════════════════════════════════════════════════
+   MODE CLAIR — Polish (user-card + popover blancs)
+   ═══════════════════════════════════════════════════════════ */
+
+/* User-card en light : blanc pur + bordure fine + ombre douce */
+[data-theme="light"] .user-card,
+html[data-theme="light"] .user-card {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15,26,46,.10) !important;
+    box-shadow: 0 2px 8px rgba(15,26,46,.06), 0 1px 2px rgba(15,26,46,.04) !important;
+    transition: all .25s cubic-bezier(.16,1,.3,1) !important;
 }
 
-/* ═══ USER-CARD : mode clair mieux contrasté ═══ */
-[data-theme="light"] .user-card {
-    background: #FFFFFF !important;
-    border: 1px solid rgba(15,26,46,.12) !important;
-    box-shadow: 0 4px 16px rgba(15,26,46,.06) !important;
+[data-theme="light"] .user-card:hover,
+html[data-theme="light"] .user-card:hover {
+    background: #F8FAFC !important;
+    border-color: rgba(46,109,180,.25) !important;
+    box-shadow: 0 6px 20px rgba(46,109,180,.12) !important;
+    transform: translateY(-1px);
 }
+
 [data-theme="light"] .user-card .uname {
     color: #0F1A2E !important;
-}
-[data-theme="light"] .user-card .tier-chip {
-    background: rgba(46,109,180,.12) !important;
-    color: #2E6DB4 !important;
-    border-color: rgba(46,109,180,.30) !important;
-}
-[data-theme="light"] .user-card .chev svg {
-    stroke: #4A5A7A !important;
+    font-weight: 700 !important;
 }
 
-/* ═══ USER-CARD : mode sombre ═══ */
-[data-theme="dark"] .user-card {
+[data-theme="light"] .user-card .tier-chip {
+    background: linear-gradient(135deg, rgba(46,109,180,.15), rgba(46,109,180,.08)) !important;
+    color: #2E6DB4 !important;
+    border: 1px solid rgba(46,109,180,.30) !important;
+    font-weight: 800 !important;
+}
+
+[data-theme="light"] .user-card .chev svg {
+    stroke: #64748B !important;
+    opacity: .8 !important;
+}
+
+/* Popover body en light : fond blanc + ombre propre */
+[data-theme="light"] div[data-testid="stPopoverBody"],
+html[data-theme="light"] div[data-testid="stPopoverBody"] {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15,26,46,.10) !important;
+    border-radius: 14px !important;
+    box-shadow:
+        0 1px 3px rgba(15,26,46,.06),
+        0 10px 32px rgba(15,26,46,.10) !important;
+}
+
+[data-theme="light"] div[data-testid="stPopoverBody"] button {
+    color: #0F1A2E !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="light"] div[data-testid="stPopoverBody"] button:hover {
+    background: rgba(46,109,180,.08) !important;
+    color: #2E6DB4 !important;
+    padding-left: 16px !important;
+}
+
+/* Icônes du menu en light : gris → bleu au hover */
+[data-theme="light"] div[data-testid="stPopoverBody"] button svg {
+    color: #64748B !important;
+    stroke: #64748B !important;
+}
+[data-theme="light"] div[data-testid="stPopoverBody"] button:hover svg {
+    color: #2E6DB4 !important;
+    stroke: #2E6DB4 !important;
+}
+
+[data-theme="light"] div[data-testid="stPopoverBody"] hr {
+    border-color: rgba(15,26,46,.08) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODE SOMBRE — (inchangé, garde le style existant)
+   ═══════════════════════════════════════════════════════════ */
+
+[data-theme="dark"] .user-card,
+html[data-theme="dark"] .user-card {
     background: rgba(255,255,255,.04) !important;
     border: 1px solid rgba(255,255,255,.10) !important;
+}
+[data-theme="dark"] .user-card:hover {
+    background: rgba(46,109,180,.10) !important;
+    border-color: rgba(46,109,180,.35) !important;
 }
 [data-theme="dark"] .user-card .uname {
     color: #F8FAFC !important;
