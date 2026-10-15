@@ -1059,139 +1059,85 @@ body.dark .g-h1, body.dark .g-h2, body.dark .g-kicker { color: #F8FAFC !importan
 }
 
 /* ═══════════════════════════════════════════════════════════
-   USER MENU — user-card visible + popover transparent
+   USER-CARD — Mode CLAIR amélioré
    ═══════════════════════════════════════════════════════════ */
 
-/* User-card : VISIBLE, prend la place, bien contrasté */
-.user-card-trigger {
-    position: relative !important;
-    z-index: 1 !important;
-    margin-bottom: -72px !important;
-    pointer-events: none !important;
-}
-
-/* Popover : wrapper invisible */
-div[data-testid="stPopover"] {
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: transparent !important;
-    border: none !important;
-}
-
-/* Bouton popover : invisible, hauteur ajustée */
-div[data-testid="stPopover"] > button {
-    width: 100% !important;
-    height: 72px !important;
-    min-height: 72px !important;
-    padding: 0 !important;
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
-    border-radius: 14px !important;
-    box-shadow: none !important;
-    opacity: 0 !important;
-    color: transparent !important;
-    font-size: 0 !important;
-    overflow: hidden !important;
-    cursor: pointer !important;
-}
-
-div[data-testid="stPopover"] > button:hover,
-div[data-testid="stPopover"] > button:focus {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    transform: none !important;
-}
-
-/* Le body du popover (menu ouvert) */
-div[data-testid="stPopoverBody"] {
-    background: #0f1a2e !important;
-    border: 1px solid rgba(46,109,180,.30) !important;
-    border-radius: 14px !important;
-    padding: 8px !important;
-    box-shadow: 0 16px 48px rgba(0,0,0,.45) !important;
-    animation: vsPopIn .22s cubic-bezier(.16,1,.3,1);
-    min-width: 220px !important;
-    margin-top: 6px !important;
-}
-
-@keyframes vsPopIn {
-    from { opacity: 0; transform: translateY(-8px) scale(.97); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-div[data-testid="stPopoverBody"] button {
-    width: 100% !important;
-    text-align: left !important;
-    justify-content: flex-start !important;
-    background: transparent !important;
-    border: none !important;
-    border-radius: 8px !important;
-    padding: 9px 12px !important;
-    font-size: .9rem !important;
-    color: #e6edf7 !important;
-    transition: all .15s ease !important;
-}
-
-div[data-testid="stPopoverBody"] button:hover {
-    background: rgba(46,109,180,.20) !important;
-    color: #ffffff !important;
-    padding-left: 16px !important;
-}
-
-div[data-testid="stPopoverBody"] hr {
-    border-color: rgba(128,128,128,.25) !important;
-    margin: 6px 4px !important;
-}
-
-/* ═══ MODE CLAIR : menu blanc ═══ */
-[data-theme="light"] div[data-testid="stPopoverBody"] {
-    background: #ffffff !important;
-    border-color: rgba(46,109,180,.25) !important;
-    box-shadow: 0 16px 48px rgba(15,26,46,.15) !important;
-}
-[data-theme="light"] div[data-testid="stPopoverBody"] button {
-    color: #1a2233 !important;
-}
-[data-theme="light"] div[data-testid="stPopoverBody"] button:hover {
-    background: rgba(46,109,180,.10) !important;
-    color: #2E6DB4 !important;
-}
-
-/* ═══ USER-CARD : mode clair mieux contrasté ═══ */
-[data-theme="light"] .user-card {
+[data-theme="light"] .user-card,
+html[data-theme="light"] .user-card,
+body:not(.dark) .user-card {
     background: #FFFFFF !important;
     border: 1px solid rgba(15,26,46,.12) !important;
-    box-shadow: 0 4px 16px rgba(15,26,46,.06) !important;
-}
-[data-theme="light"] .user-card .uname {
-    color: #0F1A2E !important;
-}
-[data-theme="light"] .user-card .tier-chip {
-    background: rgba(46,109,180,.12) !important;
-    color: #2E6DB4 !important;
-    border-color: rgba(46,109,180,.30) !important;
-}
-[data-theme="light"] .user-card .chev svg {
-    stroke: #4A5A7A !important;
+    box-shadow: 0 4px 16px rgba(15,26,46,.08) !important;
+    transition: all .25s ease !important;
 }
 
-/* ═══ USER-CARD : mode sombre ═══ */
-[data-theme="dark"] .user-card {
-    background: rgba(255,255,255,.04) !important;
-    border: 1px solid rgba(255,255,255,.10) !important;
+[data-theme="light"] .user-card:hover,
+html[data-theme="light"] .user-card:hover,
+body:not(.dark) .user-card:hover {
+    background: #F8FAFC !important;
+    border-color: rgba(46,109,180,.30) !important;
+    box-shadow: 0 8px 24px rgba(46,109,180,.15) !important;
+    transform: translateY(-1px);
 }
-[data-theme="dark"] .user-card .uname {
+
+[data-theme="light"] .user-card .uname,
+html[data-theme="light"] .user-card .uname,
+body:not(.dark) .user-card .uname {
+    color: #0F1A2E !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .user-card .tier-chip,
+html[data-theme="light"] .user-card .tier-chip,
+body:not(.dark) .user-card .tier-chip {
+    background: linear-gradient(135deg, rgba(46,109,180,.15), rgba(46,109,180,.08)) !important;
+    color: #2E6DB4 !important;
+    border: 1px solid rgba(46,109,180,.35) !important;
+    font-weight: 800 !important;
+}
+
+[data-theme="light"] .user-card .chev svg,
+html[data-theme="light"] .user-card .chev svg,
+body:not(.dark) .user-card .chev svg {
+    stroke: #4A5A7A !important;
+    opacity: .7 !important;
+}
+
+[data-theme="light"] .user-card .avatar,
+html[data-theme="light"] .user-card .avatar,
+body:not(.dark) .user-card .avatar {
+    box-shadow: 0 4px 12px rgba(46,109,180,.20) !important;
+}
+
+/* ═══ Mode SOMBRE — garde l'existant + polish ═══ */
+[data-theme="dark"] .user-card,
+html[data-theme="dark"] .user-card {
+    background: rgba(255,255,255,.05) !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,.20) !important;
+}
+
+[data-theme="dark"] .user-card:hover,
+html[data-theme="dark"] .user-card:hover {
+    background: rgba(46,109,180,.10) !important;
+    border-color: rgba(46,109,180,.35) !important;
+    transform: translateY(-1px);
+}
+
+[data-theme="dark"] .user-card .uname,
+html[data-theme="dark"] .user-card .uname {
     color: #F8FAFC !important;
 }
-[data-theme="dark"] .user-card .tier-chip {
-    background: rgba(46,109,180,.20) !important;
+
+[data-theme="dark"] .user-card .tier-chip,
+html[data-theme="dark"] .user-card .tier-chip {
+    background: linear-gradient(135deg, rgba(46,109,180,.25), rgba(46,109,180,.15)) !important;
     color: #93C5FD !important;
-    border-color: rgba(46,109,180,.40) !important;
+    border: 1px solid rgba(46,109,180,.45) !important;
 }
-[data-theme="dark"] .user-card .chev svg {
+
+[data-theme="dark"] .user-card .chev svg,
+html[data-theme="dark"] .user-card .chev svg {
     stroke: #94A3B8 !important;
 }
 
