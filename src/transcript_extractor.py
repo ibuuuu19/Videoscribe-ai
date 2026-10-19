@@ -121,7 +121,6 @@ def _try_youtube_api(video_id, languages):
 # ═══════════════════════════════════════════════════════════════
 # MOTEUR 1 : youtube-transcript-api
 # ═══════════════════════════════════════════════════════════════
-
 def _try_transcript_api(video_id, languages):
     try:
         from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, TranscriptsDisabled
@@ -139,11 +138,25 @@ def _try_transcript_api(video_id, languages):
             except NoTranscriptFound:
                 continue
         return None, None, "Aucun sous-titre trouvé"
+
     except TranscriptsDisabled:
         return None, None, "Sous-titres désactivés"
     except Exception as e:
-        return None, None, f"{type(e).__name__}: {str(e)[:150]}"
+        err_name = type(e).__name__
+        err_msg = str(e).lower()
 
+        if "ipblock" in err_name.lower() or "ipblocked" in err_msg:
+            return None, None, "YOUTUBE_BLOCKED"
+        if "429" in err_msg or "too many requests" in err_msg:
+            return None, None, "YOUTUBE_RATE_LIMIT"
+        if "resolve" in err_msg or "nodename" in err_msg:
+            return None, None, "NETWORK_DNS"
+        if "timeout" in err_msg or "timed out" in err_msg:
+            return None, None, "NETWORK_TIMEOUT"
+        if "connection" in err_msg or "connectionpool" in err_msg:
+            return None, None, "NETWORK_CONNECTION"
+
+        return None, None, f"{err_name}: {str(e)[:150]}"
 
 # ═══════════════════════════════════════════════════════════════
 # MOTEUR 2 : yt-dlp
@@ -202,52 +215,99 @@ def _try_ytdlp(video_id, languages):
         'skip_download': True,
         'writesubtitles': True,
         'writeautomaticsub': True,
-        'subtitleslangs': languages,
+        'subtitleslangs': languages + ['en'],
+        'subtitlesformat': 'json3/vtt/best',
         'quiet': True,
         'no_warnings': True,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android_vr', 'web_safari', 'tv'],
+                'skip': ['hls', 'dash'],
+            }
+        },
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        },
+        'socket_timeout': 15,
     }
 
+    # ✅ Cookies si dispo
+    import os
+    from pathlib import Path
+    for cookie_file in [os.environ.get('YTDLP_COOKIES', ''), 'youtube-cookies.txt']:
+        if cookie_file and Path(cookie_file).exists():
+            ydl_opts['cookiefile'] = cookie_file
+            print(f"[transcript] 🍪 Cookies: {cookie_file}")
+            break
+
     try:
-        from typing import Any, cast
-        with yt_dlp.YoutubeDL(cast(Any, ydl_opts)) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-            all_subs = {**(info.get('subtitles') or {}), **(info.get('automatic_captions') or {})}
+            subs = info.get('subtitles', {}) or {}
+            auto_subs = info.get('automatic_captions', {}) or {}
+            all_subs = {**subs, **auto_subs}
+
             if not all_subs:
                 return None, None, "Aucun sous-titre disponible"
 
             priority = [l for l in languages if l in all_subs]
             others = [l for l in all_subs if l not in priority]
-            for lang in priority + others:
-                for t in all_subs[lang]:
+            ordered = priority + others
+
+            for lang in ordered:
+                tracks = all_subs[lang]
+                for t in tracks:
                     if t.get('ext') == 'json3':
                         text = _extract_text_from_json3(t['url'])
                         if text and len(text) > 50:
                             return text, lang, None
-                for t in all_subs[lang]:
+                for t in tracks:
                     if t.get('ext') == 'vtt':
                         text = _extract_text_from_vtt(t['url'])
                         if text and len(text) > 50:
                             return text, lang, None
+
         return None, None, "Aucune piste exploitable"
+
+    # ✅ NOUVEAU : capture les erreurs réseau proprement
     except Exception as e:
-        return None, None, f"{type(e).__name__}: {str(e)[:150]}"
+        err_name = type(e).__name__
+        err_msg = str(e).lower()
 
+        if "resolve" in err_msg or "nodename" in err_msg or "name or service" in err_msg:
+            return None, None, "NETWORK_DNS"
+        if "timeout" in err_msg or "timed out" in err_msg:
+            return None, None, "NETWORK_TIMEOUT"
+        if "connection" in err_msg or "connectionpool" in err_msg:
+            return None, None, "NETWORK_CONNECTION"
+        if "sign in to confirm" in err_msg or "bot" in err_msg:
+            return None, None, "YOUTUBE_BLOCKED"
+        if "429" in err_msg or "too many requests" in err_msg:
+            return None, None, "YOUTUBE_RATE_LIMIT"
 
+        # Erreur générique
+        return None, None, f"{err_name}: {str(e)[:150]}"
+    
 # ═══════════════════════════════════════════════════════════════
 # FONCTION PRINCIPALE
 # ═══════════════════════════════════════════════════════════════
-
 def get_transcript(video_id, languages=None, use_cache=True):
-    """Récupère les sous-titres (3 moteurs en cascade)."""
+    """
+    Récupère les sous-titres (3 moteurs en cascade).
+    Returns: (text, lang) si succès, (error_msg, None) si échec.
+    """
     if languages is None:
         languages = ['fr', 'en', 'es', 'de', 'it', 'pt']
 
+    # Cache
     if use_cache:
         text, lang = _load_cache(video_id, languages)
         if text:
             return text, lang
 
-    # Moteur 0 : API YouTube officielle
+    errors = {}
+
+    # ── Moteur 1 : API YouTube v3 ──
     print("[transcript] Tentative API YouTube officielle...")
     text, lang, err = _try_youtube_api(video_id, languages)
     if text:
@@ -255,9 +315,10 @@ def get_transcript(video_id, languages=None, use_cache=True):
         if use_cache:
             _save_cache(video_id, lang, text)
         return text, lang
+    errors['api'] = err
     print(f"[transcript] ❌ API YouTube: {err}")
 
-    # Moteur 1 : youtube-transcript-api
+    # ── Moteur 2 : youtube-transcript-api ──
     print("[transcript] Tentative youtube-transcript-api...")
     text, lang, err2 = _try_transcript_api(video_id, languages)
     if text:
@@ -265,9 +326,10 @@ def get_transcript(video_id, languages=None, use_cache=True):
         if use_cache:
             _save_cache(video_id, lang, text)
         return text, lang
+    errors['transcript_api'] = err2
     print(f"[transcript] ❌ youtube-transcript-api: {err2}")
 
-    # Moteur 2 : yt-dlp
+    # ── Moteur 3 : yt-dlp ──
     print("[transcript] Tentative yt-dlp...")
     text, lang, err3 = _try_ytdlp(video_id, languages)
     if text:
@@ -275,6 +337,25 @@ def get_transcript(video_id, languages=None, use_cache=True):
         if use_cache:
             _save_cache(video_id, lang, text)
         return text, lang
+    errors['ytdlp'] = err3
     print(f"[transcript] ❌ yt-dlp: {err3}")
 
-    return f"Error: {err} | {err2} | {err3}", None
+    # ── Toutes les erreurs ──
+    # Si c'est un problème réseau → message clair
+    all_errors = " ".join(str(v) for v in errors.values() if v)
+
+    if "NETWORK_DNS" in all_errors:
+        return "Error: Impossible de joindre YouTube. Vérifiez votre connexion internet.", None
+    if "NETWORK_TIMEOUT" in all_errors:
+        return "Error: YouTube ne répond pas. Réessayez dans quelques minutes.", None
+    if "NETWORK_CONNECTION" in all_errors:
+        return "Error: Problème de connexion réseau. Vérifiez votre WiFi/VPN.", None
+    if "YOUTUBE_RATE_LIMIT" in all_errors:
+        return "Error: YouTube a temporairement bloqué les requêtes. Réessayez dans 15-30 min.", None
+    if "YOUTUBE_BLOCKED" in all_errors:
+        return "Error: YouTube bloque l'accès depuis ce serveur. Utilisez un service tiers ou des cookies.", None
+    if "Sous-titres désactivés" in all_errors:
+        return "Error: L'auteur a désactivé les sous-titres pour cette vidéo.", None
+
+    # Erreur générique
+    return f"Error: Aucun transcript disponible (détails : {all_errors[:200]})", None

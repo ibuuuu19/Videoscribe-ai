@@ -36,15 +36,16 @@ from src.user_manager import get_tier
 from src.transcript_extractor import extract_video_id, get_transcript
 from src.text_processor import chunk_text, remove_repetitions, polish_translation
 from src.summarizer import VideoSummarizer, MODELS
+from src.summarizer_llm import LLMSummarizer
 from src.translator import translate_texts
 from src.history_manager import save_analysis, count_today, trim_history
 from src.export_utils import export_to_markdown, export_to_pdf, export_to_obsidian, export_to_notion
 
 
-@st.cache_resource
+
 def get_summarizer(model_key):
-    """Instance du summarizer (caché)."""
-    return VideoSummarizer(MODELS[model_key], model_key=model_key)
+    """Instance du summarizer LLM (Groq)."""
+    return LLMSummarizer(model_key)
 
 def _run_one(url_single, chunk_size, turbo, model_choice, translate_to_fr,
              num_keywords, num_questions, extract_kw, generate_qa, tier):

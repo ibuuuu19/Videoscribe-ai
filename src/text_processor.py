@@ -29,6 +29,22 @@ def remove_repetitions(text, threshold=0.75):
     if not text or not isinstance(text, str):
         return text
 
+    # ── 0. NOUVEAU : nettoie les doublons de MOTS consécutifs ──
+    # "été été" → "été", "de faire de faire" → "de faire"
+    text = re.sub(r'\b(\w+)(\s+\1\b)+', r'\1', text, flags=re.IGNORECASE)
+    # "de faire de faire" → détecte les groupes de 2 mots
+    text = re.sub(r'\b(\w+\s+\w+)(\s+\1\b)+', r'\1', text, flags=re.IGNORECASE)
+
+    # ── 0bis. Nettoie les lettres doublées en fin de mot ──
+    # "préparéé" → "préparé", "dégageuveuve" → "dégageuve"
+    text = re.sub(r'(\w)\1{2,}', r'\1\1', text)   # 3+ lettres → 2 max
+    # Pour les accents : "éé" → "é"
+    text = re.sub(r'([éèêëàâîïôûùç])\1+', r'\1', text, flags=re.IGNORECASE)
+    
+    
+    if not text or not isinstance(text, str):
+        return text
+
     # ── 1. Nettoie les artefacts de transcription ──
     text = re.sub(r'\[musique\]|\[music\]|\[applaudissements\]|\[rires\]', ' ', text, flags=re.IGNORECASE)
     text = re.sub(r'\s+', ' ', text).strip()
