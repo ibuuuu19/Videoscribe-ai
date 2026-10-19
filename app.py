@@ -18,6 +18,7 @@ from streamlit_cookies_controller import CookieController
 from src.transcript_extractor import extract_video_id, get_transcript
 from src.text_processor import chunk_text, remove_repetitions, polish_translation, extract_action_points
 from src.summarizer import VideoSummarizer, MODELS
+from src.summarizer_llm import LLMSummarizer
 from src.translator import translate_notes, translate_texts
 from src.keywords_extractor import extract_keywords as _origKeywords
 from src.qa_generator import generate_questions as _origQuestions
@@ -199,10 +200,9 @@ setInterval(function(){ idx = (idx+1) % slides.length; show(idx); }, DUR);
 Path("teaser.html").write_text(TEASER_HTML, encoding="utf-8")
 
 
-
-@st.cache_resource
-def get_summarizer(model_key): return VideoSummarizer(MODELS[model_key], model_key=model_key)
-
+def get_summarizer(model_key):
+    """Instance du summarizer LLM (Groq)."""
+    return LLMSummarizer(model_key)
 
 st.set_page_config(page_title="VideoScribe AI", layout="wide",
 page_icon=str(LOGO_FILE) if LOGO_FILE.exists() else "🖊️")

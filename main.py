@@ -1,6 +1,6 @@
 from src.transcript_extractor import extract_video_id, get_transcript
 from src.text_processor import chunk_text, format_notes
-from src.summarizer import VideoSummarizer
+from src.summarizer_llm import LLMSummarizer
 from datetime import datetime
 import os
 
@@ -17,13 +17,13 @@ def generate_video_notes(video_url, output_dir="output/summaries"):
     
     # 2. Récupérer les sous-titres
     print("🎧 Récupération des sous-titres...")
-    transcript = get_transcript(video_id)
+    transcript, lang = get_transcript(video_id)
     
     if transcript.startswith("Error"):
-        print(f"❌ {transcript}")
-        return None
+        print(f"❌ Erreur : {transcript}")
+        return
     
-    print(f"✅ Transcript récupéré: {len(transcript)} caractères\n")
+    print(f"✅ Transcript récupéré: {len(transcript)} caractères (Langue: {lang})\n")
     
     # 3. Découper en chunks
     print("🔪 Découpage du texte en chunks...")
@@ -32,8 +32,7 @@ def generate_video_notes(video_url, output_dir="output/summaries"):
     
     # 4. Initialiser le modèle (une seule fois)
     if not hasattr(generate_video_notes, "summarizer"):
-        generate_video_notes.summarizer = VideoSummarizer()
-    
+        generate_video_notes.summarizer = LLMSummarizer("qualite")
     # 5. Générer les résumés
     print("🧠 Génération des résumés...\n")
     notes = generate_video_notes.summarizer.summarize_video(chunks)
