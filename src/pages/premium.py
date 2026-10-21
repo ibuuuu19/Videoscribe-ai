@@ -91,6 +91,21 @@ def render_premium():
     _prem_role = st.session_state.get("role", "client")
     _prem_is_guest = _prem_user is None
     
+    # ✅ GESTION DU RETOUR DE PAIEMENT (UNE SEULE FOIS)
+    if "payment_processed" not in st.session_state:
+        st.session_state.payment_processed = False
+
+    status = st.query_params.get("status")
+    if status == "success" and not st.session_state.payment_processed:
+        st.session_state.payment_processed = True
+        st.success("✅ Paiement validé ! Votre compte sera activé sous peu.")
+        st.balloons()
+        st.query_params.clear()
+    elif status == "error" and not st.session_state.payment_processed:
+        st.session_state.payment_processed = True
+        st.error("❌ Le paiement a échoué ou a été annulé. Veuillez réessayer.")
+        st.query_params.clear()
+    
     if _prem_role == "admin":
         cur = "premium_plus"
     elif _prem_is_guest:
@@ -149,9 +164,7 @@ def render_premium():
                 
                 if st.button(f"Payer ${price:g} avec Bictorys", key="pay_bictorys", use_container_width=True, type="primary"):
                     with st.spinner("Redirection vers Bictorys..."):
-                        # Conversion USD -> XOF (approximatif, à ajuster)
-                        # 1 USD ≈ 600 XOF (taux fixe CFA)
-                        amount_xof = int(price * 600)
+                        amount_xof = int(price * 500)
                         email = st.session_state.get("prof_email", "client@example.com")
                         
                         result = create_bictorys_checkout(
@@ -165,7 +178,6 @@ def render_premium():
                             st.error(f"Erreur Bictorys : {result['error']}")
                         elif "checkout_url" in result:
                             st.session_state.pay_url = result["checkout_url"]
-                            # Redirection immédiate
                             st.markdown(f'<meta http-equiv="refresh" content="0; url={result["checkout_url"]}">', unsafe_allow_html=True)
                         else:
                             st.warning("Réponse inattendue de Bictorys.")
