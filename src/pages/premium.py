@@ -1,13 +1,5 @@
 """
 Page Premium — Formules tarifaires et gestion des achats.
-
-Contient :
-- render_premium() : Affichage des 4 formules + tunnel de paiement (Bictorys + fallback manuel)
-
-Extrait de app.py pour alléger le fichier principal (~138 lignes).
-
-Usage:
-    from src.pages.premium import render_premium
 """
 
 import streamlit as st
@@ -66,13 +58,11 @@ def create_bictorys_checkout(amount, currency="XOF", country="SN", email="client
         response.raise_for_status()
         data = response.json()
         
-        # Bictorys renvoie une structure {"data": {"link": "...", ...}}
         if data.get("data", {}).get("link"):
-            return {"checkout_url": data["data"]["link"]}
-        # Fallback si la structure change
+            return {"checkout_url": data["data"]["link"], "merchant_ref": merchant_ref}
         if data.get("link"):
-            return {"checkout_url": data["link"]}
-        return {"data": data}
+            return {"checkout_url": data["link"], "merchant_ref": merchant_ref}
+        return {"data": data, "merchant_ref": merchant_ref}
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
     
@@ -86,7 +76,6 @@ def verify_bictorys_payment(charge_id):
     if not api_key:
         return {"error": "Clé API Bictorys non configurée."}
 
-    # Note : l'endpoint de vérification peut être /charges/{id} ou /pay/v1/charges/{id}
     url = f"https://api.test.bictorys.com/pay/v1/charges/{charge_id}"
     headers = {"X-Api-Key": api_key}
 
@@ -95,7 +84,6 @@ def verify_bictorys_payment(charge_id):
         response.raise_for_status()
         data = response.json()
         
-        # Le statut est généralement dans data["status"] ou data["data"]["status"]
         status = data.get("status") or data.get("data", {}).get("status")
         return {"status": status, "raw": data}
     except requests.exceptions.RequestException as e:
@@ -110,21 +98,47 @@ def render_premium():
     if st.session_state.get("user") is None:
         render_navbar()
         
-    # ═══ Sécurisation : variables globales non définies en mode public ═══
     _prem_user = st.session_state.get("user")
     _prem_role = st.session_state.get("role", "client")
     _prem_is_guest = _prem_user is None
     
-    # ✅ GESTION DU RETOUR DE PAIEMENT (UNE SEULE FOIS)
+    # ✅ GESTION DU RETOUR DE PAIEMENT (UNE SEULE FOIS, AVEC ACTIVATION AUTO)
     if "payment_processed" not in st.session_state:
         st.session_state.payment_processed = False
 
     status = st.query_params.get("status")
     if status == "success" and not st.session_state.payment_processed:
         st.session_state.payment_processed = True
-        st.success("✅ Paiement validé ! Votre compte sera activé sous peu.")
-        st.balloons()
+        
+        # Récupération des infos stockées avant la redirection
+        charge_ref = st.session_state.get("pending_charge_ref")
+        plan_key = st.session_state.get("pending_plan_key")
+        plan_days = st.session_state.get("pending_plan_days", 30)
+        
+        if charge_ref and plan_key and not _prem_is_guest:
+            with st.spinner("Vérification du paiement..."):
+                result = verify_bictorys_payment(charge_ref)
+                
+                if result.get("status") == "success":
+                    set_plan(_prem_user, plan_key, plan_days)
+                    price_paid = PLANS[plan_key]["annual"] if plan_days == 365 else PLANS[plan_key]["monthly"]
+                    record_revenue(_prem_user, plan_key, price_paid, plan_days, "bictorys_auto")
+                    notify(_prem_user, "card", f"Paiement de **${price_paid:g}** confirmé — formule {PLANS[plan_key]['name']} activée ({plan_days} j).")
+                    sync_notif_cursor(_prem_user)
+                    st.success(f"✅ Paiement confirmé ! Votre formule {PLANS[plan_key]['name']} est activée.")
+                    st.balloons()
+                elif result.get("status") == "pending":
+                    st.warning("⏳ Paiement en attente. Utilisez le formulaire ci-dessous si nécessaire.")
+                else:
+                    st.error(f"❌ Le paiement n'a pas été confirmé (statut : {result.get('status')}).")
+        else:
+            st.success("✅ Paiement validé ! Si votre compte n'est pas activé, utilisez le formulaire de vérification ci-dessous.")
+            st.balloons()
+        
         st.query_params.clear()
+        for k in ["pending_charge_ref", "pending_plan_key", "pending_plan_days"]:
+            st.session_state.pop(k, None)
+            
     elif status == "error" and not st.session_state.payment_processed:
         st.session_state.payment_processed = True
         st.error("❌ Le paiement a échoué ou a été annulé. Veuillez réessayer.")
@@ -155,7 +169,7 @@ def render_premium():
 </div>""", unsafe_allow_html=True)
     
     # ═══════════════════════════════════════════════════════════════
-    # TUNNEL DE PAIEMENT (si un plan est sélectionné)
+    # TUNNEL DE PAIEMENT
     # ═══════════════════════════════════════════════════════════════
     if st.session_state.get("buy_plan"):
         key = st.session_state.buy_plan
@@ -172,7 +186,6 @@ def render_premium():
             days = 365 if billing_sel == T("annual") else 30
             _prem_display_name = _prem_user if _prem_user else "visiteur"
             
-            # --- Affichage du panneau de paiement ---
             st.markdown(f"""
 <div class="pay-panel">
 <div class="pay-title">{ic("card",20)} {T("subscription")} — {info['name']}</div>
@@ -201,7 +214,12 @@ def render_premium():
                         if "error" in result:
                             st.error(f"Erreur Bictorys : {result['error']}")
                         elif "checkout_url" in result:
+                            # ✅ Stockage des infos AVANT redirection
+                            st.session_state.pending_charge_ref = result.get("merchant_ref")
+                            st.session_state.pending_plan_key = key
+                            st.session_state.pending_plan_days = days
                             st.session_state.pay_url = result["checkout_url"]
+                            
                             st.markdown(f'<meta http-equiv="refresh" content="0; url={result["checkout_url"]}">', unsafe_allow_html=True)
                         else:
                             st.warning("Réponse inattendue de Bictorys.")
@@ -210,7 +228,6 @@ def render_premium():
                 st.markdown("---")
                 st.markdown(f"<h4 style='display:flex;align-items:center;gap:8px;'>{ic('phone',18)} Payer manuellement (Fallback)</h4>", unsafe_allow_html=True)
                 
-                # ═══ MÉTHODE 2 : PAIEMENT MANUEL (Fallback) ═══
                 with st.expander("Voir les instructions de paiement manuel"):
                     st.markdown(f"""
 Envoyez **${price:g}** par :
@@ -238,7 +255,6 @@ Activation sous 24h ({days} jours).
                             if "error" in result:
                                 st.error(f"Erreur : {result['error']}")
                             elif result.get("status") == "success":
-                                days = 30  # ou 365 si annuel
                                 set_plan(_prem_user, plan_choice, days)
                                 record_revenue(_prem_user, plan_choice, PLANS[plan_choice]["monthly"], days, "bictorys_manual")
                                 notify(_prem_user, "card", f"Paiement confirmé — formule {PLANS[plan_choice]['name']} activée.")
@@ -250,7 +266,6 @@ Activation sous 24h ({days} jours).
                             else:
                                 st.info(f"Statut : {result.get('status')}")
                 
-                # Fallback CinetPay (si configuré)
                 if CINETPAY_APIKEY and CINETPAY_SITE_ID:
                     if st.session_state.get("pay_url") and "bictorys" not in st.session_state.pay_url:
                         st.link_button("Ouvrir la page de paiement CinetPay", st.session_state.pay_url, use_container_width=True)
@@ -312,7 +327,7 @@ Activation sous 24h ({days} jours).
             st.markdown(head + feats + new_feats, unsafe_allow_html=True)
     
     # ═══════════════════════════════════════════════════════════════
-    # SECTIONS SUPPLÉMENTAIRES (Growth, Comfort, etc.)
+    # SECTIONS SUPPLÉMENTAIRES
     # ═══════════════════════════════════════════════════════════════
     st.markdown("---")
     st.markdown(f"<h3 style='display:flex;align-items:center;'>{ic('trophy', 22)} {T('growth_title')}</h3>", unsafe_allow_html=True)
