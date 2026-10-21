@@ -2,7 +2,7 @@
 Page Premium — Formules tarifaires et gestion des achats.
 
 Contient :
-- render_premium() : Affichage des 4 formules + tunnel de paiement
+- render_premium() : Affichage des 4 formules + tunnel de paiement (Bictorys + fallback manuel)
 
 Extrait de app.py pour alléger le fichier principal (~138 lignes).
 
@@ -12,6 +12,8 @@ Usage:
 
 import streamlit as st
 import streamlit.components.v1 as _components
+import uuid
+import requests
 
 from src.ui.i18n import T
 from src.ui.components import ic
@@ -25,8 +27,58 @@ from src.notification_manager import notify
 
 
 # ═══════════════════════════════════════════════════════════════
-# ⚠️ La fonction render_premium a été copiée automatiquement
-#    depuis app.py par le script extract_premium.py
+# FONCTION DE PAIEMENT BICTORYS (Checkout)
+# ═══════════════════════════════════════════════════════════════
+
+def create_bictorys_checkout(amount, currency="XOF", country="SN", email="client@example.com"):
+    """
+    Crée une session de paiement Bictorys (mode Checkout).
+    Retourne un dict avec 'checkout_url' ou 'error'.
+    """
+    api_key = st.secrets.get("BICTORYS_PUBLIC_KEY")
+    if not api_key:
+        return {"error": "Clé API Bictorys non configurée dans les secrets."}
+
+    url = "https://api.test.bictorys.com/pay/v1/charges"  # Mode test
+
+    headers = {
+        "Content-Type": "application/json",
+        "X-Api-Key": api_key
+    }
+
+    merchant_ref = str(uuid.uuid4())
+
+    payload = {
+        "amount": int(amount),
+        "currency": currency,
+        "country": country,
+        "merchantReference": merchant_ref,
+        "successRedirectUrl": "https://videoscribe-ia.streamlit.app/?page=premium&status=success",
+        "errorRedirectUrl": "https://videoscribe-ia.streamlit.app/?page=premium&status=error",
+        "customer": {
+            "name": "Client VideoScribe",
+            "email": email
+        }
+    }
+
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+        
+        # Bictorys renvoie une structure {"data": {"link": "...", ...}}
+        if data.get("data", {}).get("link"):
+            return {"checkout_url": data["data"]["link"]}
+        # Fallback si la structure change
+        if data.get("link"):
+            return {"checkout_url": data["link"]}
+        return {"data": data}
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
+
+
+# ═══════════════════════════════════════════════════════════════
+# FONCTION PRINCIPALE
 # ═══════════════════════════════════════════════════════════════
 
 def render_premium():
@@ -34,9 +86,6 @@ def render_premium():
     if st.session_state.get("user") is None:
         render_navbar()
         
-    # ═══ Sécurisation : variables globales non définies en mode public ═══
-    _prem_user = st.session_state.get("user")
-    
     # ═══ Sécurisation : variables globales non définies en mode public ═══
     _prem_user = st.session_state.get("user")
     _prem_role = st.session_state.get("role", "client")
@@ -65,52 +114,107 @@ def render_premium():
 <span class="pill-trust">{ic("x",13)} {T("trust_cancel")}</span>
 <span class="pill-trust">{ic("zap",13)} {T("trust_fast")}</span>
 </div>""", unsafe_allow_html=True)
+    
+    # ═══════════════════════════════════════════════════════════════
+    # TUNNEL DE PAIEMENT (si un plan est sélectionné)
+    # ═══════════════════════════════════════════════════════════════
     if st.session_state.get("buy_plan"):
         key = st.session_state.buy_plan
         billing_sel = st.session_state.get("buy_billing", T("monthly"))
         _components.html('<script>window.parent.scrollTo({top:0,behavior:"smooth"});</script>', height=0)
+        
         if key == "free":
             st.info(f"{T('free')} ✓")
             if st.button(T("close"), use_container_width=True):
                 st.session_state.buy_plan = None; st.rerun()
         else:
-            info = PLANS[key]; price = info["annual"] if billing_sel==T("annual") else info["monthly"]; days = 365 if billing_sel==T("annual") else 30
+            info = PLANS[key]
+            price = info["annual"] if billing_sel == T("annual") else info["monthly"]
+            days = 365 if billing_sel == T("annual") else 30
             _prem_display_name = _prem_user if _prem_user else "visiteur"
+            
+            # --- Affichage du panneau de paiement ---
             st.markdown(f"""
 <div class="pay-panel">
 <div class="pay-title">{ic("card",20)} {T("subscription")} — {info['name']}</div>
 <div class="pay-price">${price:g} <span>/ {days} jours</span></div>
-<ol class="pay-steps">
-<li>Envoyez <b>${price:g}</b> par <b>Wave</b> (<code>{PAYMENT_WAVE}</code>) ou <b>Orange Money</b> (<code>{PAYMENT_OM}</code>)</li>
-<li>Indiquez votre pseudo <b>{_prem_display_name}</b> + la formule <b>{info['name']}</b></li>
-<li>Activation sous 24 h ({days} jours)</li>
-</ol>
 </div>""", unsafe_allow_html=True)
+            
             if _prem_is_guest:
                 st.info(T("login_sub"))
-            elif CINETPAY_APIKEY and CINETPAY_SITE_ID:
-                if st.session_state.get("pay_url"):
-                    st.link_button("Ouvrir la page de paiement", st.session_state.pay_url, use_container_width=True)
-                    if st.button(T("verify"), use_container_width=True):
-                        with st.spinner("..."): status = check_payment(st.session_state.pay_tx, CINETPAY_APIKEY, CINETPAY_SITE_ID)
-                        if status == "ACCEPTED":
-                            set_plan(_prem_user, key, days); record_revenue(_prem_user, key, price, days, "cinetpay")
-                            notify(_prem_user, "card", f"Paiement de **${price:g}** confirmé — formule {info['name']} activée ({days} j).")
-                            sync_notif_cursor(_prem_user)
-                            st.session_state.pay_url = None; st.session_state.buy_plan = None; st.balloons(); st.rerun()
-                        else: st.info(f"Paiement non confirmé ({status}).")
-                else:
-                    if st.button(f"Générer le paiement de ${price:g}", use_container_width=True):
-                        with st.spinner("..."):
-                            try:
-                                tx, url = create_payment(_prem_user, price, CINETPAY_APIKEY, CINETPAY_SITE_ID)
-                                st.session_state.pay_tx, st.session_state.pay_url = tx, url; st.rerun()
-                            except Exception as e: st.error(f"{e}")
+            else:
+                # ═══ MÉTHODE 1 : BICTORYS (Principal) ═══
+                st.markdown(f"<h4 style='display:flex;align-items:center;gap:8px;'>{ic('credit-card',18)} Payer par Mobile Money (Bictorys)</h4>", unsafe_allow_html=True)
+                st.caption("Wave, Orange Money, ou Carte Bancaire via Bictorys.")
+                
+                if st.button(f"Payer ${price:g} avec Bictorys", key="pay_bictorys", use_container_width=True, type="primary"):
+                    with st.spinner("Redirection vers Bictorys..."):
+                        # Conversion USD -> XOF (approximatif, à ajuster)
+                        # 1 USD ≈ 600 XOF (taux fixe CFA)
+                        amount_xof = int(price * 600)
+                        email = st.session_state.get("prof_email", "client@example.com")
+                        
+                        result = create_bictorys_checkout(
+                            amount=amount_xof, 
+                            currency="XOF", 
+                            country="SN",
+                            email=email
+                        )
+                        
+                        if "error" in result:
+                            st.error(f"Erreur Bictorys : {result['error']}")
+                        elif "checkout_url" in result:
+                            st.session_state.pay_url = result["checkout_url"]
+                            # Redirection immédiate
+                            st.markdown(f'<meta http-equiv="refresh" content="0; url={result["checkout_url"]}">', unsafe_allow_html=True)
+                        else:
+                            st.warning("Réponse inattendue de Bictorys.")
+                            st.json(result)
+                
+                st.markdown("---")
+                st.markdown(f"<h4 style='display:flex;align-items:center;gap:8px;'>{ic('phone',18)} Payer manuellement (Fallback)</h4>", unsafe_allow_html=True)
+                
+                # ═══ MÉTHODE 2 : PAIEMENT MANUEL (Fallback) ═══
+                with st.expander("Voir les instructions de paiement manuel"):
+                    st.markdown(f"""
+Envoyez **${price:g}** par :
+- **Wave** : <code>{PAYMENT_WAVE}</code>
+- **Orange Money** : <code>{PAYMENT_OM}</code>
+
+Puis indiquez votre pseudo **{_prem_display_name}** + formule **{info['name']}**.
+
+Activation sous 24h ({days} jours).
+""", unsafe_allow_html=True)
+                
+                # Fallback CinetPay (si configuré)
+                if CINETPAY_APIKEY and CINETPAY_SITE_ID:
+                    if st.session_state.get("pay_url") and "bictorys" not in st.session_state.pay_url:
+                        st.link_button("Ouvrir la page de paiement CinetPay", st.session_state.pay_url, use_container_width=True)
+                        if st.button(T("verify"), use_container_width=True):
+                            with st.spinner("..."): status = check_payment(st.session_state.pay_tx, CINETPAY_APIKEY, CINETPAY_SITE_ID)
+                            if status == "ACCEPTED":
+                                set_plan(_prem_user, key, days); record_revenue(_prem_user, key, price, days, "cinetpay")
+                                notify(_prem_user, "card", f"Paiement de **${price:g}** confirmé — formule {info['name']} activée ({days} j).")
+                                sync_notif_cursor(_prem_user)
+                                st.session_state.pay_url = None; st.session_state.buy_plan = None; st.balloons(); st.rerun()
+                            else: st.info(f"Paiement non confirmé ({status}).")
+                    else:
+                        if st.button(f"Générer le paiement CinetPay de ${price:g}", use_container_width=True):
+                            with st.spinner("..."):
+                                try:
+                                    tx, url = create_payment(_prem_user, price, CINETPAY_APIKEY, CINETPAY_SITE_ID)
+                                    st.session_state.pay_tx, st.session_state.pay_url = tx, url; st.rerun()
+                                except Exception as e: st.error(f"{e}")
+            
             bb1, bb2 = st.columns([3,1])
             with bb2:
                 if st.button(T("close"), use_container_width=True):
                     st.session_state.buy_plan = None; st.session_state.pay_url = None; st.rerun()
         st.markdown("---")
+    
+    # ═══════════════════════════════════════════════════════════════
+    # GRILLE DES PLANS
+    # ═══════════════════════════════════════════════════════════════
     plans_ui = [
     {"key":"free","icon":"spark","name":T("plan_free"),"tag":T("tag_free"),"monthly":0,"annual":0,"cta":T("get_free"),"hl":False,"plus":None,
      "accent":"#64748B","accent2":"#94A3B8",
@@ -142,6 +246,10 @@ def render_premium():
             if p.get("new_features"):
                 new_feats = f'<p class="pfeat-group-label">{ic("spark",11)} {T("new_label")}</p>' + "".join(f'<p class="pfeat is-new" style="--pc-accent:{p["accent"]}">{ic("check", 14)}<span>{f}<span class="new-tag">{T("new_label")}</span></span></p>' for f in p["new_features"])
             st.markdown(head + feats + new_feats, unsafe_allow_html=True)
+    
+    # ═══════════════════════════════════════════════════════════════
+    # SECTIONS SUPPLÉMENTAIRES (Growth, Comfort, etc.)
+    # ═══════════════════════════════════════════════════════════════
     st.markdown("---")
     st.markdown(f"<h3 style='display:flex;align-items:center;'>{ic('trophy', 22)} {T('growth_title')}</h3>", unsafe_allow_html=True)
     st.markdown(f"""<div class="newfeat">{ic("users", 18)} <span><b>{T("referral_title")}</b> · Tous</span></div>
@@ -159,6 +267,7 @@ def render_premium():
 <div class="newfeat">{ic("target", 18)} <span><b>{T("fp9")}</b> · Premium</span></div>
 <div class="newfeat">{ic("calendar", 18)} <span><b>{T("fx10")}</b> · Premium+</span></div>
 <div class="newfeat">{ic("compass", 18)} <span><b>{T("fx12")}</b> · Premium+</span></div>""", unsafe_allow_html=True)
+    
     if not _prem_is_guest:
         st.markdown("---")
         st.markdown(f"<h3 style='display:flex;align-items:center;'>{ic('users', 22)} {T('referral_title')}</h3>", unsafe_allow_html=True)
