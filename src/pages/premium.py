@@ -75,7 +75,31 @@ def create_bictorys_checkout(amount, currency="XOF", country="SN", email="client
         return {"data": data}
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
+    
+    
+def verify_bictorys_payment(charge_id):
+    """
+    Vérifie le statut d'un paiement Bictorys via l'API.
+    Retourne le statut ("success", "pending", "error") ou un dict d'erreur.
+    """
+    api_key = st.secrets.get("BICTORYS_PUBLIC_KEY")
+    if not api_key:
+        return {"error": "Clé API Bictorys non configurée."}
 
+    # Note : l'endpoint de vérification peut être /charges/{id} ou /pay/v1/charges/{id}
+    url = f"https://api.test.bictorys.com/pay/v1/charges/{charge_id}"
+    headers = {"X-Api-Key": api_key}
+
+    try:
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+        
+        # Le statut est généralement dans data["status"] ou data["data"]["status"]
+        status = data.get("status") or data.get("data", {}).get("status")
+        return {"status": status, "raw": data}
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
 
 # ═══════════════════════════════════════════════════════════════
 # FONCTION PRINCIPALE
@@ -197,6 +221,34 @@ Puis indiquez votre pseudo **{_prem_display_name}** + formule **{info['name']}**
 
 Activation sous 24h ({days} jours).
 """, unsafe_allow_html=True)
+                    
+                st.markdown("---")
+                st.markdown(f"<h4 style='display:flex;align-items:center;gap:8px;'>{ic('check-circle',18)} Déjà payé ? Vérifier mon compte</h4>", unsafe_allow_html=True)
+                st.caption("Si vous avez payé mais que votre compte n'est pas encore activé, entrez votre référence de transaction Bictorys ci-dessous.")
+                
+                with st.form("verify_payment_form"):
+                    charge_id = st.text_input("Référence de transaction (charge ID)")
+                    plan_choice = st.selectbox("Quel plan avez-vous payé ?", ["basique", "premium", "premium_plus"])
+                    submitted = st.form_submit_button("Vérifier le paiement", use_container_width=True)
+                    
+                    if submitted and charge_id:
+                        with st.spinner("Vérification en cours..."):
+                            result = verify_bictorys_payment(charge_id.strip())
+                            
+                            if "error" in result:
+                                st.error(f"Erreur : {result['error']}")
+                            elif result.get("status") == "success":
+                                days = 30  # ou 365 si annuel
+                                set_plan(_prem_user, plan_choice, days)
+                                record_revenue(_prem_user, plan_choice, PLANS[plan_choice]["monthly"], days, "bictorys_manual")
+                                notify(_prem_user, "card", f"Paiement confirmé — formule {PLANS[plan_choice]['name']} activée.")
+                                st.success("✅ Paiement confirmé ! Votre compte est activé.")
+                                st.balloons()
+                                st.rerun()
+                            elif result.get("status") == "pending":
+                                st.warning("⏳ Paiement en attente. Réessayez dans quelques minutes.")
+                            else:
+                                st.info(f"Statut : {result.get('status')}")
                 
                 # Fallback CinetPay (si configuré)
                 if CINETPAY_APIKEY and CINETPAY_SITE_ID:
