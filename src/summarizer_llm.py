@@ -47,14 +47,19 @@ class LLMSummarizer:
         print(f"🤖 Modèle LLM: {self.model}")
 
     def summarize_video(self, chunks, progress_callback=None, **kwargs):
-        """Résume une liste de chunks via Groq."""
+        """Résume une liste de chunks via Groq avec fallback."""
         notes = []
         total = len(chunks)
 
         for i, chunk in enumerate(chunks):
-            # ✅ NOUVEAU : ignore les chunks trop courts ou vides
-            if not chunk or len(chunk.strip()) < 100:
-                print(f"[llm] ⏭️  Chunk {i+1}/{total} ignoré (trop court : {len(chunk.strip()) if chunk else 0} chars)")
+            if not chunk:
+                continue
+
+            chunk_clean = chunk.strip()
+
+            # ✅ On baisse le seuil à 30 chars pour ne pas ignorer les textes courts
+            if len(chunk_clean) < 30:
+                print(f"[llm] ⏭️  Chunk {i+1}/{total} ignoré (trop court : {len(chunk_clean)} chars)")
                 if progress_callback:
                     try:
                         progress_callback(i + 1, total)
@@ -76,7 +81,6 @@ class LLMSummarizer:
                                 "Si une phrase est incomplète ou incohérente, tu l'ignores. "
                                 "RÈGLE ABSOLUE : Tu ne dois JAMAIS demander de contenu supplémentaire. "
                                 "Tu ne dois JAMAIS répondre par une question. "
-                                "Si le passage fourni ne contient rien d'exploitable, tu réponds EXACTEMENT : '(rien à résumer)'. "
                                 "Tu réponds UNIQUEMENT avec le résumé (pas d'introduction, pas de conclusion)."
                             ),
                         },
@@ -85,7 +89,7 @@ class LLMSummarizer:
                             "content": (
                                 f"Voici un passage d'une transcription vidéo. "
                                 f"Résume-le en 2-3 phrases en français correct "
-                                f"(sans répétitions, sans hésitations) :\n\n{chunk}"
+                                f"(sans répétitions, sans hésitations) :\n\n{chunk_clean}"
                             ),
                         },
                     ],
@@ -93,17 +97,25 @@ class LLMSummarizer:
                     max_tokens=300,
                 )
 
-                note = response.choices[0].message.content.strip()
+                note = response.choices[0].message.content.strip()    #type: ignore
 
-                # ✅ NOUVEAU : ignore les réponses vides ou "rien à résumer"
-                if not note or note.lower() in ("(rien à résumer)", "[rien à résumer]", "rien à résumer"):
-                    print(f"[llm] ⏭️  Chunk {i+1}/{total} → vide, ignoré")
+                # ✅ Fallback : si le LLM ne renvoie rien d'exploitable
+                if not note or len(note) < 10 or note.lower() in (
+                    "(rien à résumer)", "[rien à résumer]", "rien à résumer",
+                    "je ne peux pas résumer", "je ne peux pas", "désolé"
+                ):
+                    print(f"[llm] ⚠️  Chunk {i+1}/{total} → réponse vide, fallback sur le texte original")
+                    # On utilise une version courte et nettoyée du chunk comme fallback
+                    fallback = chunk_clean[:250].rsplit(' ', 1)[0] + "..."
+                    notes.append(f"_{fallback}_")
                 else:
                     notes.append(note)
 
             except Exception as e:
                 print(f"[llm] ❌ Erreur chunk {i+1}: {e}")
-                notes.append(f"[Erreur: {e}]")
+                # En cas d'erreur API, on met aussi un fallback
+                fallback = chunk_clean[:250].rsplit(' ', 1)[0] + "..."
+                notes.append(f"_{fallback}_")
 
             if progress_callback:
                 try:
