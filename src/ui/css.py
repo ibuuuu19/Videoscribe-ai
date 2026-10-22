@@ -1245,6 +1245,59 @@ html[data-theme="dark"] .user-card {
     stroke: #94A3B8 !important;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — Navbar Publique (Mobile)
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    /* 1. On cible le conteneur de la navbar publique */
+    /* On utilise la classe .lnav qui est déjà présente dans ton code */
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) {
+        padding: 0.5rem !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    /* 2. On transforme les colonnes en Flexbox pour un alignement horizontal */
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important; /* Permet de passer à la ligne si besoin */
+        justify-content: center !important;
+        gap: 0.5rem !important;
+        width: 100% !important;
+    }
+
+    /* 3. On ajuste les boutons pour qu'ils soient plus petits et compacts */
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) .stButton > button,
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stBaseButton-primary"] {
+        min-height: 36px !important;
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.8rem !important;
+        border-radius: 8px !important;
+        width: auto !important; /* Pour ne pas prendre toute la largeur */
+        flex: 0 1 auto !important; /* Pour s'adapter au contenu */
+    }
+
+    /* 4. On cache le logo textuel si nécessaire (optionnel) */
+    /* .lnav-brand-text { display: none !important; } */
+
+    /* 5. On ajuste le bouton "Créer un compte" pour qu'il soit plus visible */
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stBaseButton-primary"] {
+        background: linear-gradient(135deg, #1B3B6F 0%, #2E6DB4 100%) !important;
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+    }
+
+    /* 6. On gère le bouton de thème (lune/soleil) pour qu'il reste petit */
+    div[data-testid="stVerticalBlock"]:has(.lnav):not(:has(.lp-hero)) [data-testid="stColumn"]:last-child .stButton > button {
+        min-width: 36px !important;
+        width: 36px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+    }
+}
 </style>
 """
 
