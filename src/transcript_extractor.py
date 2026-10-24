@@ -1,6 +1,6 @@
 """
 Extraction de sous-titres YouTube avec 3 moteurs en cascade :
-1. API YouTube Data v3 (officielle, jamais rate-limitée) ← NOUVEAU
+1. API YouTube Data v3 (officielle, jamais rate-limitée)
 2. youtube-transcript-api (rapide)
 3. yt-dlp (robuste aux blocages)
 """
@@ -8,6 +8,7 @@ Extraction de sous-titres YouTube avec 3 moteurs en cascade :
 import re
 import json
 import os
+import unicodedata
 import urllib.request
 from pathlib import Path
 
@@ -69,6 +70,42 @@ def _get_api_key():
 
 
 # ═══════════════════════════════════════════════════════════════
+# NETTOYAGE DU TRANSCRIPT (anti-encodage cassé)
+# ═══════════════════════════════════════════════════════════════
+
+def clean_transcript(text):
+    """Nettoie les caractères corrompus et les artefacts d'encodage."""
+    if not text:
+        return text
+
+    # ✅ Remplace TOUS les '=' par des apostrophes (artefact fréquent)
+    # Cela gère l=, d=, s=, n=, qu=, c=, j=, m=, t=, etc.
+    text = re.sub(r"(\w)=", r"\1'", text)
+
+    # ✅ Corrige les caractères accentués mal encodés (UTF-8 mal interprété)
+    replacements = {
+        "Ã©": "é", "Ã ̈": "è", "Ã ": "à", "Ãª": "ê", "Ã®": "î",
+        "Ã´": "ô", "Ã»": "û", "Ã§": "ç", "Ã«": "ë", "Ã¯": "ï",
+        "Ã¼": "ü", "Ã¿": "ÿ", "Ã¹": "ù", "Ã¢": "â",
+        "Ã‰": "É", "Ã€": "À", "ÃŠ": "Ê", "Ã‡": "Ç",
+        "â€™": "'", "â€œ": '"', "â€\x9d": '"', "â€“": "–", "â€”": "—",
+        "â€¦": "...", "Â«": "«", "Â»": "»", "Â°": "°",
+        "\u00a0": " ",  # Espace insécable
+        "Ã©": "é", "Ã¨": "è", "Ã ": "à", "Ãª": "ê", "Ã®": "î",
+        "Ã´": "ô", "Ã»": "û", "Ã§": "ç", "Ã«": "ë", "Ã¯": "ï",
+        "Ã¼": "ü", "Ã¿": "ÿ", "Ã¹": "ù", "Ã¢": "â",
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+
+    # ✅ Normalisation Unicode (corrige les accents décomposés)
+    text = unicodedata.normalize("NFKC", text)
+
+    # ✅ Supprime les espaces multiples
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    return text
+# ═══════════════════════════════════════════════════════════════
 # MOTEUR 0 : API YouTube officielle
 # ═══════════════════════════════════════════════════════════════
 
@@ -80,18 +117,14 @@ def _parse_sbv(content):
         if re.match(r'^\d+:\d+:\d+\.\d+,\d+:\d+:\d+\.\d+$', line):
             continue
         if not line or line.isdigit():
-            continue
+            continue 
         lines.append(line)
     text = " ".join(lines)
     return re.sub(r'\s+', ' ', text).strip()
 
 
 def _try_youtube_api(video_id, languages):
-    """
-    Moteur 0 : API YouTube Data v3.
-    ⚠️ Ne peut PAS télécharger les sous-titres (401 sans OAuth).
-    Sert juste à CONFIRMER quels sous-titres existent → accélère le fallback.
-    """
+    """Moteur 0 : API YouTube Data v3 (liste seulement)."""
     api_key = _get_api_key()
     if not api_key:
         return None, None, "YOUTUBE_API_KEY non configurée"
@@ -109,18 +142,18 @@ def _try_youtube_api(video_id, languages):
         if not items:
             return None, None, "Aucun sous-titre via API YouTube"
 
-        # ✅ Récupère la liste des langues dispo (utile pour le fallback)
         available = [i['snippet']['language'] for i in items]
         print(f"[transcript] API YouTube: langues dispo = {available[:5]}...")
 
-        # ✅ API v3 ne peut pas télécharger sans OAuth → on retourne les langues pour le fallback
         return None, None, f"API v3 ne peut pas télécharger (langues dispo: {available})"
     except Exception as e:
         return None, None, f"{type(e).__name__}: {str(e)[:150]}"
 
+
 # ═══════════════════════════════════════════════════════════════
 # MOTEUR 1 : youtube-transcript-api
 # ═══════════════════════════════════════════════════════════════
+
 def _try_transcript_api(video_id, languages):
     try:
         from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, TranscriptsDisabled
@@ -157,6 +190,7 @@ def _try_transcript_api(video_id, languages):
             return None, None, "NETWORK_CONNECTION"
 
         return None, None, f"{err_name}: {str(e)[:150]}"
+
 
 # ═══════════════════════════════════════════════════════════════
 # MOTEUR 2 : yt-dlp
@@ -231,9 +265,6 @@ def _try_ytdlp(video_id, languages):
         'socket_timeout': 15,
     }
 
-    # ✅ Cookies si dispo
-    import os
-    from pathlib import Path
     for cookie_file in [os.environ.get('YTDLP_COOKIES', ''), 'youtube-cookies.txt']:
         if cookie_file and Path(cookie_file).exists():
             ydl_opts['cookiefile'] = cookie_file
@@ -269,7 +300,6 @@ def _try_ytdlp(video_id, languages):
 
         return None, None, "Aucune piste exploitable"
 
-    # ✅ NOUVEAU : capture les erreurs réseau proprement
     except Exception as e:
         err_name = type(e).__name__
         err_msg = str(e).lower()
@@ -285,17 +315,15 @@ def _try_ytdlp(video_id, languages):
         if "429" in err_msg or "too many requests" in err_msg:
             return None, None, "YOUTUBE_RATE_LIMIT"
 
-        # Erreur générique
         return None, None, f"{err_name}: {str(e)[:150]}"
-    
+
+
 # ═══════════════════════════════════════════════════════════════
 # FONCTION PRINCIPALE
 # ═══════════════════════════════════════════════════════════════
+
 def get_transcript(video_id, languages=None, use_cache=True):
-    """
-    Récupère les sous-titres (3 moteurs en cascade).
-    Returns: (text, lang) si succès, (error_msg, None) si échec.
-    """
+    """Récupère les sous-titres (3 moteurs en cascade + nettoyage)."""
     if languages is None:
         languages = ['fr', 'en', 'es', 'de', 'it', 'pt']
 
@@ -303,7 +331,7 @@ def get_transcript(video_id, languages=None, use_cache=True):
     if use_cache:
         text, lang = _load_cache(video_id, languages)
         if text:
-            return text, lang
+            return clean_transcript(text), lang
 
     errors = {}
 
@@ -312,6 +340,7 @@ def get_transcript(video_id, languages=None, use_cache=True):
     text, lang, err = _try_youtube_api(video_id, languages)
     if text:
         print(f"[transcript] ✅ API YouTube OK ({lang}) — {len(text)} chars")
+        text = clean_transcript(text)
         if use_cache:
             _save_cache(video_id, lang, text)
         return text, lang
@@ -323,6 +352,7 @@ def get_transcript(video_id, languages=None, use_cache=True):
     text, lang, err2 = _try_transcript_api(video_id, languages)
     if text:
         print(f"[transcript] ✅ youtube-transcript-api OK ({lang})")
+        text = clean_transcript(text)
         if use_cache:
             _save_cache(video_id, lang, text)
         return text, lang
@@ -334,6 +364,7 @@ def get_transcript(video_id, languages=None, use_cache=True):
     text, lang, err3 = _try_ytdlp(video_id, languages)
     if text:
         print(f"[transcript] ✅ yt-dlp OK ({lang})")
+        text = clean_transcript(text)
         if use_cache:
             _save_cache(video_id, lang, text)
         return text, lang
@@ -341,7 +372,6 @@ def get_transcript(video_id, languages=None, use_cache=True):
     print(f"[transcript] ❌ yt-dlp: {err3}")
 
     # ── Toutes les erreurs ──
-    # Si c'est un problème réseau → message clair
     all_errors = " ".join(str(v) for v in errors.values() if v)
 
     if "NETWORK_DNS" in all_errors:
@@ -357,5 +387,4 @@ def get_transcript(video_id, languages=None, use_cache=True):
     if "Sous-titres désactivés" in all_errors:
         return "Error: L'auteur a désactivé les sous-titres pour cette vidéo.", None
 
-    # Erreur générique
     return f"Error: Aucun transcript disponible (détails : {all_errors[:200]})", None

@@ -96,7 +96,7 @@ class LLMSummarizer:
                         },
                     ],
                     temperature=0.0,  # ✅ Déterministe, pas d'invention
-                    max_tokens=300,
+                    max_tokens=800,
                 )
 
                 note = response.choices[0].message.content.strip()  #type: ignore
