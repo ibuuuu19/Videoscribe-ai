@@ -130,6 +130,7 @@ def render_studio_page():
     _a_accent_dark = shade(_a_accent, 0.55)
     _a_gold = "#D4AF37"
     _a_hair = "rgba(15,26,46,.08)" if _a_theme == "light" else "rgba(255,255,255,.08)"
+    _a_studio_bg = "linear-gradient(135deg, rgba(46,109,180,.08), rgba(16,185,129,.04))" if _a_theme == "light" else "linear-gradient(135deg, rgba(46,109,180,.12), rgba(16,185,129,.06))"  
 
     st.markdown(f"""
     <style>
