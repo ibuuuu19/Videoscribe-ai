@@ -3,11 +3,6 @@ Page Studio — Analyse de vidéos YouTube.
 
 Contient le Studio complet (formulaire URL, panneau Premium,
 pipeline d'analyse, affichage des résultats).
-
-Extrait de app.py pour alléger le fichier principal (~563 lignes).
-
-Usage:
-    from src.pages.studio import render_studio_page
 """
 
 import json
@@ -30,6 +25,7 @@ from src.ui.utils import (
 )
 from src.pages.studio_utils import (
     _first_sentence, _studio_score, _render_lock, _studio_md, export_presentation,
+    premium_progress_bar,  # ✅ NOUVEAU
 )
 from src.core.config import HIST_KEEP, FREE_DAILY_LIMIT
 from src.user_manager import get_tier
@@ -42,10 +38,10 @@ from src.history_manager import save_analysis, count_today, trim_history
 from src.export_utils import export_to_markdown, export_to_pdf, export_to_obsidian, export_to_notion
 
 
-
 def get_summarizer(model_key):
     """Instance du summarizer LLM (Groq)."""
     return LLMSummarizer(model_key)
+
 
 def _run_one(url_single, chunk_size, turbo, model_choice, translate_to_fr,
              num_keywords, num_questions, extract_kw, generate_qa, tier):
@@ -54,20 +50,17 @@ def _run_one(url_single, chunk_size, turbo, model_choice, translate_to_fr,
     if not video_id:
         return None
     transcript, lang = get_transcript(video_id)
-    # ✅ Nettoie les répétitions AVANT le résumé (sinon le modèle les recopie)
     if transcript and not transcript.startswith("Error"):
         transcript = remove_repetitions(transcript, threshold=0.75)
     if transcript.startswith("Error"):
         return None
     ch = chunk_text(transcript, chunk_size=chunk_size)
-    # ⚡ Plus de pré-traduction : le summarizer gère la traduction à la volée
     beams = 1 if turbo else 3
     cache_notes = Path("cache") / f"notes_{video_id}_{model_choice}_b{beams}.json"
     if cache_notes.exists():
         notes = json.loads(cache_notes.read_text(encoding="utf-8"))
     else:
         summarizer = get_summarizer(model_choice)
-        # ✅ On passe src_lang et translate_to_en au summarizer
         notes = summarizer.summarize_video(
             ch,
             progress_callback=lambda i, t: None,
@@ -78,13 +71,11 @@ def _run_one(url_single, chunk_size, turbo, model_choice, translate_to_fr,
         )
         cache_notes.parent.mkdir(parents=True, exist_ok=True)
         cache_notes.write_text(json.dumps(notes, ensure_ascii=False), encoding="utf-8")
-    # ✅ Traduire D'ABORD
     if translate_to_fr:
         target = st.session_state.cfg_target if tier >= 3 else "fr"
         translated = translate_texts(notes, src="en", dest=target)
         notes = [polish_translation(n) if n else n for n in translated]
 
-    # ✅ Nettoyer ENSUITE (supprime les répétitions ajoutées par la traduction)
     notes = [clean_summary(remove_repetitions(n)) for n in notes]
     kws = better_extract_keywords(transcript, top_n=num_keywords, lang=lang or "fr")
     qs = better_generate_questions(
@@ -102,18 +93,16 @@ def _run_one(url_single, chunk_size, turbo, model_choice, translate_to_fr,
 
 
 # ═══════════════════════════════════════════════════════════════
-# ⚠️ Le reste du Studio a été copié automatiquement par extract_studio.py
+# PAGE STUDIO PRINCIPALE
 # ═══════════════════════════════════════════════════════════════
 
 def render_studio_page():
     """Affiche la page Studio complète (analyse + résultats)."""
-    # ═══ Variables locales ═══
     user = st.session_state.get("user")
     role = st.session_state.get("role", "client")
     is_guest = role == "visiteur"
     tier = 3 if role == "admin" else (0 if is_guest else get_tier(user))
 
-    # ═══ Configuration depuis session_state ═══
     translate_to_fr = st.session_state.cfg_translate
     extract_kw = st.session_state.cfg_kw
     generate_qa = st.session_state.cfg_qa
@@ -123,14 +112,11 @@ def render_studio_page():
     num_questions = st.session_state.cfg_q_n
     chunk_size = st.session_state.cfg_chunk
 
-    # ═══ État du Studio ═══
     if st.query_params.get("nlhide") == "1":
         st.session_state.nl_hide = True
     if "studio_panel_open" not in st.session_state:
         st.session_state.studio_panel_open = True
 
-    # ═══ Code du Studio (extrait de app.py) ═══
-    # ═══════════════ PAGE ANALYSE — STUDIO PREMIUM ═══════════════
     _a_theme = st.session_state.get("theme", "light")
     _a_nav = "#0F1A2E" if _a_theme == "light" else "#F5F7FB"
     _a_soft = "#4A5A7A" if _a_theme == "light" else "#B9C6E2"
@@ -144,63 +130,25 @@ def render_studio_page():
     _a_accent_dark = shade(_a_accent, 0.55)
     _a_gold = "#D4AF37"
     _a_hair = "rgba(15,26,46,.08)" if _a_theme == "light" else "rgba(255,255,255,.08)"
-    # ═══ Couleurs du hero Studio selon le thème ═══
-    _a_studio_bg = (
-        "radial-gradient(820px 340px at 6% -12%, rgba(59,130,246,.12), transparent 62%), "
-        "radial-gradient(780px 340px at 96% -12%, rgba(16,185,129,.10), transparent 60%), "
-        "linear-gradient(178deg, #F8FAFC 0%, #EFF4FB 100%)"
-    ) if _a_theme == "light" else (
-        "radial-gradient(820px 340px at 6% -12%, rgba(59,130,246,.34), transparent 62%), "
-        "radial-gradient(780px 340px at 96% -12%, rgba(16,185,129,.24), transparent 60%), "
-        "linear-gradient(178deg, #070B12 0%, #0A1019 46%, #0D1524 100%)"
-    )
-    _a_studio_border = "rgba(15,26,46,.10)" if _a_theme == "light" else "rgba(255,255,255,.09)"
-    _a_studio_shadow = "0 20px 60px rgba(15,26,46,.08)" if _a_theme == "light" else "0 40px 100px rgba(2,8,18,.38), inset 0 1px 0 rgba(255,255,255,.06)"
-    _a_studio_title = "#0F1A2E" if _a_theme == "light" else "#F8FAFC"
-    _a_studio_sub = "#4A5A7A" if _a_theme == "light" else "rgba(226,232,240,.72)"
-    _a_studio_kicker_bg = "rgba(46,109,180,.08)" if _a_theme == "light" else "rgba(255,255,255,.07)"
-    _a_studio_kicker_border = "rgba(46,109,180,.20)" if _a_theme == "light" else "rgba(255,255,255,.13)"
-    _a_studio_kicker_color = "#2E6DB4" if _a_theme == "light" else "rgba(255,255,255,.86)"
-    _a_studio_quick_bg = "rgba(255,255,255,.85)" if _a_theme == "light" else "rgba(255,255,255,.055)"
-    _a_studio_quick_border = "rgba(15,26,46,.12)" if _a_theme == "light" else "rgba(255,255,255,.11)"
-    _a_studio_quick_color = "#4A5A7A" if _a_theme == "light" else "rgba(241,245,249,.86)"
-    _a_studio_quick_hover_bg = "#FFFFFF" if _a_theme == "light" else "rgba(255,255,255,.10)"
-    _a_studio_quick_hover_border = "rgba(46,109,180,.30)" if _a_theme == "light" else "rgba(255,255,255,.22)"
-    _a_studio_quick_hover_color = "#2E6DB4" if _a_theme == "light" else "rgba(241,245,249,.86)"
-    _a_studio_grad = "linear-gradient(92deg, #2E6DB4 0%, #10B981 50%, #F59E0B 100%)" if _a_theme == "light" else "linear-gradient(92deg, #60A5FA 0%, #34D399 50%, #FBBF24 100%)"
-    _a_noise = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E"
-    "%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E"
-    "%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E")
 
     st.markdown(f"""
     <style>
     .vs-studio-top {{ position:relative; overflow:hidden; border-radius:34px; padding:3.3rem 2.3rem 2.8rem; margin:.4rem 0 1.5rem;
-    background: {_a_studio_bg};
-    border:1px solid {_a_studio_border}; box-shadow:{_a_studio_shadow};
-    text-align:center; isolation:isolate; }}
-    .vs-studio-top::before {{ content:""; position:absolute; inset:0; z-index:0;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,.055), transparent);
-    transform:translateX(-100%); animation:vsShine 9s ease-in-out infinite; pointer-events:none; }}
-    .vs-studio-top::after {{ content:""; position:absolute; inset:0; z-index:0; opacity:.05; mix-blend-mode:overlay;
-    background-image:url("{_a_noise}"); pointer-events:none; }}
-    .vs-studio-top-bar {{ position:absolute; top:0; left:14%; right:14%; height:1px; z-index:1;
-    background:linear-gradient(90deg, transparent, rgba(96,165,250,.55), rgba(52,211,153,.55), transparent); }}
-    @keyframes vsShine {{ 0%,55% {{transform:translateX(-100%);}} 72%,100% {{transform:translateX(100%);}} }}
-    .vs-studio-kicker {{ position:relative; z-index:1; display:inline-flex; align-items:center; gap:9px; padding:7px 15px 7px 11px; border-radius:999px;
-    background:{_a_studio_kicker_bg}; border:1px solid {_a_studio_kicker_border}; color:{_a_studio_kicker_color} !important;
-    font-size:.76rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; margin-bottom:1.15rem; }}
-    .vs-kicker-dot {{ width:6px; height:6px; border-radius:50%; background:#34D399; box-shadow:0 0 0 0 rgba(52,211,153,.6); animation:vsPulse 2.2s ease-out infinite; }}
-    @keyframes vsPulse {{ 0%{{box-shadow:0 0 0 0 rgba(52,211,153,.55);}} 70%{{box-shadow:0 0 0 8px rgba(52,211,153,0);}} 100%{{box-shadow:0 0 0 0 rgba(52,211,153,0);}} }}
-    .vs-studio-title {{ position:relative; z-index:1; color:{_a_studio_title} !important; font-family:'Sora',sans-serif; font-weight:800;
+    background: {_a_studio_bg if '_a_studio_bg' in globals() else 'transparent'};
+    border:1px solid {_a_border}; box-shadow:{_a_shadow}; text-align:center; isolation:isolate; }}
+    .vs-studio-title {{ position:relative; z-index:1; color:{_a_nav} !important; font-family:'Sora',sans-serif; font-weight:800;
     letter-spacing:-.045em; line-height:1.06; font-size:clamp(1.9rem,4.6vw,4.1rem); margin:0; }}
     .vs-studio-grad {{ background:linear-gradient(92deg,#60A5FA 0%,#34D399 50%,#FBBF24 100%);
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }}
-    .vs-studio-sub {{ position:relative; z-index:1; color:rgba(226,232,240,.72) !important; max-width:700px; margin:1.05rem auto 0; font-size:1.02rem; line-height:1.72; }}
+    .vs-studio-sub {{ position:relative; z-index:1; color:{_a_soft} !important; max-width:700px; margin:1.05rem auto 0; font-size:1.02rem; line-height:1.72; }}
+    .vs-studio-kicker {{ position:relative; z-index:1; display:inline-flex; align-items:center; gap:9px; padding:7px 15px 7px 11px; border-radius:999px;
+    background:{_a_surface_2}; border:1px solid {_a_border}; color:{_a_soft} !important;
+    font-size:.76rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; margin-bottom:1.15rem; }}
     .vs-quick-row {{ position:relative; z-index:1; display:flex; flex-wrap:wrap; gap:.55rem; justify-content:center; margin-top:1.5rem; }}
     .vs-quick {{ display:inline-flex; align-items:center; gap:7px; padding:.56rem .95rem; border-radius:999px;
-    background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.11); color:rgba(241,245,249,.86) !important;
+    background:{_a_surface_2}; border:1px solid {_a_border}; color:{_a_soft} !important;
     font-weight:700; font-size:.82rem; transition:transform .3s cubic-bezier(.16,1,.3,1), background .3s ease, border-color .3s ease; }}
-    .vs-quick:hover {{ transform:translateY(-2px); background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.22); }}
+    .vs-quick:hover {{ transform:translateY(-2px); background:{_a_surface}; border-color:{_a_accent}55; }}
     .vs-link-marker {{ display:none; }}
     div[data-testid="stVerticalBlock"]:has(.vs-link-marker) {{ position:relative; background:{_a_card}; border:1px solid {_a_border};
     border-radius:30px; padding:1.1rem 1.1rem .9rem; box-shadow:{_a_shadow}; backdrop-filter:blur(18px);
@@ -250,7 +198,6 @@ def render_studio_page():
     [data-testid="stColumn"]:has(.vs-panel-head) [data-testid="column"]:last-child .stButton > button:hover {{
         opacity:1 !important; background:{_a_surface_2} !important; transform:translateY(-1px);
     }}
-    @keyframes vsFadeUp {{ from{{opacity:0; transform:translateY(-6px);}} to{{opacity:1; transform:translateY(0);}} }}
     .vs-panel-collapsed-hint {{ display:flex; align-items:center; gap:8px; margin-top:.7rem; padding:.6rem .8rem;
     border-radius:14px; background:{_a_surface_2}; border:1px dashed {_a_border}; color:{_a_soft} !important; font-size:.78rem; font-weight:600; }}
     .vs-group-label {{ display:flex; align-items:center; gap:8px; margin:1.05rem 0 .55rem; color:{_a_soft} !important;
@@ -300,70 +247,16 @@ def render_studio_page():
     background:rgba(46,109,180,.10); border:1px solid rgba(46,109,180,.24); color:{_a_nav} !important; font-weight:750; font-size:.86rem;
     transition:transform .2s ease, border-color .2s ease; }}
     .vs-keyword:hover {{ transform:translateY(-2px); border-color:{_a_accent}66; }}
-        /* ═══ Mode LIGHT : adapter le hero Studio ═══ */
-    html[data-theme="light"] .vs-studio-top,
-    body.light .vs-studio-top {{
-        background:
-            radial-gradient(820px 340px at 6% -12%, rgba(59,130,246,.12), transparent 62%),
-            radial-gradient(780px 340px at 96% -12%, rgba(16,185,129,.10), transparent 60%),
-            linear-gradient(178deg, #F8FAFC 0%, #EFF4FB 100%) !important;
-        border: 1px solid rgba(15,26,46,.10) !important;
-        box-shadow: 0 20px 60px rgba(15,26,46,.08) !important;
-    }}
-    html[data-theme="light"] .vs-studio-title,
-    body.light .vs-studio-title {{
-        color: #0F1A2E !important;
-    }}
-    html[data-theme="light"] .vs-studio-sub,
-    body.light .vs-studio-sub {{
-        color: #4A5A7A !important;
-    }}
-    html[data-theme="light"] .vs-studio-kicker,
-    body.light .vs-studio-kicker {{
-        background: rgba(46,109,180,.08) !important;
-        border-color: rgba(46,109,180,.20) !important;
-        color: #2E6DB4 !important;
-    }}
-    html[data-theme="light"] .vs-quick,
-    body.light .vs-quick {{
-        background: rgba(255,255,255,.85) !important;
-        border-color: rgba(15,26,46,.12) !important;
-        color: #4A5A7A !important;
-    }}
-    html[data-theme="light"] .vs-quick:hover,
-    body.light .vs-quick:hover {{
-        background: #FFFFFF !important;
-        border-color: rgba(46,109,180,.30) !important;
-        color: #2E6DB4 !important;
-    }}
-    html[data-theme="light"] .vs-studio-grad,
-    body.light .vs-studio-grad {{
-        background: linear-gradient(92deg, #2E6DB4 0%, #10B981 50%, #F59E0B 100%) !important;
-        -webkit-background-clip: text !important;
-        background-clip: text !important;
-        -webkit-text-fill-color: transparent !important;
-    }}
     @media (max-width:900px) {{ .vs-insight-grid {{grid-template-columns:1fr;}} .vs-studio-panel {{position:relative; top:0;}} .vs-studio-top {{padding:2.2rem 1.2rem; border-radius:24px;}} }}
     </style>
     """, unsafe_allow_html=True)
-
-    # ⚠️ _first_sentence, _studio_score, _render_lock, _studio_md extraits dans src/pages/studio_utils.py
-    # ⚠️ export_presentation extrait dans src/pages/studio_utils.py
-    # ═══════════════ LAYOUT STUDIO ═══════════════
-    translate_to_fr = st.session_state.cfg_translate; extract_kw = st.session_state.cfg_kw
-    generate_qa = st.session_state.cfg_qa; model_choice = st.session_state.cfg_model
-    turbo = st.session_state.cfg_turbo; num_keywords = st.session_state.cfg_kw_n
-    num_questions = st.session_state.cfg_q_n; chunk_size = st.session_state.cfg_chunk
-    if st.query_params.get("nlhide") == "1": st.session_state.nl_hide = True
-    if "studio_panel_open" not in st.session_state: st.session_state.studio_panel_open = True
 
     left_col, studio_col = st.columns([1.62, .88], gap="large")
     with left_col:
         if not st.session_state.get("nl_hide", False):
             st.markdown(f"""
             <div class="vs-studio-top">
-                <div class="vs-studio-top-bar"></div>
-                <div class="vs-studio-kicker"><span class="vs-kicker-dot"></span>{ic("spark", 13)} VideoScribe Studio</div>
+                <div class="vs-studio-kicker">{ic("spark", 13)} VideoScribe Studio</div>
                 <h1 class="vs-studio-title">Analysez vos vidéos.<br>Obtenez un <span class="vs-studio-grad">résumé exploitable</span>.</h1>
                 <p class="vs-studio-sub">Collez un lien YouTube, lancez l'analyse, puis transformez la vidéo en notes, mots-clés, quiz, flashcards, exports, présentation et réponses IA.</p>
                 <div class="vs-quick-row">
@@ -455,7 +348,7 @@ def render_studio_page():
             st.markdown(f"""<div class="vs-panel-collapsed-hint">{ic("chev", 13)} Réglages repliés — clique sur la flèche pour les rouvrir.</div>""", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    def _run_one(url_single):
+    def _run_one_local(url_single):
         video_id = extract_video_id(url_single)
         if not video_id: return None
         transcript, lang = get_transcript(video_id)
@@ -473,7 +366,6 @@ def render_studio_page():
             notes = summarizer.summarize_video(work, lambda i,t: None, batch_size=6, num_beams=beams)
             cache_notes.parent.mkdir(parents=True, exist_ok=True)
             cache_notes.write_text(json.dumps(notes, ensure_ascii=False), encoding="utf-8")
-        # ✅ Traduire D'ABORD
         if translate_to_fr:
             target = st.session_state.cfg_target if tier >= 3 else "fr"
             notes = [polish_translation(n) for n in translate_texts(notes, src="en", dest=target)]
@@ -495,7 +387,7 @@ def render_studio_page():
         for i, u_single in enumerate(urls):
             vid = extract_video_id(u_single) or u_single[:50]
             status.markdown(f'<div class="pipe-row">{ic("film",16)}<span class="pipe-lbl">{i+1}/{len(urls)} : <b>{_html.escape(vid)}</b></span><span class="pipe-run">● …</span></div>', unsafe_allow_html=True)
-            rec = _run_one(u_single)
+            rec = _run_one_local(u_single)
             if rec:
                 save_analysis(user, rec); st.session_state.results_batch.append(rec); done += 1
                 status.markdown(f'<div class="pipe-row">{ic("film",16)}<span class="pipe-lbl">OK — {_html.escape(rec["title"])}</span><span class="pipe-ok">{ic("check",14)} OK</span></div>', unsafe_allow_html=True)
@@ -515,21 +407,27 @@ def render_studio_page():
             st.markdown(f'<div class="pipe-card"><b class="pipe-title">{ic("zap",16)} Pipeline Studio</b></div>', unsafe_allow_html=True)
             ph_detect = st.empty(); ph_sub = st.empty(); ph_chunk = st.empty()
             ph_sum = st.empty(); ph_tr = st.empty(); ph_kw = st.empty()
-            txt_ph = st.empty(); prog_ph = st.empty()
+            
+            # ✅ NOUVEAU : placeholder pour la barre premium
+            progress_ph = st.empty()
+
         def _step(ph, icon_name, label, state):
             if state == "ok": badge = f'<span class="pipe-ok">{ic("check",14)} OK</span>'
             elif state == "run": badge = '<span class="pipe-run">● Analyse…</span>'
             else: badge = '<span class="pipe-wait">En attente</span>'
             ph.markdown(f'<div class="pipe-row">{ic(icon_name,16)}<span class="pipe-lbl">{label}</span>{badge}</div>', unsafe_allow_html=True)
+
         _step(ph_detect, "link", "Détection du lien", "run")
         video_id = extract_video_id(url)
         if not video_id: st.error("URL YouTube invalide."); st.stop()
         _step(ph_detect, "link", f"Vidéo détectée : {video_id}", "ok")
+
         if tier == 0 and not is_guest:
             used = count_today(user)
             if used >= FREE_DAILY_LIMIT: st.error(f"Limite gratuite atteinte ({FREE_DAILY_LIMIT}/jour)."); st.stop()
             st.info(f"{T('plan_free')} : {FREE_DAILY_LIMIT - used} analyse(s) restante(s) aujourd'hui.")
         if tier < 2 and model_choice == "qualite": model_choice = "rapide"
+
         _step(ph_sub, "film", "Extraction des sous-titres", "run")
         transcript, lang = get_transcript(video_id)
         if transcript and not transcript.startswith("Error"):
@@ -542,30 +440,34 @@ def render_studio_page():
             else: st.error(transcript)
             st.stop()
         _step(ph_sub, "film", f"Sous-titres OK — {len(transcript.split()):,} mots ({lang})", "ok")
+
         _step(ph_chunk, "folder", "Découpage intelligent", "run")
         chunks = chunk_text(transcript, chunk_size=chunk_size)
         _step(ph_chunk, "folder", f"{len(chunks)} chunks générés", "ok")
 
-        # ⚡ Traduction à la volée (pas de pré-traduction)
         if lang != "en":
             _step(ph_tr, "lang", f"Traduction {lang} → EN à la volée", "run")
         else:
             _step(ph_tr, "lang", "Traduction source non nécessaire", "wait")
-        
+
         _step(ph_sum, "cpu", f"Résumé IA — mode {model_choice}", "run")
         beams = 1 if turbo else 3
-       
+
         cache_notes = Path("cache") / f"notes_{video_id}_{model_choice}_b{beams}.json"
         force_refresh = st.session_state.get(f"refresh_{video_id}", False)
+        
         if cache_notes.exists() and not force_refresh:
             notes = json.loads(cache_notes.read_text(encoding="utf-8"))
             _step(ph_sum, "cpu", f"{len(notes)} sections récupérées depuis le cache", "ok")
         else:
             if force_refresh: st.session_state[f"refresh_{video_id}"] = False
+
+            # ✅ NOUVELLE BARRE DE PROGRESSION PREMIUM
             def update_progress(i, total):
-                txt_ph.markdown(f'<span class="pipe-run">Résumé du chunk {i}/{total}…</span>', unsafe_allow_html=True)
-                prog_ph.progress(i / total)
-            with st.spinner(f"Résumé en cours avec le modèle {model_choice}…"):
+                with progress_ph.container():
+                    premium_progress_bar(i / total, f"Résumé du chunk {i}/{total}")
+
+            try:
                 summarizer = get_summarizer(model_choice)
                 notes = summarizer.summarize_video(
                     chunks,
@@ -575,27 +477,37 @@ def render_studio_page():
                     src_lang=lang,
                     translate_to_en=(lang != "en"),
                 )
-            txt_ph.empty(); prog_ph.empty()
+            finally:
+                progress_ph.empty()
+
             cache_notes.parent.mkdir(parents=True, exist_ok=True)
             cache_notes.write_text(json.dumps(notes, ensure_ascii=False), encoding="utf-8")
             _step(ph_sum, "cpu", f"{len(notes)} sections générées", "ok")
+
         if translate_to_fr:
             target = st.session_state.cfg_target if tier >= 3 else "fr"
             _step(ph_tr, "lang", f"Traduction finale → {target.upper()}", "run")
             notes = [polish_translation(n) for n in translate_texts(notes, src="en", dest=target)]
             _step(ph_tr, "lang", f"Traduction finale → {target.upper()} OK", "ok")
+
         notes = [clean_summary(remove_repetitions(n)) for n in notes]
         _step(ph_kw, "hash", "Extraction des mots-clés et questions", "run")
         keywords = better_extract_keywords(transcript, top_n=num_keywords, lang=lang or "fr")
         questions = better_generate_questions(notes, keywords=keywords, n=num_questions, lang=st.session_state.get("cfg_lang","fr")) if generate_qa else []
         _step(ph_kw, "hash", f"{len(keywords)} mots-clés | {len(questions)} questions", "ok")
+
         elapsed = time.time() - start_time
-        record = {"video_id": video_id, "url": url, "date": datetime.now().strftime("%d/%m/%Y %H:%M"), "lang": lang or "unknown",
-        "num_chunks": len(chunks), "total_chars": len(transcript), "total_words": len(transcript.split()),
-        "processing_time": round(elapsed,1), "title": f"Résumé - {video_id}", "author": "",
-        "notes": notes, "keywords": keywords, "questions": questions}
+        record = {
+            "video_id": video_id, "url": url, "date": datetime.now().strftime("%d/%m/%Y %H:%M"),
+            "lang": lang or "unknown", "num_chunks": len(chunks), "total_chars": len(transcript),
+            "total_words": len(transcript.split()), "processing_time": round(elapsed,1),
+            "title": f"Résumé - {video_id}", "author": "",
+            "notes": notes, "keywords": keywords, "questions": questions
+        }
         if is_guest: st.info(T("login_sub"))
-        else: save_analysis(user, record); trim_history(user, keep=HIST_KEEP[tier]); st.success(f"Analyse terminée en {elapsed:.1f} s.")
+        else:
+            save_analysis(user, record); trim_history(user, keep=HIST_KEEP[tier])
+            st.success(f"Analyse terminée en {elapsed:.1f} s.")
         st.session_state.result = record
 
     if st.session_state.result:
@@ -607,6 +519,7 @@ def render_studio_page():
             chosen = st.selectbox("Résultats du lot", options=range(len(batch)), format_func=lambda i: labels[i], index=current_idx, key="batch_selector")
             if chosen != current_idx:
                 st.session_state.result = batch[chosen]; st.rerun()
+
         score = _studio_score(data)
         st.markdown(f"""
         <div class="vs-result-hero">
@@ -615,11 +528,14 @@ def render_studio_page():
             <div class="vs-score">{ic("check", 15)} Score Studio : {score}/100</div>
         </div>
         """, unsafe_allow_html=True)
+
         m1, m2, m3, m4, m5 = st.columns(5)
         m1.metric(T("lang_lbl"), data["lang"].upper()); m2.metric(T("sections"), len(data.get("notes", [])))
         m3.metric(T("chunks"), data.get("num_chunks", "-")); m4.metric(T("words"), f"{data.get('total_words', 0):,}")
         m5.metric(T("time"), f"{data.get('processing_time', 0)} s")
+
         tab_summary, tab_notes, tab_studio, tab_export = st.tabs(["Synthèse", T("res_struct"), "Studio", T("res_export")])
+
         with tab_summary:
             notes = data.get("notes", []); keywords = data.get("keywords", [])
             st.markdown("### Vue d'ensemble")
@@ -644,6 +560,7 @@ def render_studio_page():
             if data.get("questions"):
                 st.markdown(f"### {T('res_q')}")
                 for q in data["questions"]: st.markdown(f'<div class="q-item">{_html.escape(q)}</div>', unsafe_allow_html=True)
+
         with tab_notes:
             st.markdown(f"### {T('res_struct')}")
             for i, note in enumerate(data.get("notes", []), 1):
@@ -653,6 +570,7 @@ def render_studio_page():
                     <div class="vs-section-text">{_html.escape(note)}</div>
                 </div>
                 """, unsafe_allow_html=True)
+
         with tab_studio:
             st.markdown("### Studio IA")
             if not is_guest:
@@ -714,6 +632,7 @@ def render_studio_page():
                             st.download_button(T("dl_audio"), f.read(), file_name=f"{audio_filename}.mp3", mime="audio/mpeg", use_container_width=True)
                     else: st.warning("Module gTTS requis pour générer l'audio.")
             else: _render_lock("Résumé audio", "Disponible avec Premium+.")
+
         with tab_export:
             st.markdown(f"### {T('res_export')}")
             filename = f"summary_{data['video_id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"

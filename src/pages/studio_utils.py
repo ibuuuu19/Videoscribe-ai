@@ -1,17 +1,5 @@
 """
 Helpers du Studio — Fonctions utilitaires pour la page Analyse.
-
-Contient :
-- _first_sentence : Extraire la première phrase d'un texte
-- _studio_score : Calculer un score de qualité (0-100)
-- _render_lock : Afficher un message "réservé aux Premium"
-- _studio_md : Exporter le résumé en Markdown
-- export_presentation : Générer une présentation HTML (slides)
-
-Extrait de app.py pour alléger le fichier principal (~250 lignes).
-
-Usage:
-    from src.pages.studio_utils import _first_sentence, _studio_score
 """
 
 import re
@@ -61,6 +49,68 @@ def _render_lock(title, subtitle="Réservé aux abonnés Premium."):
     <span>{ic("lock", 18)}</span>
     <div><b>{title}</b><br><small>{subtitle}</small></div>
     </div>""", unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════
+# BARRE DE PROGRESSION PREMIUM
+# ═══════════════════════════════════════════════════════════════
+
+def premium_progress_bar(progress: float, text: str = "", height: int = 12):
+    """
+    Affiche une barre de progression personnalisée avec un style premium.
+    À utiliser avec st.empty() pour la mise à jour dynamique.
+
+    Args:
+        progress: Valeur entre 0.0 et 1.0
+        text: Texte à afficher (ex: "10/21")
+        height: Hauteur de la barre en pixels
+    """
+    progress = max(0.0, min(1.0, progress))
+    percent = int(progress * 100)
+
+    st.markdown(f"""
+    <div style="
+        position: relative;
+        width: 100%;
+        height: {height}px;
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.10);
+        border-radius: 999px;
+        overflow: hidden;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,.20);
+        margin: .6rem 0;
+    ">
+        <div style="
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            width: {percent}%;
+            background: linear-gradient(90deg, #2E6DB4, #4C9AFF, #D4AF37);
+            background-size: 200% 100%;
+            border-radius: 999px;
+            box-shadow: 0 0 12px rgba(76,154,255,.55);
+            animation: shimmer 2.5s linear infinite;
+            transition: width .4s ease;
+        "></div>
+    </div>
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: .85rem;
+        color: rgba(203,213,225,.85);
+        margin-top: .25rem;
+    ">
+        <span>{text}</span>
+        <span style="font-weight: 700; color: #D4AF37;">{percent}%</span>
+    </div>
+    <style>
+        @keyframes shimmer {{
+            0% {{ background-position: 0% 50%; }}
+            100% {{ background-position: 200% 50%; }}
+        }}
+    </style>
+    """, unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════════
