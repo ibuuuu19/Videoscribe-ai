@@ -105,9 +105,45 @@ def _toggle_theme():
 # NAVBAR PUBLIQUE
 # ═══════════════════════════════════════════════════════════════
 
+def _navbar_css():
+    """Barre responsive. Mobile : grille CSS (marque + thème / 4 liens / CTA pleine largeur).
+    La grille ignore les flex-basis/min-width imposés par Streamlit sur les colonnes."""
+    st.markdown("""<style>
+html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) [data-testid="stHorizontalBlock"] { align-items:center; }
+html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) .stButton > button { transition:transform .2s ease, box-shadow .25s ease, background .2s ease; }
+html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) .stButton > button:hover { transform:translateY(-1px); }
+@media (max-width: 900px) {
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) { padding:.55rem .65rem .7rem !important; overflow:visible !important; white-space:normal !important; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) [data-testid="stHorizontalBlock"] {
+    display:grid !important; grid-template-columns:repeat(4,minmax(0,1fr)) !important; gap:.3rem !important;
+    width:100% !important; max-width:100% !important; min-width:0 !important; flex-wrap:nowrap !important; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) [data-testid="stColumn"] {
+    width:auto !important; min-width:0 !important; max-width:100% !important; flex:none !important; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) [data-testid="stColumn"]:nth-child(1) { grid-column:1 / 4; grid-row:1; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) [data-testid="stColumn"]:nth-child(7) { grid-column:4; grid-row:1; justify-self:end; width:46px !important; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) [data-testid="stColumn"]:nth-child(2) { grid-column:1; grid-row:2; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) [data-testid="stColumn"]:nth-child(3) { grid-column:2; grid-row:2; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) [data-testid="stColumn"]:nth-child(4) { grid-column:3; grid-row:2; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) [data-testid="stColumn"]:nth-child(5) { grid-column:4; grid-row:2; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) [data-testid="stColumn"]:nth-child(6) { grid-column:1 / -1; grid-row:3; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) .stButton > button { width:100% !important; min-height:38px !important; padding:.3rem .1rem !important; font-size:.7rem !important; white-space:nowrap !important; overflow:visible !important; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) .stButton > button p { text-overflow:clip !important; overflow:visible !important; white-space:nowrap !important; font-size:.72rem !important; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) [data-testid="stColumn"]:nth-child(6) .stButton > button p { font-size:.95rem !important; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) .stButton > button .stMarkdownEllipsis { overflow:visible !important; text-overflow:clip !important; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) [data-testid="stColumn"]:nth-child(6) .stButton > button { min-height:44px !important; font-size:.92rem !important; }
+  html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) [data-testid="stColumn"]:nth-child(7) .stButton > button { min-width:0 !important; padding:.3rem !important; font-size:1.05rem !important; }
+}
+</style>""", unsafe_allow_html=True)
+
+
 def render_navbar():
     """Affiche la barre de navigation publique (visiteurs)."""
-    with st.container():
+    try:
+        _box = st.container(key="vsnav")
+    except TypeError:
+        _box = st.container()
+    _navbar_css()
+    with _box:
         st.markdown('<div class="lnav"></div>', unsafe_allow_html=True)
         b1, b2, b3, b4, b5, b6, b7 = st.columns([2.2, 1, 1, 1, 1.2, 1.6, .6])
         with b1:
@@ -145,237 +181,63 @@ def render_navbar():
 # ═══════════════════════════════════════════════════════════════
 
 def render_footer(compact=False):
-    """Footer unifié pour toutes les pages."""
-    
-    _is_light = st.session_state.get("theme", "light") == "light"
-    _f_nav = "#0F1A2E" if _is_light else "#F8FAFC"
-    _f_soft = "#4A5A7A" if _is_light else "rgba(148,163,184,.9)"
-    _f_bg = "linear-gradient(145deg, #F8FAFC, #EFF4FB)" if _is_light else "linear-gradient(145deg, #080E18, #0C1728)"
-    _f_border = "rgba(15,26,46,.10)" if _is_light else "rgba(255,255,255,.08)"
-    _f_link = "#4A5A7A" if _is_light else "#cbd5e1"
-    _f_link_hover = "#2E6DB4" if _is_light else "#FFFFFF"
-    _f_head = "#0F1A2E" if _is_light else "#FFFFFF"
-    _f_copy = "#4A5A7A" if _is_light else "#94a3b8"
-    _f_copy_border = "rgba(15,26,46,.12)" if _is_light else "rgba(255,255,255,.12)"
-
+    """Footer unifié (premium, responsive, clair/sombre)."""
+    L = st.session_state.get("theme", "light") == "light"
+    ink = "#0F1A2E" if L else "#F8FAFC"
+    soft = "#4A5A7A" if L else "rgba(203,213,225,.85)"
+    bg = "linear-gradient(160deg,#FFFFFF,#EEF3FB)" if L else "linear-gradient(160deg,#0A1220,#0D1830)"
+    line = "rgba(15,26,46,.10)" if L else "rgba(255,255,255,.10)"
+    hov = "#2E6DB4" if L else "#FFFFFF"
+    chip = "rgba(46,109,180,.10)" if L else "rgba(255,255,255,.07)"
+    wa = "".join(ch for ch in str(PAYMENT_WAVE) if ch.isdigit())
+    css = f"""<style>
+html body .stApp .vsf {{ position:relative; overflow:hidden; margin-top:3rem; border-radius:26px; background:{bg}; border:1px solid {line};
+  box-shadow:0 24px 60px rgba(4,16,31,{".08" if L else ".35"}); padding:2.4rem clamp(1.1rem,3vw,2.2rem) 1.3rem; text-align:left; white-space:normal; }}
+html body .stApp .vsf::before {{ content:""; position:absolute; top:0; left:10%; right:10%; height:2px; background:linear-gradient(90deg,transparent,#3B82F6,#10B981,#D4AF37,transparent); }}
+html body .stApp .vsf-grid {{ display:grid; grid-template-columns:1.5fr 1fr 1fr 1.2fr; gap:2rem; }}
+html body .stApp .vsf-logo {{ display:flex; align-items:center; gap:10px; font-family:'Sora',sans-serif; font-weight:800; font-size:1.2rem; color:{ink} !important; margin-bottom:.8rem; }}
+html body .stApp .vsf-logo i {{ font-style:normal; background:linear-gradient(92deg,#2E6DB4,#10B981); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }}
+html body .stApp .vsf p {{ color:{soft} !important; font-size:.9rem; line-height:1.65; margin:0; }}
+html body .stApp .vsf h5 {{ font-family:'Sora',sans-serif; font-weight:800; font-size:.8rem; letter-spacing:.12em; text-transform:uppercase; color:{ink} !important; margin:0 0 .9rem; padding:0; }}
+html body .stApp .vsf ul {{ list-style:none; padding:0; margin:0; display:grid; gap:.55rem; }}
+html body .stApp .vsf li {{ color:{soft} !important; font-size:.9rem; display:flex; align-items:center; gap:8px; }}
+html body .stApp .vsf li svg {{ color:#2E6DB4; stroke:currentColor; }}
+html body .stApp .vsf a.l {{ color:{soft} !important; text-decoration:none; transition:color .2s ease, transform .2s ease; display:inline-block; }}
+html body .stApp .vsf a.l:hover {{ color:{hov} !important; transform:translateX(3px); }}
+html body .stApp .vsf-soc {{ display:flex; gap:10px; margin-top:1.1rem; }}
+html body .stApp .vsf-soc a {{ width:40px; height:40px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; background:{chip}; border:1px solid {line}; color:{soft} !important; transition:all .3s cubic-bezier(.16,1,.3,1); }}
+html body .stApp .vsf-soc a:hover {{ transform:translateY(-3px); color:#fff !important; background:linear-gradient(135deg,#1B3B6F,#2E6DB4); border-color:transparent; }}
+html body .stApp .vsf-cta {{ display:inline-flex; align-items:center; gap:8px; margin-top:1rem; padding:10px 18px; border-radius:999px; background:linear-gradient(135deg,#1B3B6F,#2E6DB4); color:#fff !important; font-weight:700; font-size:.88rem; text-decoration:none; box-shadow:0 10px 24px rgba(46,109,180,.3); transition:transform .25s ease; }}
+html body .stApp .vsf-cta:hover {{ transform:translateY(-2px); }}
+html body .stApp .vsf-cta svg {{ stroke:#fff; }}
+html body .stApp .vsf-copy {{ margin-top:1.8rem; padding-top:1rem; border-top:1px solid {line}; display:flex; flex-wrap:wrap; gap:.6rem 1.5rem; justify-content:space-between; align-items:center; color:{soft} !important; font-size:.82rem; }}
+html body .stApp .vsf-copy b {{ color:{ink} !important; }}
+html body .stApp .vsf-copy span {{ color:{soft} !important; }}
+html body .stApp .vsf-links {{ display:flex; flex-wrap:wrap; justify-content:center; gap:.5rem 1.4rem; margin-top:1.1rem; padding-top:1rem; border-top:1px solid {line}; }}
+html body .stApp .vsf-c {{ text-align:center; }}
+@media (max-width:900px) {{ html body .stApp .vsf-grid {{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.6rem; }} }}
+@media (max-width:560px) {{ html body .stApp .vsf-grid {{ grid-template-columns:1fr; }} html body .stApp .vsf {{ border-radius:20px; }}
+  html body .stApp .vsf-copy {{ justify-content:center; text-align:center; }} }}
+</style>"""
+    links = [("accueil", T("home")), ("about", T("about")), ("contact", T("m_contact")),
+             ("premium", T("m_premium")), ("login", T("login")), ("register", T("register"))]
     if compact:
-        st.markdown(f"""
-        <style>
-        .footer-compact {{
-            background: {_f_bg};
-            border: 1px solid {_f_border};
-            border-radius: 20px;
-            margin-top: 3rem;
-            padding: 1.8rem 1.5rem;
-            text-align: center;
-        }}
-        .footer-compact .copy {{
-            color: {_f_copy};
-            font-size: .88rem;
-            line-height: 1.7;
-        }}
-        .footer-compact .copy b {{
-            color: {_f_nav};
-            font-weight: 700;
-        }}
-        .footer-compact .links {{
-            display: flex;
-            gap: 1.5rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: .8rem;
-            padding-top: .8rem;
-            border-top: 1px solid {_f_copy_border};
-        }}
-        .footer-compact .links a {{
-            color: {_f_link} !important;
-            text-decoration: none;
-            font-size: .82rem;
-            font-weight: 600;
-            transition: color .25s ease;
-        }}
-        .footer-compact .links a:hover {{
-            color: {_f_link_hover} !important;
-            text-decoration: underline;
-        }}
-        </style>
-        <div class="footer-compact">
-            <div class="copy">
-                © 2026 <b>VideoScribe AI</b> — Mbtech-services<br>
-                <span style="opacity:.75; font-size:.82rem;">
-                    {CONTACT_EMAIL} • {PAYMENT_WAVE} • Cambérène, Dakar — Sénégal
-                </span>
-            </div>
-            <div class="links">
-                <a href="?page=accueil">{T("home")}</a>
-                <a href="?page=about">{T("about")}</a>
-                <a href="?page=contact">{T("m_contact")}</a>
-                <a href="?page=premium">{T("m_premium")}</a>
-                <a href="?page=login">{T("login")}</a>
-                <a href="?page=register">{T("register")}</a>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-                        
+        lk = "".join(f'<a class="l" href="?page={p}">{n}</a>' for p, n in links)
+        html = (f'<div class="vsf vsf-c"><div class="vsf-logo" style="justify-content:center">{logo_html(26)} <span>VideoScribe <i>AI</i></span></div>'
+                f'<p>© 2026 <b style="color:{ink}">VideoScribe AI</b> — Mbtech-services<br>'
+                f'<span style="opacity:.8;font-size:.82rem">{CONTACT_EMAIL} • {PAYMENT_WAVE} • Cambérène, Dakar — Sénégal</span></p>'
+                f'<div class="vsf-links">{lk}</div></div>')
+        st.markdown(css + html, unsafe_allow_html=True)
         return
-
-    st.markdown(f"""
-    <style>
-    .footer-dark {{
-        background: {_f_bg};
-        color: {_f_soft};
-        border-radius: 24px;
-        border: 1px solid {_f_border};
-        box-shadow: 0 24px 60px rgba(4,16,31,.15);
-        margin-top: 3rem;
-        padding: 2.6rem 2.2rem 1.4rem;
-    }}
-    .fd-grid {{
-        display: grid;
-        grid-template-columns: 1.4fr 1fr 1fr 1fr;
-        gap: 2rem;
-    }}
-    .fd-logo {{
-        display: flex; align-items: center; gap: 9px;
-        color: {_f_head}; font-size: 1.15rem;
-        font-family: 'Sora', sans-serif;
-        margin-bottom: .9rem;
-        font-weight: 700;
-    }}
-    .footer-dark h5 {{
-        color: {_f_head};
-        font-size: 1rem;
-        margin-bottom: .8rem;
-        font-family: 'Sora', sans-serif;
-        font-weight: 700;
-    }}
-    .footer-dark ul {{
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }}
-    .footer-dark li {{
-        padding: .3rem 0;
-        font-size: .92rem;
-        color: {_f_soft};
-    }}
-    .footer-dark p {{
-        color: {_f_soft};
-        font-size: .92rem;
-        line-height: 1.6;
-    }}
-    .fd-copy {{
-        border-top: 1px solid {_f_copy_border};
-        margin-top: 2rem;
-        padding-top: 1rem;
-        text-align: center;
-        font-size: .85rem;
-        color: {_f_copy};
-    }}
-    .fd-social {{
-        width: 40px; height: 40px; border-radius: 12px;
-        background: rgba(46,109,180,.10);
-        border: 1px solid rgba(46,109,180,.20);
-        display: inline-flex; align-items: center; justify-content: center;
-        color: {_f_link} !important;
-        transition: all .3s cubic-bezier(.16,1,.3,1);
-        text-decoration: none;
-    }}
-    .fd-social:hover {{
-        transform: translateY(-3px);
-        background: rgba(46,109,180,.20) !important;
-        border-color: rgba(76,154,255,.40) !important;
-        color: {_f_link_hover} !important;
-    }}
-    .fd-input {{
-        flex: 1;
-        background: {"rgba(15,26,46,.04)" if _is_light else "rgba(255,255,255,.06)"};
-        border: 1px solid {_f_border};
-        border-radius: 999px;
-        padding: 10px 16px;
-        color: {_f_nav};
-        outline: none;
-        font-size: .9rem;
-    }}
-    .fd-input::placeholder {{
-        color: {_f_copy};
-    }}
-    .fd-send {{
-        width: 42px; height: 42px; border-radius: 50%;
-        background: linear-gradient(135deg, #1B3B6F, #2E6DB4);
-        display: inline-flex; align-items: center; justify-content: center;
-        color: #fff !important;
-        flex-shrink: 0;
-        transition: all .3s ease;
-        cursor: pointer;
-    }}
-    .fd-send:hover {{
-        transform: scale(1.08);
-        box-shadow: 0 8px 24px rgba(46,109,180,.4);
-    }}
-    .fd-link {{
-        color: {_f_link} !important;
-        text-decoration: none;
-        transition: color .25s ease;
-    }}
-    .fd-link:hover {{
-        color: {_f_link_hover} !important;
-        text-decoration: underline;
-    }}
-    @media (max-width: 900px) {{
-        .fd-grid {{ grid-template-columns: 1fr 1fr; gap: 1.5rem; }}
-    }}
-    @media (max-width: 560px) {{
-        .fd-grid {{ grid-template-columns: 1fr; }}
-    }}
-    </style>
-    <div class="footer-dark">
-        <div class="fd-grid">
-            <div>
-                <div class="fd-logo">{logo_html(30)} <b>VideoScribe</b> AI</div>
-                <p>Application de résumé IA de vidéos YouTube, spécialisée dans la création de notes structurées personnalisées.</p>
-                <div style="display:flex; gap:10px; margin-top:1.1rem;">
-                    <a class="fd-social" href="mailto:{CONTACT_EMAIL}" title="Email">{ic("mail",16)}</a>
-                    <a class="fd-social" href="https://wa.me/{PAYMENT_WAVE.replace(' ', '')}" target="_blank" title="WhatsApp">{ic("msg",16)}</a>
-                    <a class="fd-social" href="https://github.com/ibuuuu19" target="_blank" title="GitHub">{ic("code",16)}</a>
-                </div>
-            </div>
-            <div>
-                <h5>Fonctionnalités</h5>
-                <ul>
-                    <li>Résumés IA</li>
-                    <li>Traduction automatique</li>
-                    <li>Mots-clés & flashcards</li>
-                    <li>Quiz interactif</li>
-                    <li>Exports pro</li>
-                </ul>
-            </div>
-            <div>
-                <h5>{T("ft_links")}</h5>
-                <ul>
-                    <li><a class="fd-link" href="?page=accueil"  >{T("home")}</a></li>
-                    <li><a class="fd-link" href="?page=about"    >{T("about")}</a></li>
-                    <li><a class="fd-link" href="?page=contact"  >{T("m_contact")}</a></li>
-                    <li><a class="fd-link" href="?page=premium"  >{T("m_premium")}</a></li>
-                    <li><a class="fd-link" href="?page=login"    >{T("login")}</a></li>
-                    <li><a class="fd-link" href="?page=register" >{T("register")}</a></li>
-                </ul>
-            </div>
-            <div>
-                <h5>Contact & Newsletter</h5>
-                <ul>
-                    <li>{ic("mail",13)} {CONTACT_EMAIL}</li>
-                    <li>{ic("phone",13)} {PAYMENT_WAVE}</li>
-                    <li>{ic("map",13)} Cambérène, Dakar — Sénégal</li>
-                </ul>
-                <div style="display:flex; gap:8px; margin-top:1.1rem;">
-                    <input class="fd-input" placeholder="Votre email" />
-                    <span class="fd-send">{ic("send",16)}</span>
-                </div>
-            </div>
-        </div>
-        <div class="fd-copy">
-            © 2026 VideoScribe AI — Mbtech-services. Tous droits réservés.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)    
+    lk = "".join(f'<li><a class="l" href="?page={p}">{n}</a></li>' for p, n in links)
+    wa_btn = f'<a href="https://wa.me/{wa}" target="_blank" rel="noopener" title="WhatsApp">{ic("msg",16)}</a>' if wa else ""
+    html = f"""<div class="vsf"><div class="vsf-grid">
+<div><div class="vsf-logo">{logo_html(30)} <span>VideoScribe <i>AI</i></span></div>
+<p>Application de résumé IA de vidéos YouTube, spécialisée dans la création de notes structurées personnalisées.</p>
+<div class="vsf-soc"><a href="mailto:{CONTACT_EMAIL}" title="Email">{ic("mail",16)}</a>{wa_btn}<a href="https://github.com/ibuuuu19" target="_blank" rel="noopener" title="GitHub">{ic("code",16)}</a></div></div>
+<div><h5>Fonctionnalités</h5><ul><li>Résumés IA</li><li>Traduction automatique</li><li>Mots-clés &amp; flashcards</li><li>Quiz interactif</li><li>Exports pro</li></ul></div>
+<div><h5>{T("ft_links")}</h5><ul>{lk}</ul></div>
+<div><h5>Contact</h5><ul><li>{ic("mail",14)} {CONTACT_EMAIL}</li><li>{ic("phone",14)} {PAYMENT_WAVE}</li><li>{ic("map",14)} Cambérène, Dakar — Sénégal</li></ul>
+<a class="vsf-cta" href="mailto:{CONTACT_EMAIL}">{ic("send",15)} Nous écrire</a></div>
+</div><div class="vsf-copy"><span>© 2026 <b>VideoScribe AI</b> — Mbtech-services. Tous droits réservés.</span><span>Fait avec ♥ à Dakar</span></div></div>"""
+    st.markdown((css + html).replace("\n<", "<"), unsafe_allow_html=True)
