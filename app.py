@@ -103,6 +103,9 @@ from src.pages.studio_utils import (
 # ═══════════════ PAGE STUDIO ═══════════════
 from src.pages.studio import render_studio_page
 
+from src.ui.mobile import render_mobile_shell
+from src.pages.history import render_historique as render_historique_v2
+
 # ═══ Créer les dossiers nécessaires (cloud) ═══
 for folder in ["data", "cache", "exports", "output", "data/avatars"]:
     Path(folder).mkdir(parents=True, exist_ok=True)
@@ -791,6 +794,10 @@ with st.sidebar:
             st.markdown('<div class="um-sep"></div>', unsafe_allow_html=True)
             if st.button(T("theme_to_light") if _th=="dark" else T("theme_to_dark"), key="gm_theme", use_container_width=True): _toggle_theme()
 
+# ═══ Coque mobile (barres haut/bas + tiroir) — HORS du bloc `with st.sidebar:` ═══
+if not is_guest:
+    render_mobile_shell(user, role, tier)
+
 import json as _json
 _js_icons = _json.dumps({
     # ═══ FRANÇAIS ═══
@@ -913,7 +920,7 @@ if page == "analyse":
     st.stop()
 if page == "profil" and not is_guest: render_profil(); st.stop()
 if page == "premium": render_premium(); st.stop()
-if page == "historique" and not is_guest: render_historique(); st.stop()
+if page == "historique" and not is_guest: render_historique_v2(user, tier); st.stop()
 if page == "stats" and not is_guest: render_stats(); st.stop()
 if page == "config" and not is_guest: render_config(); st.stop()
 if page == "contact": render_contact(); st.stop()
