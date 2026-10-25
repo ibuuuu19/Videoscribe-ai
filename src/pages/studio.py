@@ -28,13 +28,13 @@ from src.pages.studio_utils import (
     premium_progress_bar,  # ✅ NOUVEAU
 )
 from src.core.config import HIST_KEEP, FREE_DAILY_LIMIT
-from src.user_manager import get_tier
+from src.ui.fast import get_tier
 from src.transcript_extractor import extract_video_id, get_transcript
 from src.text_processor import chunk_text, remove_repetitions, polish_translation
 # (import inutile retiré)
 from src.summarizer_llm import LLMSummarizer
 from src.translator import translate_texts
-from src.history_manager import save_analysis, count_today, trim_history
+from src.ui.fast import save_analysis, count_today, trim_history
 from src.export_utils import export_to_markdown, export_to_pdf, export_to_obsidian, export_to_notion
 
 

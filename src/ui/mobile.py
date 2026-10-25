@@ -28,8 +28,8 @@ from src.ui.layout import get_accent, _toggle_theme
 from src.core.config import FREE_DAILY_LIMIT, COOKIE_NAME
 from src.core.cookies import delete_cookie
 from src.session_manager import delete_session
-from src.notification_manager import unread_count
-from src.history_manager import count_today
+from src.ui.fast import unread_count
+from src.ui.fast import count_today
 
 
 # ───────────────────────── Icônes (masques SVG) ─────────────────────────

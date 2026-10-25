@@ -105,6 +105,12 @@ from src.pages.studio_utils import (
 # ═══════════════ PAGE STUDIO ═══════════════
 from src.pages.studio import render_studio_page
 
+# Lectures mémorisées / écritures qui vident le cache (voir src/ui/fast.py) — remplace les fonctions importées plus haut
+from src.ui.fast import (get_tier, get_plan, list_users, unread_count, get_notifications, count_today,
+                         get_history, load_favs, get_avatar_b64, set_plan, set_active, delete_user,
+                         reset_password, register_user, notify, mark_all_read, save_analysis,
+                         clear_history, trim_history, toggle_fav)
+from src.ui import fast as _fast
 perf.mark('imports')
 from src.ui.mobile import render_mobile_shell
 from src.pages.history import render_historique as render_historique_v2
@@ -689,7 +695,7 @@ def render_config():
             if up:
                 AVATAR_DIR.mkdir(parents=True, exist_ok=True); ext = up.name.rsplit(".",1)[-1].lower()
                 for old in AVATAR_DIR.glob(f"{user}.*"): old.unlink()
-                (AVATAR_DIR / f"{user}.{ext}").write_bytes(up.read()); st.success("Photo enregistrée"); st.rerun()
+                (AVATAR_DIR / f"{user}.{ext}").write_bytes(up.read()); _fast.clear(); st.success("Photo enregistrée"); st.rerun()
             st.text_input(T("fullname"), key="prof_fullname"); st.text_input(T("callname"), key="prof_callname")
             st.selectbox(T("job"), ["Étudiant","Enseignant","Créateur de contenu","Professionnel","Autre"], key="prof_job")
             st.text_area(T("instructions"), key="prof_instructions", placeholder="ex. : garder les explications brèves")
