@@ -76,11 +76,12 @@ def _keyed(key: str):
 
 
 def _go(page: str, new_analysis: bool = False):
+    """Callback de navigation. Exécuté AVANT le rerun de Streamlit : une seule exécution du script par clic
+    (avec `if st.button(): ...; st.rerun()` le script tournait deux fois)."""
     st.session_state.page = page
     st.session_state.show_privacy = False
     if new_analysis:
         st.session_state.result = None
-    st.rerun()
 
 
 # Sélecteur de base : plus spécifique que les règles globales de css.py (colonnes empilées, etc.)
@@ -266,8 +267,7 @@ def render_mobile_shell(user: str, role: str, tier: int) -> None:
             with _keyed("sb_promo"):
                 st.markdown('<div class="sbp-t"><i></i>Passez à Premium</div>'
                             '<p>Analyses illimitées, quiz, chat vidéo, exports PDF, Notion et Obsidian.</p>', unsafe_allow_html=True)
-                if st.button("Voir les offres", key="sb_promo_btn", use_container_width=True):
-                    _go("premium")
+                st.button("Voir les offres", key="sb_promo_btn", use_container_width=True, on_click=_go, args=("premium",))
 
     # ══════════ BARRE DU HAUT ══════════
     with _keyed("mtop"):
@@ -275,19 +275,18 @@ def render_mobile_shell(user: str, role: str, tier: int) -> None:
         with c1:
             st.markdown(style_tag + f'<div style="display:flex;align-items:center;">{logo_html(36)}</div>', unsafe_allow_html=True)
         with c2:
-            if st.button(credit_label, key="mt_credits", help="Voir les offres"):
-                _go("premium")
+            st.button(credit_label, key="mt_credits", help="Voir les offres", on_click=_go, args=("premium",))
         with c3:
-            if st.button("Notifications", key="mt_bell"):
-                _go("notifs")
+            st.button("Notifications", key="mt_bell", on_click=_go, args=("notifs",))
         with c4:
             with _keyed("mt_user"):
                 with st.popover(user[:2].upper()):
-                    if st.button("Profil", key="mt_profil", use_container_width=True): _go("profil")
-                    if st.button("Paramètres", key="mt_config", use_container_width=True): _go("config")
-                    if st.button("Notifications" + (f" ({n_unread})" if n_unread else ""), key="mt_notifs", use_container_width=True): _go("notifs")
-                    if st.button("Contact", key="mt_contact", use_container_width=True): _go("contact")
-                    if role == "admin" and st.button("Administration", key="mt_admin", use_container_width=True): _go("admin")
+                    st.button("Profil", key="mt_profil", use_container_width=True, on_click=_go, args=("profil",))
+                    st.button("Paramètres", key="mt_config", use_container_width=True, on_click=_go, args=("config",))
+                    st.button("Notifications" + (f" ({n_unread})" if n_unread else ""), key="mt_notifs", use_container_width=True, on_click=_go, args=("notifs",))
+                    st.button("Contact", key="mt_contact", use_container_width=True, on_click=_go, args=("contact",))
+                    if role == "admin":
+                        st.button("Administration", key="mt_admin", use_container_width=True, on_click=_go, args=("admin",))
                     st.divider()
                     dark = st.session_state.get("theme", "light") == "dark"
                     if st.button("Passer en mode clair" if dark else "Passer en mode sombre", key="mt_theme", use_container_width=True):
@@ -309,9 +308,6 @@ def render_mobile_shell(user: str, role: str, tier: int) -> None:
         for col, (key, label, target) in zip(cols, tabs):
             with col:
                 is_active = target is not None and active == target
-                if st.button(label, key=key, use_container_width=True,
-                             type="primary" if is_active else "secondary"):
-                    if target is None:
-                        _go("analyse", new_analysis=True)
-                    else:
-                        _go(target)
+                st.button(label, key=key, use_container_width=True,
+                          type="primary" if is_active else "secondary",
+                          on_click=_go, args=(("analyse", True) if target is None else (target,)))

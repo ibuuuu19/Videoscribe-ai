@@ -31,11 +31,27 @@ from src.core.config import HIST_KEEP, FREE_DAILY_LIMIT
 from src.user_manager import get_tier
 from src.transcript_extractor import extract_video_id, get_transcript
 from src.text_processor import chunk_text, remove_repetitions, polish_translation
-from src.summarizer import VideoSummarizer, MODELS
+# (import inutile retiré)
 from src.summarizer_llm import LLMSummarizer
 from src.translator import translate_texts
 from src.history_manager import save_analysis, count_today, trim_history
 from src.export_utils import export_to_markdown, export_to_pdf, export_to_obsidian, export_to_notion
+
+
+def _is_mobile_ua() -> bool:
+    """True si la requête vient d'un téléphone (User-Agent) — sert uniquement à replier les réglages par défaut."""
+    try:
+        ua = (st.context.headers.get("user-agent") or "").lower()
+        return any(k in ua for k in ("iphone", "android", "mobile", "ipad"))
+    except Exception:
+        return False
+
+
+def _keyed(key: str):
+    try:
+        return st.container(key=key)
+    except TypeError:
+        return st.container()
 
 
 def get_summarizer(model_key):
@@ -115,7 +131,7 @@ def render_studio_page():
     if st.query_params.get("nlhide") == "1":
         st.session_state.nl_hide = True
     if "studio_panel_open" not in st.session_state:
-        st.session_state.studio_panel_open = True
+        st.session_state.studio_panel_open = not _is_mobile_ua()
 
     _a_theme = st.session_state.get("theme", "light")
     _a_nav = "#0F1A2E" if _a_theme == "light" else "#F5F7FB"
@@ -135,7 +151,7 @@ def render_studio_page():
     st.markdown(f"""
     <style>
     .vs-studio-top {{ position:relative; overflow:hidden; border-radius:34px; padding:3.3rem 2.3rem 2.8rem; margin:.4rem 0 1.5rem;
-    background: {_a_studio_bg if '_a_studio_bg' in globals() else 'transparent'};
+    background: {_a_studio_bg};
     border:1px solid {_a_border}; box-shadow:{_a_shadow}; text-align:center; isolation:isolate; }}
     .vs-studio-title {{ position:relative; z-index:1; color:{_a_nav} !important; font-family:'Sora',sans-serif; font-weight:800;
     letter-spacing:-.045em; line-height:1.06; font-size:clamp(1.9rem,4.6vw,4.1rem); margin:0; }}
@@ -151,36 +167,36 @@ def render_studio_page():
     font-weight:700; font-size:.82rem; transition:transform .3s cubic-bezier(.16,1,.3,1), background .3s ease, border-color .3s ease; }}
     .vs-quick:hover {{ transform:translateY(-2px); background:{_a_surface}; border-color:{_a_accent}55; }}
     .vs-link-marker {{ display:none; }}
-    div[data-testid="stVerticalBlock"]:has(.vs-link-marker) {{ position:relative; background:{_a_card}; border:1px solid {_a_border};
+    div[data-testid="stVerticalBlock"].st-key-st_link {{ position:relative; background:{_a_card}; border:1px solid {_a_border};
     border-radius:30px; padding:1.1rem 1.1rem .9rem; box-shadow:{_a_shadow}; backdrop-filter:blur(18px);
     overflow:hidden; }}
-    div[data-testid="stVerticalBlock"]:has(.vs-link-marker)::before {{ content:""; position:absolute; top:0; left:8%; right:8%; height:1px;
+    div[data-testid="stVerticalBlock"].st-key-st_link::before {{ content:""; position:absolute; top:0; left:8%; right:8%; height:1px;
     background:linear-gradient(90deg,transparent,{_a_accent}66,transparent); }}
-    div[data-testid="stVerticalBlock"]:has(.vs-link-marker) [data-testid="stTextInput"] input {{
+    div[data-testid="stVerticalBlock"].st-key-st_link [data-testid="stTextInput"] input {{
     height:68px !important; min-height:68px !important; border-radius:22px !important; background:{_a_input} !important;
     color:{_a_nav} !important; border:1.5px solid rgba(76,111,255,.34) !important;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 5px rgba(76,111,255,.075) !important;
     padding:0 1.35rem !important; font-size:1.05rem !important; font-weight:650 !important;
     transition:border-color .25s ease, box-shadow .25s ease !important; }}
-    div[data-testid="stVerticalBlock"]:has(.vs-link-marker) [data-testid="stTextInput"] input:focus {{
+    div[data-testid="stVerticalBlock"].st-key-st_link [data-testid="stTextInput"] input:focus {{
     border-color:{_a_accent} !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 5px {_a_accent}22 !important; }}
-    div[data-testid="stVerticalBlock"]:has(.vs-link-marker) [data-testid="stTextInput"] input::placeholder {{ color:{_a_soft} !important; opacity:.68 !important; }}
+    div[data-testid="stVerticalBlock"].st-key-st_link [data-testid="stTextInput"] input::placeholder {{ color:{_a_soft} !important; opacity:.68 !important; }}
     .vs-toolbar-marker {{ display:none; }}
-    div[data-testid="stVerticalBlock"]:has(.vs-toolbar-marker) {{ margin-top:.55rem; }}
-    div[data-testid="stVerticalBlock"]:has(.vs-toolbar-marker) [data-testid="column"]:first-child .stButton > button,
-    div[data-testid="stVerticalBlock"]:has(.vs-toolbar-marker) [data-testid="stColumn"]:first-child .stButton > button {{
+    div[data-testid="stVerticalBlock"].st-key-st_tools {{ margin-top:.55rem; }}
+    div[data-testid="stVerticalBlock"].st-key-st_tools [data-testid="column"]:first-child .stButton > button,
+    div[data-testid="stVerticalBlock"].st-key-st_tools [data-testid="stColumn"]:first-child .stButton > button {{
     min-height:58px !important; border-radius:20px !important; font-size:1.02rem !important;
     background:linear-gradient(135deg,#0F172A,{_a_accent}) !important; color:#FFFFFF !important;
     box-shadow:0 18px 40px rgba(46,109,180,.26) !important; letter-spacing:-.01em; }}
-    div[data-testid="stVerticalBlock"]:has(.vs-toolbar-marker) [data-testid="column"]:first-child .stButton > button:hover,
-    div[data-testid="stVerticalBlock"]:has(.vs-toolbar-marker) [data-testid="stColumn"]:first-child .stButton > button:hover {{
+    div[data-testid="stVerticalBlock"].st-key-st_tools [data-testid="column"]:first-child .stButton > button:hover,
+    div[data-testid="stVerticalBlock"].st-key-st_tools [data-testid="stColumn"]:first-child .stButton > button:hover {{
     transform:translateY(-3px) scale(1.008) !important; box-shadow:0 24px 52px rgba(46,109,180,.34) !important; }}
-    div[data-testid="stVerticalBlock"]:has(.vs-toolbar-marker) [data-testid="column"]:not(:first-child) .stButton > button,
-    div[data-testid="stVerticalBlock"]:has(.vs-toolbar-marker) [data-testid="stColumn"]:not(:first-child) .stButton > button {{
+    div[data-testid="stVerticalBlock"].st-key-st_tools [data-testid="column"]:not(:first-child) .stButton > button,
+    div[data-testid="stVerticalBlock"].st-key-st_tools [data-testid="stColumn"]:not(:first-child) .stButton > button {{
     min-height:58px !important; border-radius:20px !important; background:{_a_surface_2} !important; color:{_a_nav} !important;
     border:1px solid {_a_border} !important; box-shadow:none !important; font-weight:700 !important; }}
-    div[data-testid="stVerticalBlock"]:has(.vs-toolbar-marker) [data-testid="column"]:not(:first-child) .stButton > button:hover,
-    div[data-testid="stVerticalBlock"]:has(.vs-toolbar-marker) [data-testid="stColumn"]:not(:first-child) .stButton > button:hover {{
+    div[data-testid="stVerticalBlock"].st-key-st_tools [data-testid="column"]:not(:first-child) .stButton > button:hover,
+    div[data-testid="stVerticalBlock"].st-key-st_tools [data-testid="stColumn"]:not(:first-child) .stButton > button:hover {{
     border-color:{_a_accent}55 !important; color:{_a_accent} !important; }}
     .vs-chip-row {{ display:flex; flex-wrap:wrap; gap:.5rem; justify-content:flex-start; margin-top:.6rem; }}
     .claude-chip {{ display:flex; align-items:center; justify-content:center; gap:8px; border:1px solid {_a_border};
@@ -252,13 +268,57 @@ def render_studio_page():
     </style>
     """, unsafe_allow_html=True)
 
+    _mcss = """
+    <style>
+    .vs-chip-row { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.9rem; }
+    .vs-metrics { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.7rem; margin:.2rem 0 1rem; }
+    .vs-metric { border-radius:18px; padding:.8rem .9rem; background:@surface@; border:1px solid @border@; }
+    .vs-metric small { display:block; color:@soft@ !important; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
+    .vs-metric b { display:block; margin-top:.2rem; color:@nav@ !important; font-family:'Sora',sans-serif; font-weight:800; font-size:1.25rem; }
+    .stApp [data-testid="stTabs"] [data-baseweb="tab-list"] { gap:.45rem; overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none; padding:.2rem 0 .6rem; border:none !important; }
+    .stApp [data-testid="stTabs"] [data-baseweb="tab-list"]::-webkit-scrollbar { display:none; }
+    .stApp [data-testid="stTabs"] [data-baseweb="tab-highlight"], .stApp [data-testid="stTabs"] [data-baseweb="tab-border"] { display:none !important; }
+    .stApp [data-testid="stTabs"] button[role="tab"] { flex:none; white-space:nowrap; border-radius:999px; padding:.55rem 1.15rem; height:auto; background:@surface@; border:1px solid @border@; }
+    .stApp [data-testid="stTabs"] button[role="tab"] p { font-weight:700; font-size:.92rem; color:@soft@ !important; margin:0; }
+    .stApp [data-testid="stTabs"] button[role="tab"][aria-selected="true"] { background:linear-gradient(135deg,@acc@,@accd@); border-color:transparent; box-shadow:0 10px 22px rgba(30,100,200,.26); }
+    .stApp [data-testid="stTabs"] button[role="tab"][aria-selected="true"] p { color:#fff !important; }
+    @media (max-width:768px) {
+      html body .stApp .vs-studio-top { padding:1.5rem 1.1rem 1.3rem !important; border-radius:26px !important; margin:.1rem 0 .9rem !important; }
+      html body .stApp .vs-studio-title { font-size:1.75rem !important; line-height:1.12 !important; }
+      html body .stApp .vs-studio-sub { font-size:.93rem !important; margin-top:.7rem !important; line-height:1.6 !important; }
+      html body .stApp .vs-studio-kicker { margin-bottom:.8rem !important; font-size:.68rem !important; }
+      html body .stApp .vs-quick-row { flex-wrap:nowrap !important; justify-content:flex-start !important; overflow-x:auto; margin:1rem -1.1rem 0 !important; padding:0 1.1rem .2rem; scrollbar-width:none; }
+      html body .stApp .vs-quick-row::-webkit-scrollbar { display:none; }
+      html body .stApp .vs-quick { flex:none; }
+      html body .stApp div[data-testid="stVerticalBlock"].st-key-st_link { padding:.75rem !important; border-radius:24px !important; }
+      html body .stApp div[data-testid="stVerticalBlock"].st-key-st_link [data-testid="stTextInput"] input { height:58px !important; min-height:58px !important; border-radius:18px !important; font-size:.98rem !important; padding:0 1rem !important; }
+      html body .stApp div[data-testid="stVerticalBlock"].st-key-st_tools [data-testid="stHorizontalBlock"] { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:.5rem !important; flex-direction:row !important; }
+      html body .stApp div[data-testid="stVerticalBlock"].st-key-st_tools [data-testid="stColumn"] { width:auto !important; min-width:0 !important; flex:none !important; }
+      html body .stApp div[data-testid="stVerticalBlock"].st-key-st_tools [data-testid="stColumn"]:first-child { grid-column:1 / -1; }
+      html body .stApp div[data-testid="stVerticalBlock"].st-key-st_tools .stButton > button { min-height:54px !important; border-radius:18px !important; }
+      html body .stApp [data-testid="stColumn"]:has(.vs-panel-head) { background:@surface@; border:1px solid @border@; border-radius:22px; padding:.9rem !important; margin-top:.2rem; }
+      .vs-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); gap:.5rem; }
+      .vs-metric { padding:.65rem .7rem; border-radius:16px; }
+      .vs-metric b { font-size:1.05rem; }
+      html body .stApp .vs-result-hero { border-radius:22px; padding:1.05rem 1.1rem; margin:1.1rem 0 .8rem; }
+      html body .stApp .vs-result-title { font-size:1rem; align-items:flex-start; }
+      html body .stApp .vs-section-card { padding:.85rem .9rem; gap:11px; border-radius:18px; }
+      html body .stApp .vs-section-num { width:34px; height:34px; border-radius:12px; }
+      html body .stApp .vs-section-text { font-size:.92rem; line-height:1.68; }
+    }
+    </style>
+    """
+    for _k, _v in {"surface": _a_surface, "border": _a_border, "soft": _a_soft, "nav": _a_nav, "acc": _a_accent, "accd": _a_accent_dark}.items():
+        _mcss = _mcss.replace(f"@{_k}@", _v)
+    st.markdown(_mcss, unsafe_allow_html=True)
+
     left_col, studio_col = st.columns([1.62, .88], gap="large")
     with left_col:
         if not st.session_state.get("nl_hide", False):
             st.markdown(f"""
             <div class="vs-studio-top">
                 <div class="vs-studio-kicker">{ic("spark", 13)} VideoScribe Studio</div>
-                <h1 class="vs-studio-title">Analysez vos vidéos.<br>Obtenez un <span class="vs-studio-grad">résumé exploitable</span>.</h1>
+                <div class="vs-studio-title" role="heading" aria-level="1">Analysez vos vidéos.<br>Obtenez un <span class="vs-studio-grad">résumé exploitable</span>.</div>
                 <p class="vs-studio-sub">Collez un lien YouTube, lancez l'analyse, puis transformez la vidéo en notes, mots-clés, quiz, flashcards, exports, présentation et réponses IA.</p>
                 <div class="vs-quick-row">
                     <span class="vs-quick">{ic("zap", 14)} Résumé rapide</span>
@@ -276,33 +336,33 @@ def render_studio_page():
                 try: st.query_params.pop("nlhide", None)
                 except Exception: pass
                 st.rerun()
-        st.markdown('<div class="vs-link-marker"></div>', unsafe_allow_html=True)
-        url = st.text_input("URL YouTube", placeholder=T("url_ph"), label_visibility="collapsed", key="studio_url")
-        st.markdown('<div class="vs-toolbar-marker"></div>', unsafe_allow_html=True)
-        b1, b2, b3 = st.columns([1.55, .75, .75])
-        with b1:
-            process_btn = st.button(f"🔍 {T('analyse_btn')}", key="studio_analyse_btn", use_container_width=True)
-        with b2:
-            if st.button("YouTube ⌄", key="studio_source", use_container_width=True): st.toast("Source YouTube sélectionnée")
-        with b3:
-            _fast = model_choice == "rapide"
-            if st.button(f"{'⚡' if _fast else '🧠'} {T('nl_mode_fast') if _fast else T('nl_mode_deep')}", key="studio_mode_btn", use_container_width=True):
-                if tier >= 2:
-                    st.session_state.cfg_model = "qualite" if _fast else "rapide"; st.rerun()
-                else: st.toast("Mode qualité réservé aux Premium.")
-        if tier >= 3:
-            with st.expander(f"⚡ {T('batch')}", expanded=False):
-                st.caption(T("batch_hint"))
-                batch_txt = st.text_area("URLs", key="batch_urls", height=130, label_visibility="collapsed", placeholder="https://www.youtube.com/watch?v=...\nhttps://youtu.be/...")
-                batch_btn = st.button(T("batch_btn"), use_container_width=True)
-        else:
-            batch_txt = ""; batch_btn = False
-        st.markdown("<div style='height:.9rem;'></div>", unsafe_allow_html=True)
-        st.markdown('<div class="vs-chip-row">', unsafe_allow_html=True)
-        q1, q2, q3, q4, q5 = st.columns(5)
-        for col, icon_name, label in [(q1,"file",T("chip_sum")),(q2,"lang",T("chip_tr")),(q3,"hash",T("chip_kw")),(q4,"bulb",T("chip_q")),(q5,"download",T("chip_exp"))]:
-            with col: st.markdown(f'<div class="claude-chip">{ic(icon_name, 15)}{label}</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with _keyed("st_link"):
+            st.markdown('<div class="vs-link-marker"></div>', unsafe_allow_html=True)
+            url = st.text_input("URL YouTube", placeholder=T("url_ph"), label_visibility="collapsed", key="studio_url")
+            with _keyed("st_tools"):
+                st.markdown('<div class="vs-toolbar-marker"></div>', unsafe_allow_html=True)
+                b1, b2, b3 = st.columns([1.55, .75, .75])
+                with b1:
+                    process_btn = st.button(f"🔍 {T('analyse_btn')}", key="studio_analyse_btn", use_container_width=True)
+                with b2:
+                    if st.button("YouTube ⌄", key="studio_source", use_container_width=True): st.toast("Source YouTube sélectionnée")
+                with b3:
+                    _fast = model_choice == "rapide"
+                    if st.button(f"{'⚡' if _fast else '🧠'} {T('nl_mode_fast') if _fast else T('nl_mode_deep')}", key="studio_mode_btn", use_container_width=True):
+                        if tier >= 2:
+                            st.session_state.cfg_model = "qualite" if _fast else "rapide"; st.rerun()
+                        else: st.toast("Mode qualité réservé aux Premium.")
+            if tier >= 3:
+                with st.expander(f"⚡ {T('batch')}", expanded=False):
+                    st.caption(T("batch_hint"))
+                    batch_txt = st.text_area("URLs", key="batch_urls", height=130, label_visibility="collapsed", placeholder="https://www.youtube.com/watch?v=...\nhttps://youtu.be/...")
+                    batch_btn = st.button(T("batch_btn"), use_container_width=True)
+            else:
+                batch_txt = ""; batch_btn = False
+            st.markdown("<div style='height:.9rem;'></div>", unsafe_allow_html=True)
+            _chips = "".join(f'<div class="claude-chip">{ic(icon_name, 15)}{label}</div>' for icon_name, label in
+                             [("file", T("chip_sum")), ("lang", T("chip_tr")), ("hash", T("chip_kw")), ("bulb", T("chip_q")), ("download", T("chip_exp"))])
+            st.markdown(f'<div class="vs-chip-row">{_chips}</div>', unsafe_allow_html=True)
 
     with studio_col:
         _panel_open = st.session_state.studio_panel_open
@@ -530,10 +590,12 @@ def render_studio_page():
         </div>
         """, unsafe_allow_html=True)
 
-        m1, m2, m3, m4, m5 = st.columns(5)
-        m1.metric(T("lang_lbl"), data["lang"].upper()); m2.metric(T("sections"), len(data.get("notes", [])))
-        m3.metric(T("chunks"), data.get("num_chunks", "-")); m4.metric(T("words"), f"{data.get('total_words', 0):,}")
-        m5.metric(T("time"), f"{data.get('processing_time', 0)} s")
+        _mets = [(T("lang_lbl"), data["lang"].upper()), (T("sections"), len(data.get("notes", []))),
+                 (T("chunks"), data.get("num_chunks", "-")), (T("words"), f"{data.get('total_words', 0):,}"),
+                 (T("time"), f"{data.get('processing_time', 0)} s")]
+        st.markdown('<div class="vs-metrics">' + "".join(
+            f'<div class="vs-metric"><small>{_html.escape(str(k))}</small><b>{_html.escape(str(v))}</b></div>' for k, v in _mets) + '</div>',
+            unsafe_allow_html=True)
 
         tab_summary, tab_notes, tab_studio, tab_export = st.tabs(["Synthèse", T("res_struct"), "Studio", T("res_export")])
 

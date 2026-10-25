@@ -95,6 +95,12 @@ def _keyed(key: str):
         return st.container()
 
 
+def _open(result) -> None:
+    """Callback : ouvre l'analyse (ou une nouvelle) — une seule exécution du script."""
+    st.session_state.result = result
+    st.session_state.page = "analyse"
+
+
 def render_historique(user: str, tier: int) -> None:
     t = theme_tokens()
     css = _CSS
@@ -115,8 +121,7 @@ def render_historique(user: str, tier: int) -> None:
                 f'<div class="vh-sub">{_html.escape(T("hist_sub"))}</div></div>')
         with c2:
             with _keyed("vh_new"):
-                if st.button(f"＋ {T('m_analyse')}", key="hist_new", type="primary"):
-                    st.session_state.result = None; st.session_state.page = "analyse"; st.rerun()
+                st.button(f"＋ {T('m_analyse')}", key="hist_new", type="primary", on_click=_open, args=(None,))
 
     # ── Chiffres ──
     _md(f'''<div class="vh-w"><div class="vh-kpis">
@@ -154,10 +159,12 @@ def render_historique(user: str, tier: int) -> None:
             title, text = "Aucune analyse pour l'instant", "Lancez votre première analyse, elle apparaîtra ici."
         _md(f'<div class="vh-w"><div class="vh-empty"><div class="ic">{_EMPTY_ICON}</div><h3>{title}</h3><p>{text}</p></div></div>')
         with _keyed("vh_empty_cta"):
-            if st.button("Analyser ma première vidéo" if not hist else "Voir tout", key="hist_empty_cta", type="primary", use_container_width=True):
-                if hist:
-                    st.session_state.hist_filter = opt_all; st.rerun()
-                st.session_state.result = None; st.session_state.page = "analyse"; st.rerun()
+            if hist:
+                st.button("Voir tout", key="hist_empty_cta", type="primary", use_container_width=True,
+                          on_click=lambda: st.session_state.update(hist_filter=opt_all))
+            else:
+                st.button("Analyser ma première vidéo", key="hist_empty_cta", type="primary", use_container_width=True,
+                          on_click=_open, args=(None,))
         render_footer(compact=True)
         return
 
@@ -177,13 +184,10 @@ def render_historique(user: str, tier: int) -> None:
         with _keyed(f"hc_{i}"):
             b1, b2 = st.columns([4, 1])
             with b1:
-                if st.button(T("open_analyse"), key=f"open_{vid}_{h.get('date','')}_{i}", use_container_width=True):
-                    st.session_state.result = h; st.session_state.page = "analyse"; st.rerun()
+                st.button(T("open_analyse"), key=f"open_{vid}_{h.get('date','')}_{i}", use_container_width=True, on_click=_open, args=(h,))
             with b2:
-                if st.button("⭐" if is_fav else "☆", key=f"fav_{vid}_{h.get('date','')}_{i}", use_container_width=True, help=T("add_fav")):
-                    toggle_fav(user, vid); st.rerun()
+                st.button("⭐" if is_fav else "☆", key=f"fav_{vid}_{h.get('date','')}_{i}", use_container_width=True, help=T("add_fav"), on_click=toggle_fav, args=(user, vid))
 
     st.markdown("---")
-    if st.button(T("clear_hist"), use_container_width=True, key="hist_clear"):
-        clear_history(user); st.rerun()
+    st.button(T("clear_hist"), use_container_width=True, key="hist_clear", on_click=clear_history, args=(user,))
     render_footer(compact=True)

@@ -1,5 +1,7 @@
 import streamlit as st
 import time
+from src.ui import perf
+perf.start()
 import shutil
 import json
 import re
@@ -17,7 +19,7 @@ from pathlib import Path
 from streamlit_cookies_controller import CookieController
 from src.transcript_extractor import extract_video_id, get_transcript
 from src.text_processor import chunk_text, remove_repetitions, polish_translation, extract_action_points
-from src.summarizer import VideoSummarizer, MODELS
+# (import inutile retiré : src.summarizer chargeait des modèles lourds à chaque démarrage)
 from src.summarizer_llm import LLMSummarizer
 from src.translator import translate_notes, translate_texts
 from src.keywords_extractor import extract_keywords as _origKeywords
@@ -103,6 +105,7 @@ from src.pages.studio_utils import (
 # ═══════════════ PAGE STUDIO ═══════════════
 from src.pages.studio import render_studio_page
 
+perf.mark('imports')
 from src.ui.mobile import render_mobile_shell
 from src.pages.history import render_historique as render_historique_v2
 
@@ -200,7 +203,8 @@ setInterval(function(){ idx = (idx+1) % slides.length; show(idx); }, DUR);
 </script>
 </body>
 </html>"""
-Path("teaser.html").write_text(TEASER_HTML, encoding="utf-8")
+if not Path("teaser.html").exists():
+    Path("teaser.html").write_text(TEASER_HTML, encoding="utf-8")
 
 
 def get_summarizer(model_key):
@@ -209,11 +213,15 @@ def get_summarizer(model_key):
 
 st.set_page_config(page_title="VideoScribe AI", layout="wide",
 page_icon=str(LOGO_FILE) if LOGO_FILE.exists() else "🖊️")
-try:
-    ensure_admin()
-except Exception as e:
-    print(f"[app] ensure_admin failed ({type(e).__name__}) → skip")
-    # Continue quand même (mode dégradé)
+@st.cache_resource(show_spinner=False)
+def _boot_once():
+    """Initialisation exécutée UNE seule fois par processus (et non à chaque clic)."""
+    try:
+        ensure_admin()
+    except Exception as e:
+        print(f"[app] ensure_admin failed ({type(e).__name__}) → skip")
+    return True
+_boot_once()
 
 
 # ═══ Détection du thème par défaut (cookie ou light) ═══
@@ -422,6 +430,7 @@ padding: .55rem .5rem !important; font-size: .85rem !important; justify-content:
 """, unsafe_allow_html=True)
 
 st.markdown(custom_css(), unsafe_allow_html=True)
+perf.mark('css')
 
 if st.session_state.user is None:
     st.markdown('<style>section[data-testid="stSidebar"]{display:none !important;}</style>', unsafe_allow_html=True)
@@ -431,6 +440,12 @@ if st.session_state.user is None:
 # ⚠️ def render_about(): extrait dans src/pages/public.py
 # ⚠️ def render_privacy(show_back=True): extrait dans src/pages/public.py
 # ⚠️ def render_contact(): extrait dans src/pages/public.py
+def _nav_to(page_key):
+    """Callback de navigation : exécuté AVANT le rerun → une seule exécution du script par clic."""
+    st.session_state.page = page_key
+    st.session_state.show_privacy = False
+
+
 def render_notifs():
     _acc, _acc_dark = get_accent()
     hero("bell", T("notifs_title"), T("notifs_sub"))
@@ -594,7 +609,7 @@ def render_historique():
         c1, c2 = st.columns(2)
         with c1:
             if st.button(T("open_analyse"), key=f"open_{vid}_{h['date']}", use_container_width=True):
-                st.session_state.result = h; st.session_state.page = "analyse"; st.rerun()
+                st.session_state.result = h; st.session_state.page = "analyse"; st.rerun()  # (ancienne page ; remplacée par history.py)
         with c2:
             if st.button(("⭐" if is_fav else "☆") + " " + T("add_fav"),
                          key=f"fav_{vid}_{h['date']}", use_container_width=True):
@@ -743,12 +758,12 @@ with st.sidebar:
     st.markdown(f'<div class="qcap">{T("menu")}</div>', unsafe_allow_html=True)
     for label, key in [(T("m_analyse"),"analyse"),(T("m_premium"),"premium"),(T("m_history"),"historique"),(T("m_stats"),"stats"), (T("m_contact"),"contact")]:
         if is_guest and key in ("profil","historique","stats","config"): continue
-        if st.button(label, key=f"nav_{key}", use_container_width=True, type="primary" if st.session_state.page == key else "secondary"): st.session_state.page = key; st.session_state.show_privacy = False; st.rerun()
+        st.button(label, key=f"nav_{key}", use_container_width=True, type="primary" if st.session_state.page == key else "secondary", on_click=_nav_to, args=(key,))
     if not is_guest:
         st.markdown(f'<div class="qcap">{T("activity")}</div>', unsafe_allow_html=True); _n = unread_count(user)
-        if st.button(f"{T('m_notifs')} ({_n})" if _n else T("m_notifs"), key="nav_notifs", use_container_width=True, type="primary" if st.session_state.page == "notifs" else "secondary"): st.session_state.page = "notifs"; st.session_state.show_privacy = False; st.rerun()
+        st.button(f"{T('m_notifs')} ({_n})" if _n else T("m_notifs"), key="nav_notifs", use_container_width=True, type="primary" if st.session_state.page == "notifs" else "secondary", on_click=_nav_to, args=("notifs",))
         if role == "admin":
-            if st.button(T("m_admin"), key="nav_admin", use_container_width=True, type="primary" if st.session_state.page == "admin" else "secondary"): st.session_state.page = "admin"; st.session_state.show_privacy = False; st.rerun()
+            st.button(T("m_admin"), key="nav_admin", use_container_width=True, type="primary" if st.session_state.page == "admin" else "secondary", on_click=_nav_to, args=("admin",))
         _av = get_avatar_b64(user); _av_html = f'<img src="{_av}" alt="">' if _av else user[:2].upper(); _th = st.session_state.theme
 
         # ── 1. User-card HTML (rendu visuel) — SANS indentation dans le f-string ! ──
@@ -765,12 +780,9 @@ with st.sidebar:
 
         # ── 2. Popover invisible superposé (zone cliquable + menu) ──
         with st.popover(" ", use_container_width=True):
-            if st.button(T('m_profile'), key="um_profil", use_container_width=True):
-                st.session_state.update(page="profil"); st.rerun()
-            if st.button(T('m_settings'), key="um_config", use_container_width=True):
-                st.session_state.update(page="config"); st.rerun()
-            if st.button(T('m_notifs'), key="um_notifs", use_container_width=True):
-                st.session_state.update(page="notifs"); st.rerun()
+            st.button(T('m_profile'), key="um_profil", use_container_width=True, on_click=_nav_to, args=("profil",))
+            st.button(T('m_settings'), key="um_config", use_container_width=True, on_click=_nav_to, args=("config",))
+            st.button(T('m_notifs'), key="um_notifs", use_container_width=True, on_click=_nav_to, args=("notifs",))
             st.divider()
             _theme_label = T("theme_to_light") if _th == "dark" else T("theme_to_dark")
             if st.button(_theme_label, key="um_theme", use_container_width=True):
@@ -789,8 +801,8 @@ with st.sidebar:
         _th = st.session_state.theme
         with st.container():
             st.markdown(f"""<div class="user-card"><div class="user-row"><span class="avatar">{ic("user", 16)}</span><span class="uname">{T("guest")} <span class="tier-chip">FREE</span></span><span class="chev">{ic("chev", 14)}</span></div></div>""", unsafe_allow_html=True)
-            if st.button(T("login"), key="gm_login", use_container_width=True): st.session_state.page="login"; st.rerun()
-            if st.button(T("register"), key="gm_register", use_container_width=True): st.session_state.page="register"; st.rerun()
+            st.button(T("login"), key="gm_login", use_container_width=True, on_click=_nav_to, args=("login",))
+            st.button(T("register"), key="gm_register", use_container_width=True, on_click=_nav_to, args=("register",))
             st.markdown('<div class="um-sep"></div>', unsafe_allow_html=True)
             if st.button(T("theme_to_light") if _th=="dark" else T("theme_to_dark"), key="gm_theme", use_container_width=True): _toggle_theme()
 
@@ -798,6 +810,7 @@ with st.sidebar:
 if not is_guest:
     render_mobile_shell(user, role, tier)
 
+perf.mark('sidebar+shell')
 import json as _json
 _js_icons = _json.dumps({
     # ═══ FRANÇAIS ═══
@@ -899,6 +912,8 @@ if st.session_state.user is not None and "notif_cursor_init" not in st.session_s
     _latest = get_notifications(st.session_state.user)
     st.session_state.last_notif_id = _latest[0]["id"] if _latest else 0
 notif_feedback()
+perf.mark('notifs+icons')
+perf.report()
 if st.session_state.page == "admin" and role == "admin": render_admin(); st.stop()
 if st.session_state.show_privacy: render_privacy(show_back=True); st.stop()
 page = st.session_state.page
