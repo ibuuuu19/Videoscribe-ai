@@ -16,8 +16,8 @@ import streamlit as st
 from src.ui.i18n import T
 from src.ui.layout import render_footer
 from src.ui.mobile import theme_tokens
-from src.history_manager import get_history, clear_history
-from src.ui.storage import load_favs, toggle_fav
+from src.ui.fast import get_history, clear_history
+from src.ui.fast import load_favs, toggle_fav
 
 _CSS = """
 html body .stApp .vh-w { white-space:normal; }
