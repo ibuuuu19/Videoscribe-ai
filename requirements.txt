@@ -24,7 +24,7 @@ diskcache>=5.6.3
 streamlit-cookies-controller
 
 # Database
-psycopg[binary]
+psycopg[binary,pool]
 tomli>=2.0.0
 
 # Data

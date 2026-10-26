@@ -3,8 +3,8 @@ Module de connexion à la base de données PostgreSQL (Supabase).
 
 Fournit :
 - get_database_url() : récupère l'URL depuis les secrets
-- get_connection() : retourne une nouvelle connexion (timeout court)
-- db_cursor() : context manager pour les curseurs (commit auto)
+- get_connection() : connexion isolée (utilisée seulement en secours)
+- db_cursor() : curseur pris dans un POOL de connexions réutilisées (commit auto)
 - init_db() : crée les tables depuis schema.sql
 - is_db_available() : vérifie si la DB n'est pas en "circuit ouvert"
 
@@ -28,7 +28,7 @@ from pathlib import Path
 
 _DB_STATE = {
     "last_failure_ts": 0.0,
-    "cooldown_sec": 20,      # 20s au lieu de 60s → récupération plus rapide
+    "cooldown_sec": 8,       # court : le pool se reconnecte seul, on évite de « déconnecter » les gens trop longtemps
     "last_error": None,
 }
 
@@ -131,38 +131,55 @@ def get_database_url():
     )
 
 
-def get_connection():
-    """Retourne une connexion PostgreSQL fraîche avec IPv4 forcé + retry."""
+def _ipv4_conninfo(url):
+    """
+    Force l'IPv4 SANS modifier socket.getaddrinfo (qui est global et non sûr entre threads) :
+    on résout l'hôte une fois et on passe `hostaddr` à libpq ; `host` reste utilisé pour le TLS.
+    """
     import socket
-    
-    _orig = socket.getaddrinfo
-    def _ipv4_only(host, *args, **kwargs):
-        return [a for a in _orig(host, *args, **kwargs) if a[0] == socket.AF_INET]
-    
-    url = get_database_url()
-    last_err = None
-    
+    from psycopg.conninfo import conninfo_to_dict, make_conninfo
     try:
-        socket.getaddrinfo = _ipv4_only
-        for attempt in range(2):
-            try:
-                conn = psycopg.connect(
-                    url,
-                    connect_timeout=10,
-                    prepare_threshold=None,
-                )
-                print(f"[db] ✅ Connexion OK (tentative {attempt+1})")
-                return conn
-            except Exception as e:
-                last_err = e
-                print(f"[db] ❌ Tentative {attempt+1} échouée: {type(e).__name__}")
-                if attempt == 0:
-                    import time
-                    time.sleep(0.5)
-    finally:
-        socket.getaddrinfo = _orig   # ← Toujours restaurer
-    
-    raise last_err        # type: ignore
+        d = conninfo_to_dict(url)
+        host, port = d.get("host"), int(d.get("port") or 5432)
+        if host and not d.get("hostaddr"):
+            ip = socket.getaddrinfo(host, port, socket.AF_INET, socket.SOCK_STREAM)[0][4][0]
+            return make_conninfo(url, hostaddr=ip)
+    except Exception as e:
+        print(f"[db] résolution IPv4 ignorée ({type(e).__name__}) → URL telle quelle")
+    return url
+
+
+@st.cache_resource(show_spinner=False)
+def _get_pool():
+    """
+    Pool de connexions créé UNE fois par processus serveur et partagé par toutes les sessions.
+    Avant : psycopg.connect() (DNS + TCP + TLS + auth) à CHAQUE requête → 0,3 à 1 s chacune, et jusqu'à
+    2 × 10 s de timeout quand Supabase refusait la connexion = les pages grisées de 12-20 s.
+    """
+    from psycopg_pool import ConnectionPool
+    pool = ConnectionPool(
+        _ipv4_conninfo(get_database_url()),
+        min_size=1,
+        max_size=5,                         # petit : le plan gratuit Supabase limite les connexions
+        timeout=6,                          # attente max d'une connexion libre / nouvelle
+        max_idle=240,                       # ferme les connexions restées inactives 4 min
+        max_lifetime=1500,                  # renouvelle toutes les 25 min
+        kwargs={"connect_timeout": 8, "prepare_threshold": None},   # prepare_threshold=None : compatible pooler Supabase
+        check=ConnectionPool.check_connection,   # écarte les connexions mortes AVANT usage
+        name="videoscribe",
+        open=False,
+    )
+    pool.open(wait=False)
+    return pool
+
+
+def get_connection():
+    """Connexion isolée (secours / scripts hors pool). Préférez db_cursor()."""
+    import psycopg as _pg
+    return _pg.connect(_ipv4_conninfo(get_database_url()), connect_timeout=10, prepare_threshold=None)
+
+
+_NETWORK_ERRORS = (psycopg.OperationalError, ConnectionError, TimeoutError, OSError)
 
 
 @contextmanager
@@ -174,44 +191,37 @@ def db_cursor():
         yield _NullCursor()
         return
 
-    # ── Tentative ──
-    conn = None
+    # ── 1. Prendre une connexion dans le pool (réutilisée, vérifiée) ──
+    pool = conn = None
     try:
-        conn = get_connection()
+        pool = _get_pool()
+        conn = pool.getconn(timeout=6)
+    except Exception as e:
+        _mark_db_failure(e)
+        print(f"[db] Pool indisponible ({type(e).__name__}: {e}) → cooldown, mode dégradé")
+        yield _NullCursor()
+        return
+
+    # ── 2. Utiliser le curseur ; une seule fois `yield` ici, les erreurs de l'appelant se propagent ──
+    try:
         with conn.cursor() as cur:
             yield cur
         conn.commit()
         _mark_db_success()
-    except Exception as e:
-        # Rollback best-effort
-        if conn:
-            try:
-                conn.rollback()
-            except Exception:
-                pass
-
-        # Marque la DB en panne si c'est un timeout / erreur réseau
-        if isinstance(e, (
-            psycopg.OperationalError,
-            psycopg.errors.ConnectionTimeout,
-            ConnectionError,
-            TimeoutError,
-            OSError,
-        )):
+    except BaseException as e:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        if isinstance(e, _NETWORK_ERRORS):
             _mark_db_failure(e)
-            print(f"[db] Échec DB ({type(e).__name__}) → marqué en cooldown, mode dégradé")
-            # ✅ On yield un NullCursor au lieu de crash
-            yield _NullCursor()
-            return
-
-        # Autre type d'erreur (SQL, contrainte, etc.) → on propage
+            print(f"[db] Échec DB en cours de requête ({type(e).__name__}) → cooldown")
         raise
     finally:
-        if conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+        try:
+            pool.putconn(conn)
+        except Exception:
+            pass
 
 
 def init_db():
