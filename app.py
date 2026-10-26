@@ -730,12 +730,27 @@ _VALID_PAGES = {"accueil","analyse","premium","historique","stats","config","con
 "notifs","about","login","register"}
 if st.session_state.user is None:
     _token = read_cookie(COOKIE_NAME); _user = get_session_user(_token) if _token else None
+    _u2 = None
     if not _user:
         _u2 = read_cookie("ys_user")
         if _u2:
             _us = list_users().get(_u2)
             if _us and _us.get("active", True):
                 _user = _u2; _token = create_session(_u2); set_cookie(COOKIE_NAME, _token)
+    # ── Base momentanément injoignable : NE PAS traiter l'utilisateur comme déconnecté ──
+    # (en mode dégradé les lectures renvoient « rien » → sans ce garde-fou, une coupure de 8 s = déconnexion)
+    if not _user and (_token or _u2):
+        try:
+            from src.core.db import is_db_available as _db_ok
+            _db_down = not _db_ok()
+        except Exception:
+            _db_down = False
+        if _db_down:
+            st.warning("⏳ Reconnexion à la base de données en cours… votre session est conservée.")
+            if st.button("Réessayer", key="retry_db", type="primary"): st.rerun()
+            time.sleep(3); st.rerun()
+    # Diagnostic (visible dans Manage app → Logs) : pourquoi la session est / n'est pas restaurée
+    print(f"[auth] cookie_session={'oui' if _token else 'NON'} | session_valide={'oui' if _user and _token else 'non'} | cookie_ys_user={_u2 or 'NON'} | restauré={_user or 'NON'}", flush=True)
     if _user:
         st.session_state.update(user=_user, role=list_users()[_user].get("role","client"), token=_token)
         _load_appearance(_user)
