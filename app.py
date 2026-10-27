@@ -934,8 +934,14 @@ if st.session_state.user is not None and "notif_cursor_init" not in st.session_s
     st.session_state.last_notif_id = _latest[0]["id"] if _latest else 0
 notif_feedback()
 perf.mark('notifs+icons')
-perf.report()
-if st.session_state.page == "admin" and role == "admin": render_admin(); st.stop()
+
+def _R(name, fn, *a, **k):
+    """Exécute une page et chronomètre son rendu (visible avec ?perf=1 et dans les logs)."""
+    fn(*a, **k)
+    perf.mark('PAGE ' + name)
+    perf.report()
+
+if st.session_state.page == "admin" and role == "admin": _R("admin", render_admin); st.stop()
 if st.session_state.show_privacy: render_privacy(show_back=True); st.stop()
 page = st.session_state.page
 try:
@@ -945,22 +951,22 @@ except Exception: pass
 # Page d'accueil : landing pour visiteurs, Studio pour connectés
 if page == "accueil":
     if is_guest:
-        render_home()
+        _R("accueil", render_home)
     else:
-        render_studio_page()
+        _R("studio", render_studio_page)
     st.stop()
 
 # Alias : "analyse" pointe aussi vers le Studio
 if page == "analyse":
-    render_studio_page()
+    _R("studio", render_studio_page)
     st.stop()
-if page == "profil" and not is_guest: render_profil(); st.stop()
-if page == "premium": render_premium(); st.stop()
-if page == "historique" and not is_guest: render_historique_v2(user, tier); st.stop()
-if page == "stats" and not is_guest: render_stats(); st.stop()
-if page == "config" and not is_guest: render_config(); st.stop()
-if page == "contact": render_contact(); st.stop()
-if page == "notifs" and not is_guest: render_notifs(); st.stop()
+if page == "profil" and not is_guest: _R("profil", render_profil); st.stop()
+if page == "premium": _R("premium", render_premium); st.stop()
+if page == "historique" and not is_guest: _R("historique", render_historique_v2, user, tier); st.stop()
+if page == "stats" and not is_guest: _R("stats", render_stats); st.stop()
+if page == "config" and not is_guest: _R("config", render_config); st.stop()
+if page == "contact": _R("contact", render_contact); st.stop()
+if page == "notifs" and not is_guest: _R("notifs", render_notifs); st.stop()
 if page == "about": render_about(); st.stop()
 
 # ═══════════════ PAGE ANALYSE — STUDIO PREMIUM ═══════════════

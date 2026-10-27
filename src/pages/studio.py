@@ -573,6 +573,11 @@ def render_studio_page():
 
     if st.session_state.result:
         data = st.session_state.result
+        # Les analyses rouvertes depuis l'historique peuvent ne pas contenir l'URL (→ KeyError à l'export) :
+        # on la reconstruit à partir de l'identifiant YouTube.
+        if not data.get("url"):
+            data = {**data, "url": f"https://www.youtube.com/watch?v={data.get('video_id', '')}"}
+            st.session_state.result = data
         if st.session_state.get("results_batch") and len(st.session_state.results_batch) > 1:
             batch = st.session_state.results_batch
             labels = [f"{i+1}. {r['title'][:60]}" + ("…" if len(r['title'])>60 else "") for i, r in enumerate(batch)]

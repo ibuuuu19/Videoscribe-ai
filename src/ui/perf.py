@@ -38,8 +38,8 @@ def report() -> None:
     if not _on():
         return
     total = time.perf_counter() - _RUN["t0"]
-    lines = [f"{lbl:<22}{dt * 1000:8.0f} ms" for lbl, dt in _RUN["marks"]] + [f"{'TOTAL avant page':<22}{total * 1000:8.0f} ms"]
+    lines = [f"{lbl:<22}{dt * 1000:8.0f} ms" for lbl, dt in _RUN["marks"]] + [f"{'TOTAL script':<22}{total * 1000:8.0f} ms"]
     print("[perf] " + " | ".join(l.replace("  ", " ") for l in lines), flush=True)
     with st.sidebar:
-        st.caption("⏱ Temps de rendu (avant la page)")
+        st.caption("⏱ Temps de rendu du script")
         st.code("\n".join(lines), language=None)
