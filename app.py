@@ -752,8 +752,24 @@ if st.session_state.user is None:
     # Diagnostic (visible dans Manage app → Logs) : pourquoi la session est / n'est pas restaurée
     print(f"[auth] cookie_session={'oui' if _token else 'NON'} | session_valide={'oui' if _user and _token else 'non'} | cookie_ys_user={_u2 or 'NON'} | restauré={_user or 'NON'}", flush=True)
     if _user:
-        st.session_state.update(user=_user, role=list_users()[_user].get("role","client"), token=_token)
-        _load_appearance(_user)
+        _info = list_users().get(_user)
+        if _info is None:
+            # Session valide mais compte introuvable : soit la base vient de tomber (mode dégradé → listes vides),
+            # soit le compte n'existe pas dans CETTE base (ex. base locale ≠ base de production).
+            try:
+                from src.core.db import is_db_available as _ok2
+                _transient = not _ok2()
+            except Exception:
+                _transient = False
+            print(f"[auth] compte '{_user}' introuvable dans list_users() | base_en_cooldown={_transient}", flush=True)
+            if _transient:
+                st.warning("⏳ Reconnexion à la base de données en cours… votre session est conservée.")
+                if st.button("Réessayer", key="retry_db2", type="primary"): st.rerun()
+                time.sleep(3); st.rerun()
+            _user = None   # compte réellement absent → visiteur (au lieu d'un KeyError)
+        else:
+            st.session_state.update(user=_user, role=_info.get("role", "client"), token=_token)
+            _load_appearance(_user)
 _qp = st.query_params.get("page")
 _last_q = st.session_state.get("last_query_page")
 if _qp and _qp != _last_q and _qp in _VALID_PAGES:
