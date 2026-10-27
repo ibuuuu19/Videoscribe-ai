@@ -35,7 +35,7 @@ from src.text_processor import chunk_text, remove_repetitions, polish_translatio
 from src.summarizer_llm import LLMSummarizer
 from src.translator import translate_texts
 from src.ui.fast import save_analysis, count_today, trim_history
-from src.export_utils import export_to_markdown, export_to_pdf, export_to_obsidian, export_to_notion
+from src.pages.studio_export import render_export_tab
 
 
 def _is_mobile_ua() -> bool:
@@ -702,61 +702,4 @@ def render_studio_page():
             else: _render_lock("Résumé audio", "Disponible avec Premium+.")
 
         with tab_export:
-            st.markdown(f"### {T('res_export')}")
-            filename = f"summary_{data['video_id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            e1, e2 = st.columns(2)
-            with e1:
-                with open(export_to_markdown(data, filename), "rb") as f:
-                    st.download_button(T("dl_md"), f.read(), file_name=f"{filename}.md", mime="text/markdown", use_container_width=True)
-            with e2:
-                if tier >= 1:
-                    with open(export_to_pdf(data, filename), "rb") as f:
-                        st.download_button(T("dl_pdf"), f.read(), file_name=f"{filename}.pdf", mime="application/pdf", use_container_width=True)
-                else: _render_lock("Export PDF", "Disponible avec Basique et plus.")
-            if tier >= 2:
-                with open(export_anki(data, filename), "rb") as f:
-                    st.download_button(T("dl_anki"), f.read(), file_name=f"{filename}.anki.txt", mime="text/plain", use_container_width=True)
-            else: _render_lock("Export Anki", "Disponible avec Premium.")
-            st.markdown("---")
-            st.markdown(f"#### 🎨 {T('fx8')}", unsafe_allow_html=True)
-            if tier >= 3:
-                pres_key = f"pres_html_{data['video_id']}"
-                if st.button("🎬 Générer la présentation", key="studio_gen_pres", use_container_width=True):
-                    with st.spinner("Génération des slides…"): st.session_state[pres_key] = export_presentation(data)
-                    st.rerun()
-                if st.session_state.get(pres_key):
-                    _components.html(st.session_state[pres_key], height=430)
-                    st.download_button(f"💾 {T('dl_presentation')}", st.session_state[pres_key].encode("utf-8"),
-                    file_name=f"presentation_{data['video_id']}.html", mime="text/html", use_container_width=True)
-            else: _render_lock(T("fx8"), "Disponible avec Premium+.")
-            st.markdown("---")
-            if tier >= 1:
-                if st.button(T("share"), key="studio_share", use_container_width=True):
-                    sid = save_share(data, user); st.session_state.share_link = f"?page=share&id={sid}"
-                if st.session_state.get("share_link"): st.code(st.session_state.share_link)
-            else: _render_lock("Lien de partage public", "Disponible avec Basique et plus.")
-            if tier >= 3:
-                st.markdown("---")
-                x1, x2 = st.columns(2)
-                with x1:
-                    with open(export_to_obsidian(data, filename), "rb") as f:
-                        st.download_button("Obsidian", f.read(), file_name=f"{filename}_obsidian.md", mime="text/markdown", use_container_width=True)
-                with x2:
-                    with open(export_to_notion(data, filename), "rb") as f:
-                        st.download_button("Notion", f.read(), file_name=f"{filename}_notion.md", mime="text/markdown", use_container_width=True)
-            st.markdown("---")
-            st.download_button("Exporter le rapport Studio complet", _studio_md(data).encode("utf-8"),
-            file_name=f"{filename}_studio.md", mime="text/markdown", use_container_width=True)
-            st.markdown("---")
-            col_a, col_b, col_c = st.columns(3)
-            with col_a:
-                if st.button(T("reanalyse"), key="studio_reanalyse", use_container_width=True):
-                    st.session_state[f"refresh_{data['video_id']}"] = True; st.session_state.result = None; st.rerun()
-            with col_b:
-                if st.button(T("del_cache"), key="studio_del_cache", use_container_width=True):
-                    for p in Path("cache").glob(f"notes_{data['video_id']}_*.json"): p.unlink()
-                    st.session_state.result = None; st.success("Cache supprimé."); st.rerun()
-            with col_c:
-                if st.session_state.get("results_batch"):
-                    if st.button(T("close_batch"), key="studio_close_batch", use_container_width=True):
-                        st.session_state.results_batch = []; st.session_state.result = None; st.rerun()
+            render_export_tab(data, user, tier)
