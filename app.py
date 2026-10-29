@@ -790,6 +790,9 @@ if st.session_state.user is None:
 # ═══════════════ SIDEBAR ═══════════════
 user = st.session_state.user; role = st.session_state.get("role", "client"); is_guest = role == "visiteur"
 tier = 3 if role == "admin" else (0 if is_guest else get_tier(user))
+from src.ui.sidebar_rail import inject as _inject_rail
+_inject_rail()
+
 with st.sidebar:
     st.markdown(f'<div class="qbrand">{logo_html(34)}<span style="margin-left:8px;"><b>VideoScribe</b> AI</span></div>', unsafe_allow_html=True)
     st.markdown(f'<div class="qcap">{T("menu")}</div>', unsafe_allow_html=True)

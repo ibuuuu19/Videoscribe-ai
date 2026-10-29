@@ -36,6 +36,7 @@ from src.summarizer_llm import LLMSummarizer
 from src.translator import translate_texts
 from src.ui.fast import save_analysis, count_today, trim_history
 from src.pages.studio_export import render_export_tab
+from src.pages.studio_panel import render_studio_panel
 
 
 def _is_mobile_ua() -> bool:
@@ -312,7 +313,10 @@ def render_studio_page():
         _mcss = _mcss.replace(f"@{_k}@", _v)
     st.markdown(_mcss, unsafe_allow_html=True)
 
-    left_col, studio_col = st.columns([1.62, .88], gap="large")
+    if st.session_state.get("studio_panel_open", True):
+        left_col, studio_col = st.columns([1.62, .88], gap="large")
+    else:
+        left_col, studio_col = st.columns([14, 1], gap="small")
     with left_col:
         if not st.session_state.get("nl_hide", False):
             st.markdown(f"""
@@ -365,49 +369,7 @@ def render_studio_page():
             st.markdown(f'<div class="vs-chip-row">{_chips}</div>', unsafe_allow_html=True)
 
     with studio_col:
-        _panel_open = st.session_state.studio_panel_open
-        st.markdown('<div class="vs-studio-panel">', unsafe_allow_html=True)
-        head_l, head_r = st.columns([5.2, 1])
-        with head_l:
-            st.markdown(f"""<div class="vs-panel-head">
-                <div class="vs-panel-icon">{ic("sliders", 20)}</div>
-                <div class="vs-panel-head-txt"><div class="vs-panel-title">Studio Premium</div><div class="vs-panel-sub">Réglages rapides de sortie</div></div>
-            </div>""", unsafe_allow_html=True)
-        with head_r:
-            if st.button("⌃" if _panel_open else "⌄", key="studio_panel_toggle", help="Afficher / masquer les réglages", use_container_width=True):
-                st.session_state.studio_panel_open = not _panel_open
-                st.rerun()
-        if _panel_open:
-            st.markdown('<div class="vs-panel-body">', unsafe_allow_html=True)
-            st.markdown('<div class="vs-group-label">Moteur IA</div>', unsafe_allow_html=True)
-            if tier >= 2:
-                st.selectbox(T("model"), ["rapide","qualite"], key="cfg_model", format_func=lambda m: "⚡ Rapide" if m=="rapide" else "🧠 Qualité Premium")
-            else:
-                st.markdown(f"""<div class="vs-lock-card">{ic("lock", 18)}<div><b>Modèle Qualité</b><br><small>Disponible à partir du plan Premium.</small></div></div>""", unsafe_allow_html=True)
-            st.checkbox(T("turbo"), key="cfg_turbo")
-            if tier >= 3:
-                st.markdown('<div class="vs-group-label">Fonctions Premium+</div>', unsafe_allow_html=True)
-                st.selectbox("Langue de sortie", ["fr","en","es","de"], key="cfg_target", format_func=lambda l: str(LANGS.get(l) or l))
-                st.checkbox("TL;DR enrichi", key="studio_tldr", value=st.session_state.get("studio_tldr", True))
-                st.checkbox("Questions avancées", key="studio_questions", value=st.session_state.get("studio_questions", True))
-                st.checkbox("Actions à faire", key="studio_actions", value=st.session_state.get("studio_actions", True))
-                st.checkbox("Mode Studio Chat", key="studio_chat", value=st.session_state.get("studio_chat", True))
-            else:
-                st.markdown('<div class="vs-group-label">Fonctions Premium+</div>', unsafe_allow_html=True)
-                st.markdown(f"""<div class="vs-mini-feature">{ic("star", 17)}<div>TL;DR enrichi<small>Résumé condensé et hiérarchisé</small></div><span class="vs-mini-tag">Premium+</span></div>""", unsafe_allow_html=True)
-                st.markdown(f"""<div class="vs-mini-feature">{ic("target", 17)}<div>Actions intelligentes<small>Points d'action détectés automatiquement</small></div><span class="vs-mini-tag">Premium+</span></div>""", unsafe_allow_html=True)
-                st.markdown(f"""<div class="vs-mini-feature">{ic("image", 17)}<div>{T("fx8")}<small>Slides générées depuis la vidéo</small></div><span class="vs-mini-tag">Premium+</span></div>""", unsafe_allow_html=True)
-                st.markdown(f"""<div class="vs-mini-feature">{ic("msg", 17)}<div>Chat vidéo IA<small>Question → réponse ancrée</small></div><span class="vs-mini-tag">Premium+</span></div>""", unsafe_allow_html=True)
-            st.markdown('<div class="vs-group-label">Quantités</div>', unsafe_allow_html=True)
-            st.slider(T("kw_count"), 5, 20, key="cfg_kw_n"); st.slider(T("q_count"), 3, 10, key="cfg_q_n")
-            st.slider(T("chunk_size"), 1200, 4000, step=200, key="cfg_chunk")
-            st.markdown('<div class="vs-group-label">Sortie</div>', unsafe_allow_html=True)
-            st.checkbox(T("extract_kw"), key="cfg_kw"); st.checkbox(T("gen_q"), key="cfg_qa"); st.checkbox(T("chip_tr"), key="cfg_translate")
-            st.markdown(f"""<div class="vs-panel-footer-hint">{ic("info", 14)}<span>Ces réglages s'appliquent à ta prochaine analyse. Ils sont mémorisés pour ce compte.</span></div>""", unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        else:
-            st.markdown(f"""<div class="vs-panel-collapsed-hint">{ic("chev", 13)} Réglages repliés — clique sur la flèche pour les rouvrir.</div>""", unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        render_studio_panel(tier)
 
     def _run_one_local(url_single):
         video_id = extract_video_id(url_single)
