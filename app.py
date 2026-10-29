@@ -750,7 +750,11 @@ if st.session_state.user is None:
             if st.button("Réessayer", key="retry_db", type="primary"): st.rerun()
             time.sleep(3); st.rerun()
     # Diagnostic (visible dans Manage app → Logs) : pourquoi la session est / n'est pas restaurée
-    print(f"[auth] cookie_session={'oui' if _token else 'NON'} | session_valide={'oui' if _user and _token else 'non'} | cookie_ys_user={_u2 or 'NON'} | restauré={_user or 'NON'}", flush=True)
+    _dbg = (f"[auth] cookie_session={'oui' if _token else 'NON'} | session_valide={'oui' if _user and _token else 'non'} | cookie_ys_user={_u2 or 'NON'} | restauré={_user or 'NON'}")
+    print(_dbg, flush=True)
+    if st.query_params.get("perf") == "1":
+        try: st.toast(_dbg + f" | cookies_vus={sorted(st.context.cookies.keys())}", icon="🔎")
+        except Exception: pass
     if _user:
         _info = list_users().get(_user)
         if _info is None:
