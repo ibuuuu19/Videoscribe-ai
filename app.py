@@ -81,7 +81,7 @@ from src.pages.auth import (
 )
 
 # ⚠️ cookie_mgr, set_cookie, delete_cookie, read_cookie extraits dans src/core/cookies.py
-from src.core.cookies import cookie_mgr, set_cookie, delete_cookie, read_cookie
+from src.core.cookies import cookie_mgr, set_cookie, delete_cookie, read_cookie, cookies_pending
 
 # ═══════════════ LAYOUT ═══════════════
 from src.ui.layout import (
@@ -729,6 +729,11 @@ def render_config():
 _VALID_PAGES = {"accueil","analyse","premium","historique","stats","config","contact",
 "notifs","about","login","register"}
 if st.session_state.user is None:
+    # Streamlit Cloud : les cookies arrivent avec un léger retard au 1er rendu → on attend (≤ ~4 s) au lieu d'afficher
+    # la page « visiteur » puis de basculer sur la session restaurée.
+    if cookies_pending():
+        st.markdown("<div style='padding:32vh 0;text-align:center;opacity:.65;font-family:sans-serif'>Chargement…</div>", unsafe_allow_html=True)
+        time.sleep(0.7); st.rerun()
     _token = read_cookie(COOKIE_NAME); _user = get_session_user(_token) if _token else None
     _u2 = None
     if not _user:

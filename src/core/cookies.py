@@ -16,6 +16,7 @@ Usage : from src.core.cookies import set_cookie, read_cookie, delete_cookie, coo
 """
 
 import json
+import os as _os
 import time
 import uuid
 from datetime import datetime, timedelta
@@ -109,9 +110,10 @@ try {{ if (window.top && window.top !== window.parent) kill(window.top.document)
 def read_cookie(name):
     """Lit un cookie : en-têtes HTTP d'abord, puis contrôleur de la session."""
     try:
-        val = st.context.cookies.get(name)
-        if val:
-            return val
+        if not _os.environ.get("VS_IGNORE_CTX"):   # (test uniquement)
+            val = st.context.cookies.get(name)
+            if val:
+                return val
     except Exception:
         pass
     try:
@@ -126,3 +128,31 @@ def _is_https():
                str(st.context.url or "").startswith("https")
     except Exception:
         return False
+
+
+def cookies_pending(max_tries: int = 6) -> bool:
+    """
+    True tant que le navigateur n'a pas encore transmis ses cookies (1er rendu d'une session sur Streamlit Cloud :
+    le composant répond avec un léger retard). Évite d'afficher la page d'accueil « visiteur » pendant que la
+    session est en train d'être restaurée. S'arrête de toute façon après `max_tries` passages (visiteur sans cookie).
+    """
+    ss = st.session_state
+    if ss.get("_ck_done"):
+        return False
+    try:
+        if read_cookie(COOKIE_NAME) or read_cookie("ys_user"):
+            ss["_ck_done"] = True
+            return False
+        c = _ctl()
+        if c is not None and c.getAll():          # le navigateur a répondu (au moins un cookie) → plus d'attente
+            ss["_ck_done"] = True
+            return False
+    except Exception:
+        ss["_ck_done"] = True
+        return False
+    n = ss.get("_ck_n", 0)
+    if n >= max_tries:
+        ss["_ck_done"] = True
+        return False
+    ss["_ck_n"] = n + 1
+    return True
