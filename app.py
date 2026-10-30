@@ -219,6 +219,14 @@ def get_summarizer(model_key):
 
 st.set_page_config(page_title="VideoScribe AI", layout="wide",
 page_icon=str(LOGO_FILE) if LOGO_FILE.exists() else "🖊️")
+# ── Anti-traduction automatique de Chrome ──
+# Streamlit déclare <html lang="en"> alors que l'app est en français → Chrome propose/applique « Traduire en français »
+# et la traduction casse le DOM de React (page blanche, « Stop » qui reste affiché alors que le serveur a fini en 0,2 s).
+# On déclare la vraie langue et on interdit la traduction, dès le début du script.
+_components.html("""<script>try{var d=window.parent.document,h=d.documentElement;
+h.setAttribute('lang','%s');h.setAttribute('translate','no');h.classList.add('notranslate');
+if(!d.querySelector('meta[name=google][content=notranslate]')){var m=d.createElement('meta');m.name='google';m.content='notranslate';d.head.appendChild(m);}
+if(d.body)d.body.setAttribute('translate','no');}catch(e){}</script>""" % st.session_state.get("cfg_lang", "fr"), height=0)
 @st.cache_resource(show_spinner=False)
 def _boot_once():
     """Initialisation exécutée UNE seule fois par processus (et non à chaque clic)."""
