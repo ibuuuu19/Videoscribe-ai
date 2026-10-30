@@ -228,6 +228,7 @@ def _boot_once():
         print(f"[app] ensure_admin failed ({type(e).__name__}) → skip")
     return True
 _boot_once()
+perf.mark('boot')
 
 
 # ═══ Détection du thème par défaut (cookie ou light) ═══
@@ -728,6 +729,7 @@ def render_config():
 # ═══════════════ ROUTAGE ═══════════════
 _VALID_PAGES = {"accueil","analyse","premium","historique","stats","config","contact",
 "notifs","about","login","register"}
+perf.mark('avant auth')
 if st.session_state.user is None:
     # Streamlit Cloud : les cookies arrivent avec un léger retard au 1er rendu → on attend (≤ ~4 s) au lieu d'afficher
     # la page « visiteur » puis de basculer sur la session restaurée.
@@ -754,6 +756,7 @@ if st.session_state.user is None:
             st.warning("⏳ Reconnexion à la base de données en cours… votre session est conservée.")
             if st.button("Réessayer", key="retry_db", type="primary"): st.rerun()
             time.sleep(3); st.rerun()
+    perf.mark('auth (cookies+session)')
     # Diagnostic (visible dans Manage app → Logs) : pourquoi la session est / n'est pas restaurée
     _dbg = (f"[auth] cookie_session={'oui' if _token else 'NON'} | session_valide={'oui' if _user and _token else 'non'} | cookie_ys_user={_u2 or 'NON'} | restauré={_user or 'NON'}")
     print(_dbg, flush=True)
