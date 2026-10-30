@@ -26,11 +26,14 @@ def _on() -> bool:
 def start() -> None:
     now = time.perf_counter()
     _RUN.update(t0=now, last=now, marks=[])
+    print("[perf-live] t+0.00s | début du script", flush=True)
 
 
 def mark(label: str) -> None:
     now = time.perf_counter()
     _RUN["marks"].append((label, now - _RUN["last"]))
+    # journal immédiat (même si le script se bloque plus loin) : « [perf-live] +12.3s après le début | étape : … »
+    print(f"[perf-live] t+{now - _RUN['t0']:.2f}s | étape « {label} » terminée (+{(now - _RUN['last']) * 1000:.0f} ms)", flush=True)
     _RUN["last"] = now
 
 
