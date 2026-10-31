@@ -445,6 +445,17 @@ padding: .55rem .5rem !important; font-size: .85rem !important; justify-content:
 """, unsafe_allow_html=True)
 
 st.markdown(custom_css(), unsafe_allow_html=True)
+st.markdown("""<style>
+/* Scripts invisibles (iframes de cookies / icônes / anti-traduction) : aucune place dans la page.
+   Sans ça, certaines versions de Streamlit leur réservent ~100 px chacun → grand vide + traits en haut de page. */
+html body .stApp [data-testid="stElementContainer"]:has(> iframe[srcdoc^="<script"]),
+html body .stApp [data-testid="stElementContainer"]:has(iframe[srcdoc^="<script"]):not(:has([data-testid="stVerticalBlock"])),
+html body .stApp [data-testid="stElementContainer"]:has(> iframe[height="0"]) {
+  position:absolute !important; width:0 !important; height:0 !important; min-height:0 !important; margin:0 !important; padding:0 !important; overflow:hidden !important; border:0 !important; }
+html body .stApp iframe[srcdoc^="<script"] { border:0 !important; height:0 !important; min-height:0 !important; }
+/* Pas de voile gris pendant un rechargement (changement de thème, navigation) : l'ancien contenu reste net */
+html body .stApp [data-stale="true"], html body .stApp [data-stale="true"] * { opacity:1 !important; filter:none !important; transition:none !important; }
+</style>""", unsafe_allow_html=True)
 perf.mark('css')
 
 if st.session_state.user is None:

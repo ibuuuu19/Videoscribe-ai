@@ -16,7 +16,6 @@ Usage : from src.core.cookies import set_cookie, read_cookie, delete_cookie, coo
 """
 
 import json
-import os as _os
 import time
 import uuid
 from datetime import datetime, timedelta
@@ -78,7 +77,7 @@ try {{ if (window.top && window.top !== window.parent) window.top.document.cooki
         _components.html(js, height=0, width=0)
     except Exception:
         pass
-    time.sleep(wait if wait is not None else (1.5 if name != "ys_theme" else 1.0))
+    time.sleep(wait if wait is not None else (1.5 if name != "ys_theme" else 0.4))
 
 
 def delete_cookie(name):
@@ -110,14 +109,14 @@ try {{ if (window.top && window.top !== window.parent) kill(window.top.document)
 def read_cookie(name):
     """Lit un cookie : en-têtes HTTP d'abord, puis contrôleur de la session."""
     try:
-        if not _os.environ.get("VS_IGNORE_CTX"):   # (test uniquement)
-            val = st.context.cookies.get(name)
-            if val:
-                return val
+        val = st.context.cookies.get(name)
+        if val:
+            return val
     except Exception:
         pass
     try:
-        return _ctl().get(name) or None   # type: ignore
+        c = _ctl()
+        return (c.get(name) if c is not None else None) or None
     except Exception:
         return None
 
