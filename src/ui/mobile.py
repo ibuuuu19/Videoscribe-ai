@@ -296,6 +296,7 @@ def render_mobile_shell(user: str, role: str, tier: int) -> None:
                             try: delete_session(st.session_state.get("token"))
                             except Exception: pass
                         delete_cookie(COOKIE_NAME); delete_cookie("ys_user"); delete_cookie("ys_theme")
+                        st.session_state.update(user=None, role=None, token=None, result=None, page="accueil", show_privacy=False, cfg_open=False)
                         st.session_state._logged_out = True
                         st.rerun()
 
