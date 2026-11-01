@@ -609,103 +609,15 @@ def render_historique():
     render_footer(compact=True)
 
 def render_config():
-    hero("sliders", T("set_title"), T("set_sub"))
-    SECTIONS = [(T("set_title"),[("general",T("general"),"sliders"),("compte",T("account"),"user"),("confidentialite",T("privacy"),"shield"),("facturation",T("billing"),"card"),("capacites",T("caps"),"cpu")]),
-    ("Desktop",[("bureau",T("general"),"monitor"),("extensions","Extensions","tool"),("developpeur","Dev","code")]),
-    (T("personalization"),[("competences","Skills","spark"),("connecteurs","Connect","link"),("plugins","Plugins","tool"),("memoire","Memory","clock")])]
-    query = st.text_input(T("set_search"), placeholder="...", label_visibility="collapsed")
-    c_nav, c_body = st.columns([1, 3], gap="large")
-    with c_nav:
-        st.markdown('<div class="setnav"></div>', unsafe_allow_html=True)
-        for group_name, grp in SECTIONS:
-            st.markdown(f'<div class="qcap">{group_name}</div>', unsafe_allow_html=True)
-            for key, label, icon in grp:
-                if query and query.lower() not in label.lower(): continue
-                if st.button(f"{label}", key=f"set_{key}", use_container_width=True, type="primary" if st.session_state.cfg_section == key else "secondary"): st.session_state.cfg_section = key; st.rerun()
-    with c_body:
-        st.markdown('<div class="setbody"></div>', unsafe_allow_html=True); sec = st.session_state.cfg_section
-        if sec == "general":
-            st.subheader(T("general"))
-            a1, a2 = st.columns([2,1]); a1.markdown(f"**{T('appearance')}**", unsafe_allow_html=True)
-            with a2:
-                t1, t2 = st.columns(2)
-                with t1:
-                    if st.button(T("light"), use_container_width=True, type="primary" if st.session_state.theme=="light" else "secondary"): st.session_state.theme="light"; set_cookie("ys_theme","light",max_age=365*24*3600); st.rerun()
-                with t2:
-                    if st.button(T("dark"), use_container_width=True, type="primary" if st.session_state.theme=="dark" else "secondary"): st.session_state.theme="dark"; set_cookie("ys_theme","dark",max_age=365*24*3600); st.rerun()
-            st.markdown("---")
-            st.subheader(T("language"))
-            cur_lang = st.session_state.cfg_lang
-            cl = st.selectbox(T("language"), list(LANGS.keys()), index=list(LANGS.keys()).index(cur_lang) if cur_lang in LANGS else 0, format_func=lambda l: LANGS[l], key="sel_lang")
-            if cl != cur_lang: set_language(cl)
-            _ui = LANGS.get(st.session_state.cfg_lang,"fr"); _tgt = LANGS.get(st.session_state.cfg_target,"fr")
-            st.info(f"🌐 **{_ui}** — {T('language')} ✓ | {T('chip_tr')} {T('m_analyse')} → **{_tgt}**")
-            st.markdown("---"); b1, b2 = st.columns([2,1]); b1.markdown(f"**{T('font')}**", unsafe_allow_html=True)
-            with b2: st.selectbox(T("font"), ["Manrope","Sora","Système","Adapté aux dyslexiques"], key="cfg_font", label_visibility="collapsed")
-            st.markdown("---"); st.checkbox(f"**{T('motion')}**", key="cfg_reduce_motion")
-            st.markdown("---"); st.subheader(T("personalization"))
-            _presets = {"Bleu océan":"#2E6DB4","Teal":"#14B8A6","Violet":"#8B5CF6","Orange":"#F97316","Vert":"#22C55E",
-            "Rouge":"#EF4444","Indigo":"#6366F1","Or":"#F59E0B","Rose":"#EC4899","Cyan":"#06B6D4"}
-            _cur = st.session_state.get("cfg_accent","#2E6DB4")
-            _vals = list(_presets.values()); _names = list(_presets.keys())
-            _idx = _vals.index(_cur) if _cur in _vals else 0
-            p1, p2 = st.columns(2)
-            with p1:
-                _sel = st.selectbox(T("presets"), _names, index=_idx)
-                if _presets[_sel] != _cur:
-                    st.session_state.cfg_accent = _presets[_sel]; _save_appearance(); st.rerun()
-            with p2:
-                _hex = st.color_picker(T("custom_color"), value=_cur)
-                if _hex != _cur:
-                    st.session_state.cfg_accent = _hex; _save_appearance(); st.rerun()
-            s1, s2 = st.columns(2)
-            with s1: st.slider(T("text_size"), 14, 20, int(st.session_state.get("cfg_font_size",16)), key="cfg_font_size", on_change=_save_appearance)
-            with s2: st.slider(T("line_height"), 1.4, 2.0, float(st.session_state.get("cfg_line_height",1.6)), key="cfg_line_height", on_change=_save_appearance)
-            st.markdown(f'<div class="note-card"><div class="note-num">A</div><div class="note-text">{T("preview")} — <b>{st.session_state.cfg_accent}</b> • {int(st.session_state.cfg_font_size)} px • {st.session_state.cfg_line_height}</div></div>', unsafe_allow_html=True)
-            st.markdown("---"); st.subheader(T("voice"))
-            v1, v2 = st.columns(2)
-            with v1: st.selectbox(T("language"), ["fr","en","es","de"], key="cfg_voice_lang", format_func=lambda l: LANGS[l])
-            with v2: st.selectbox(T("speed"), ["Lent","Normal","Rapide"], key="cfg_voice_speed")
-            st.selectbox(T("style"), ["Normal","Décontracté","Professionnel"], key="cfg_voice_style")
-            st.markdown("---"); st.subheader(T("notif_pref"))
-            st.checkbox(f"**{T('completion')}**", key="cfg_notif_complete"); st.checkbox(f"**{T('weekly')}**", key="cfg_notif_weekly")
-        elif sec == "compte":
-            st.subheader(T("profile"))
-            _av = get_avatar_b64(user)
-            if _av: st.markdown(f'<img src="{_av}" class="big-avatar">', unsafe_allow_html=True)
-            else: st.markdown(f'<div class="big-avatar">{user[:2].upper()}</div>', unsafe_allow_html=True)
-            up = st.file_uploader("Avatar", type=["png","jpg","jpeg","webp"])
-            if up:
-                AVATAR_DIR.mkdir(parents=True, exist_ok=True); ext = up.name.rsplit(".",1)[-1].lower()
-                for old in AVATAR_DIR.glob(f"{user}.*"): old.unlink()
-                (AVATAR_DIR / f"{user}.{ext}").write_bytes(up.read()); _fast.clear(); st.success("Photo enregistrée"); st.rerun()
-            st.text_input(T("fullname"), key="prof_fullname"); st.text_input(T("callname"), key="prof_callname")
-            st.selectbox(T("job"), ["Étudiant","Enseignant","Créateur de contenu","Professionnel","Autre"], key="prof_job")
-            st.text_area(T("instructions"), key="prof_instructions", placeholder="ex. : garder les explications brèves")
-            st.markdown("---")
-            if st.button(T("change_pwd"), use_container_width=True): st.session_state.page = "profil"; st.rerun()
-        elif sec == "confidentialite":
-            st.subheader(T("privacy")); st.write("RGPD ✓")
-            if st.button(T("see_policy"), use_container_width=True): st.session_state.show_privacy = True; st.rerun()
-        elif sec == "facturation":
-            st.subheader(T("billing")); cur = "premium_plus" if role == "admin" else get_plan(user)
-            st.write(f"{T('current_plan')} : **{PLANS[cur]['name'] if cur != 'free' else T('plan_free')}**")
-            if st.button(T("manage_plan"), use_container_width=True): st.session_state.page = "premium"; st.rerun()
-        elif sec == "capacites":
-            st.subheader(T("caps"))
-            if tier >= 2: st.selectbox(T("model"), ["rapide","qualite"], key="cfg_model", format_func=lambda m: "Rapide" if m=="rapide" else "Qualité")
-            else: st.markdown(f"<div class='q-item'>{ic('lock',14)} Modèle Qualité réservé aux Premium et +</div>", unsafe_allow_html=True)
-            st.checkbox(T("turbo"), key="cfg_turbo")
-            st.slider(T("kw_count"), 5, 20, key="cfg_kw_n"); st.slider(T("q_count"), 3, 10, key="cfg_q_n")
-            st.slider(T("chunk_size"), 1200, 4000, step=200, key="cfg_chunk")
-            st.checkbox(T("extract_kw"), key="cfg_kw"); st.checkbox(T("gen_q"), key="cfg_qa")
-        elif sec == "bureau": st.subheader(T("general")); st.checkbox(T("motion"), key="cfg_reduce_motion")
-        elif sec == "extensions": st.subheader("Extensions"); st.write("Obsidian, Notion…")
-        elif sec == "developpeur": st.subheader("Dev"); st.write("API & clés (bientôt).")
-        elif sec == "competences": st.subheader("Skills"); st.write("—")
-        elif sec == "connecteurs": st.subheader("Connect"); st.write("—")
-        elif sec == "plugins": st.subheader("Plugins"); st.write("—")
-        elif sec == "memoire": st.subheader("Memory"); st.write("—")
+    from src.pages.settings import render_settings
+    cur = "premium_plus" if role == "admin" else get_plan(user)
+    render_settings({
+        "user": user, "role": role, "tier": tier,
+        "plan_name": PLANS[cur]["name"] if cur != "free" else T("plan_free"),
+        "set_cookie": set_cookie, "set_language": set_language, "save_appearance": _save_appearance,
+        "get_avatar_b64": get_avatar_b64, "avatar_dir": AVATAR_DIR, "fast_clear": _fast.clear,
+        "get_history": get_history, "clear_history": clear_history, "count_today": count_today,
+    })
     render_footer(compact=True)
 # ⚠️ render_admin extrait dans src/pages/admin.py
 # ═══════════════ ROUTAGE ═══════════════
@@ -977,6 +889,7 @@ if page == "profil" and not is_guest: _R("profil", render_profil); st.stop()
 if page == "premium": _R("premium", render_premium); st.stop()
 if page == "historique" and not is_guest: _R("historique", render_historique_v2, user, tier); st.stop()
 if page == "stats" and not is_guest: _R("stats", render_stats); st.stop()
+if page != "config": st.session_state.cfg_open = False
 if page == "config" and not is_guest: _R("config", render_config); st.stop()
 if page == "contact": _R("contact", render_contact); st.stop()
 if page == "notifs" and not is_guest: _R("notifs", render_notifs); st.stop()
