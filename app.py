@@ -627,12 +627,13 @@ perf.mark('avant auth')
 if st.session_state.user is None:
     # Streamlit Cloud : les cookies arrivent avec un léger retard au 1er rendu → on attend (≤ ~4 s) au lieu d'afficher
     # la page « visiteur » puis de basculer sur la session restaurée.
-    if cookies_pending():
+    _lo = bool(st.session_state.get("_logged_out"))   # déconnexion volontaire : ne PAS restaurer depuis les cookies
+    if cookies_pending() and not _lo:
         st.markdown("<div style='padding:32vh 0;text-align:center;opacity:.65;font-family:sans-serif'>Chargement…</div>", unsafe_allow_html=True)
         time.sleep(0.7); st.rerun()
-    _token = read_cookie(COOKIE_NAME); _user = get_session_user(_token) if _token else None
+    _token = None if _lo else read_cookie(COOKIE_NAME); _user = get_session_user(_token) if _token else None
     _u2 = None
-    if not _user:
+    if not _user and not _lo:
         _u2 = read_cookie("ys_user")
         if _u2:
             _us = list_users().get(_u2)
@@ -676,6 +677,7 @@ if st.session_state.user is None:
         else:
             st.session_state.update(user=_user, role=_info.get("role", "client"), token=_token)
             _load_appearance(_user)
+if st.session_state.user is not None: st.session_state.pop("_logged_out", None)
 _qp = st.query_params.get("page")
 _last_q = st.session_state.get("last_query_page")
 if _qp and _qp != _last_q and _qp in _VALID_PAGES:
@@ -741,6 +743,7 @@ with st.sidebar:
                 delete_cookie(COOKIE_NAME)
                 delete_cookie("ys_user")
                 delete_cookie("ys_theme")
+                st.session_state.update(user=None, role=None, token=None, result=None, page="accueil", show_privacy=False, cfg_open=False)
                 st.session_state._logged_out = True
                 st.rerun()
     else:
