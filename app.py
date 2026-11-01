@@ -553,46 +553,9 @@ def render_bar_chart_html(values, labels, height=280):
     st.markdown(f'<div class="bc-wrap" style="height:{height}px">{bars}</div>', unsafe_allow_html=True)
 
 def render_stats():
-    _acc, _acc_dark = get_accent()
-    hero("chart", T("stats_title"), T("stats_sub"))
-    hist = get_history(user)
-    if not hist: st.caption("Aucune analyse."); render_footer(compact=True); return
-    tt = sum(h.get("processing_time", 0) for h in hist)
-    tw = sum(h.get("total_words", 0) for h in hist)
-    week_ago = datetime.now() - timedelta(days=7)
-    week_ago_prev = datetime.now() - timedelta(days=14)
-    this_week = [h for h in hist if _parse_hdate(h) >= week_ago]
-    prev_week = [h for h in hist if week_ago_prev <= _parse_hdate(h) < week_ago]
-    n_this, n_prev = len(this_week), len(prev_week)
-    tt_this = sum(h.get("processing_time", 0) for h in this_week)
-    tt_prev = sum(h.get("processing_time", 0) for h in prev_week)
-    tw_this = sum(h.get("total_words", 0) for h in this_week)
-    tw_prev = sum(h.get("total_words", 0) for h in prev_week)
-    k1, k2, k3, k4 = st.columns(4)
-    with k1:
-        st.markdown(f'<div class="kpi-card"><div class="kpi-icon">{ic("book", 24)}</div><div class="kpi-label">{T("videos")}</div><div class="kpi-value">{len(hist)}</div>{_trend_html(n_this, n_prev)}</div>', unsafe_allow_html=True)
-    with k2:
-        st.markdown(f'<div class="kpi-card"><div class="kpi-icon">{ic("clock", 24)}</div><div class="kpi-label">{T("total_time")}</div><div class="kpi-value">{tt:.0f}s</div>{_trend_html(tt_this, tt_prev, "s")}</div>', unsafe_allow_html=True)
-    with k3:
-        avg_chunks = sum(h.get('num_chunks',0) for h in hist)/len(hist)
-        st.markdown(f'<div class="kpi-card"><div class="kpi-icon">{ic("zap", 24)}</div><div class="kpi-label">{T("avg_chunks")}</div><div class="kpi-value">{avg_chunks:.1f}</div><div class="kpi-trend up">✓ {T("tr_opt")}</div></div>', unsafe_allow_html=True)
-    with k4:
-        st.markdown(f'<div class="kpi-card"><div class="kpi-icon">{ic("hash", 24)}</div><div class="kpi-label">{T("words_proc")}</div><div class="kpi-value">{tw:,}</div>{_trend_html(tw_this, tw_prev)}</div>', unsafe_allow_html=True)
-    times = [h.get("processing_time", 0) for h in hist]
-    labels = [f"V{i+1}" for i in range(len(hist))]
-    if tier >= 2:
-        e1, e2, e3 = st.columns(3)
-        e1.metric(T("fastest"), f"{min(times):.0f} s"); e2.metric(T("slowest"), f"{max(times):.0f} s"); e3.metric(T("avg_time"), f"{tt/len(hist):.0f} s")
-        render_bar_chart_html(times, labels)
-    else:
-        render_bar_chart_html(times[::-1], labels[::-1])
-        st.markdown(f"<div class='q-item'>{ic('lock', 14)} Rapport détaillé réservé aux Premium et +</div>", unsafe_allow_html=True)
-    if tier >= 3:
-        st.markdown("---"); st.subheader(f"{T('weekly')} {T('wk_d')}")
-        r1, r2, r3 = st.columns(3)
-        r1.metric(f"{T('m_analyse')} {T('wk_d')}", n_this); r2.metric(f"{T('words')} {T('wk_d')}", f"{tw_this:,}"); r3.metric(f"{T('time')} {T('wk_d')}", f"{tt_this:.0f} s")
-        rep = (f"# {T('weekly')} — {user}\n- {T('m_analyse')} : **{n_this}**\n- {T('words')} : **{tw_this:,}**\n- {T('time')} : **{tt_this:.0f} s**\n## Vidéos\n" + "\n".join(f"- {h['date']} — https://youtu.be/{h['video_id']}" for h in this_week))
-        st.download_button(T("dl_report"), rep.encode("utf-8"), file_name=f"rapport_{user}.md", mime="text/markdown", use_container_width=True)
+    """Page Statistiques (tableau de bord) — voir src/pages/stats.py."""
+    from src.pages.stats import render_stats as _render_stats
+    _render_stats(user, tier, get_history(user))
     render_footer(compact=True)
 
 def render_historique():
@@ -991,7 +954,7 @@ def _R(name, fn, *a, **k):
     perf.mark('PAGE ' + name)
     perf.report()
 
-if st.session_state.page == "admin" and role == "admin": _R("admin", render_admin); st.stop()
+if st.session_state.page == "admin" and role == "admin": _R("admin", lambda: __import__("src.ui.admin_skin", fromlist=["render_with_skin"]).render_with_skin(render_admin)); st.stop()
 if st.session_state.show_privacy: render_privacy(show_back=True); st.stop()
 page = st.session_state.page
 try:
