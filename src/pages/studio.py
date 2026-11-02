@@ -158,7 +158,7 @@ def render_studio_page():
     letter-spacing:-.045em; line-height:1.06; font-size:clamp(1.9rem,4.6vw,4.1rem); margin:0; }}
     .vs-studio-grad {{ background:linear-gradient(92deg,#60A5FA 0%,#34D399 50%,#FBBF24 100%);
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }}
-    .vs-studio-sub {{ position:relative; z-index:1; color:{_a_soft} !important; max-width:700px; margin:1.05rem auto 0; font-size:1.02rem; line-height:1.72; }}
+    .vs-studio-sub {{ position:relative; z-index:1; display:block; width:100%; max-width:680px; margin:1.05rem auto 0 !important; padding:0; text-align:center !important; color:{_a_soft} !important; font-size:1.02rem; line-height:1.72; text-wrap:balance; }}
     .vs-studio-kicker {{ position:relative; z-index:1; display:inline-flex; align-items:center; gap:9px; padding:7px 15px 7px 11px; border-radius:999px;
     background:{_a_surface_2}; border:1px solid {_a_border}; color:{_a_soft} !important;
     font-size:.76rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; margin-bottom:1.15rem; }}
@@ -167,6 +167,21 @@ def render_studio_page():
     background:{_a_surface_2}; border:1px solid {_a_border}; color:{_a_soft} !important;
     font-weight:700; font-size:.82rem; transition:transform .3s cubic-bezier(.16,1,.3,1), background .3s ease, border-color .3s ease; }}
     .vs-quick:hover {{ transform:translateY(-2px); background:{_a_surface}; border-color:{_a_accent}55; }}
+    .vs-steps {{ position:relative; z-index:1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.7rem; max-width:760px; margin:1.6rem auto 0; text-align:left; }}
+    .vs-step {{ display:flex; align-items:center; gap:.7rem; padding:.7rem .85rem; border-radius:18px; background:{_a_card}; border:1px solid {_a_border}; }}
+    .vs-step-n {{ flex:none; width:30px; height:30px; border-radius:11px; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,{_a_accent},#34D399); color:#fff !important; font-weight:900; font-size:.85rem; font-family:'Sora',sans-serif; }}
+    .vs-step-t {{ display:flex; flex-direction:column; min-width:0; }}
+    .vs-step-t b {{ color:{_a_nav} !important; font-size:.84rem; line-height:1.25; }}
+    .vs-step-t small {{ color:{_a_soft} !important; font-size:.74rem; line-height:1.3; }}
+    .vs-link-head {{ display:flex; align-items:center; justify-content:space-between; gap:.6rem; flex-wrap:wrap; margin:.1rem .25rem .6rem; }}
+    .vs-link-head b {{ display:inline-flex; align-items:center; gap:8px; color:{_a_nav} !important; font-size:.92rem; }}
+    .vs-link-head span {{ color:{_a_soft} !important; font-size:.76rem; font-weight:600; }}
+    .vs-foot-hint {{ display:flex; align-items:center; justify-content:center; gap:8px; margin:.85rem .25rem .1rem; color:{_a_soft} !important; font-size:.76rem; text-align:center; }}
+    html body .stApp div[data-testid="stVerticalBlock"].st-key-st_link {{ gap:.7rem !important; }}
+    html body .stApp div[data-testid="stVerticalBlock"].st-key-st_link div[data-testid="stElementContainer"]:has(.vs-link-marker):not(:has(.vs-link-head)),
+    html body .stApp div[data-testid="stVerticalBlock"].st-key-st_link div[data-testid="stElementContainer"]:has(.vs-toolbar-marker) {{ display:none !important; }}
+    html body .stApp div[data-testid="stVerticalBlock"].st-key-st_tools {{ margin-top:0 !important; gap:.6rem !important; }}
     .vs-link-marker {{ display:none; }}
     div[data-testid="stVerticalBlock"].st-key-st_link {{ position:relative; background:{_a_card}; border:1px solid {_a_border};
     border-radius:30px; padding:1.1rem 1.1rem .9rem; box-shadow:{_a_shadow}; backdrop-filter:blur(18px);
@@ -288,9 +303,11 @@ def render_studio_page():
       html body .stApp .vs-studio-title { font-size:1.75rem !important; line-height:1.12 !important; }
       html body .stApp .vs-studio-sub { font-size:.93rem !important; margin-top:.7rem !important; line-height:1.6 !important; }
       html body .stApp .vs-studio-kicker { margin-bottom:.8rem !important; font-size:.68rem !important; }
-      html body .stApp .vs-quick-row { flex-wrap:nowrap !important; justify-content:flex-start !important; overflow-x:auto; margin:1rem -1.1rem 0 !important; padding:0 1.1rem .2rem; scrollbar-width:none; }
-      html body .stApp .vs-quick-row::-webkit-scrollbar { display:none; }
-      html body .stApp .vs-quick { flex:none; }
+      html body .stApp .vs-quick-row { flex-wrap:wrap !important; justify-content:center !important; gap:.4rem !important; margin:1rem 0 0 !important; padding:0; }
+      html body .stApp .vs-quick { padding:.42rem .72rem; font-size:.76rem; }
+      html body .stApp .vs-steps { grid-template-columns:1fr; gap:.45rem; margin-top:1.1rem; }
+      html body .stApp .vs-step { padding:.55rem .7rem; }
+      html body .stApp .vs-studio-sub { text-align:center !important; }
       html body .stApp div[data-testid="stVerticalBlock"].st-key-st_link { padding:.75rem !important; border-radius:24px !important; }
       html body .stApp div[data-testid="stVerticalBlock"].st-key-st_link [data-testid="stTextInput"] input { height:58px !important; min-height:58px !important; border-radius:18px !important; font-size:.98rem !important; padding:0 1rem !important; }
       html body .stApp div[data-testid="stVerticalBlock"].st-key-st_tools [data-testid="stHorizontalBlock"] { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:.5rem !important; flex-direction:row !important; }
@@ -319,21 +336,19 @@ def render_studio_page():
         left_col, studio_col = st.columns([14, 1], gap="small")
     with left_col:
         if not st.session_state.get("nl_hide", False):
-            st.markdown(f"""
-            <div class="vs-studio-top">
-                <div class="vs-studio-kicker">{ic("spark", 13)} VideoScribe Studio</div>
-                <div class="vs-studio-title" role="heading" aria-level="1">Analysez vos vidéos.<br>Obtenez un <span class="vs-studio-grad">résumé exploitable</span>.</div>
-                <p class="vs-studio-sub">Collez un lien YouTube, lancez l'analyse, puis transformez la vidéo en notes, mots-clés, quiz, flashcards, exports, présentation et réponses IA.</p>
-                <div class="vs-quick-row">
-                    <span class="vs-quick">{ic("zap", 14)} Résumé rapide</span>
-                    <span class="vs-quick">{ic("hash", 14)} Mots-clés</span>
-                    <span class="vs-quick">{ic("award", 14)} Quiz</span>
-                    <span class="vs-quick">{ic("download", 14)} Exports</span>
-                    <span class="vs-quick">{ic("image", 14)} Slides</span>
-                    <span class="vs-quick">{ic("msg", 14)} Chat vidéo</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            _qs = [("zap","st_q_sum"),("hash","st_q_kw"),("award","st_q_quiz"),("download","st_q_exp"),("image","st_q_slides"),("msg","st_q_chat")]
+            _quick = "".join(f'<span class="vs-quick">{ic(i_, 14)}{T(k_)}</span>' for i_, k_ in _qs)
+            _steps = "".join(
+                f'<div class="vs-step"><span class="vs-step-n">{n_}</span><span class="vs-step-t"><b>{T(f"st_s{n_}_t")}</b><small>{T(f"st_s{n_}_d")}</small></span></div>'
+                for n_ in (1, 2, 3))
+            st.markdown((
+                '<div class="vs-studio-top">'
+                f'<div class="vs-studio-kicker">{ic("spark", 13)}{T("st_kicker")}</div>'
+                f'<div class="vs-studio-title" role="heading" aria-level="1">{T("st_h1a")}<br>{T("st_h1b")} <span class="vs-studio-grad">{T("st_h1g")}</span></div>'
+                f'<div class="vs-studio-sub">{T("st_sub")}</div>'
+                f'<div class="vs-quick-row">{_quick}</div>'
+                f'<div class="vs-steps">{_steps}</div>'
+                '</div>'), unsafe_allow_html=True)
         else:
             if st.button(T("nl_show"), key="nl_show_btn", use_container_width=True):
                 st.session_state.nl_hide = False
@@ -341,21 +356,21 @@ def render_studio_page():
                 except Exception: pass
                 st.rerun()
         with _keyed("st_link"):
-            st.markdown('<div class="vs-link-marker"></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="vs-link-marker"></div><div class="vs-link-head"><b>{ic("film", 15)}{T("st_link_lbl")}</b><span>{T("st_link_hint")}</span></div>'.replace("\n", ""), unsafe_allow_html=True)
             url = st.text_input("URL YouTube", placeholder=T("url_ph"), label_visibility="collapsed", key="studio_url")
             with _keyed("st_tools"):
                 st.markdown('<div class="vs-toolbar-marker"></div>', unsafe_allow_html=True)
                 b1, b2, b3 = st.columns([1.55, .75, .75])
                 with b1:
-                    process_btn = st.button(f"🔍 {T('analyse_btn')}", key="studio_analyse_btn", use_container_width=True)
+                    process_btn = st.button(f"🔍 {T('analyse_btn')}", key="studio_analyse_btn", use_container_width=True, type="primary")
                 with b2:
-                    if st.button("YouTube ⌄", key="studio_source", use_container_width=True): st.toast("Source YouTube sélectionnée")
+                    if st.button(f"{T('st_source')} ⌄", key="studio_source", use_container_width=True): st.toast(T("st_source_toast"))
                 with b3:
                     _fast = model_choice == "rapide"
                     if st.button(f"{'⚡' if _fast else '🧠'} {T('nl_mode_fast') if _fast else T('nl_mode_deep')}", key="studio_mode_btn", use_container_width=True):
                         if tier >= 2:
                             st.session_state.cfg_model = "qualite" if _fast else "rapide"; st.rerun()
-                        else: st.toast("Mode qualité réservé aux Premium.")
+                        else: st.toast(T("st_mode_locked"))
             if tier >= 3:
                 with st.expander(f"⚡ {T('batch')}", expanded=False):
                     st.caption(T("batch_hint"))
@@ -363,10 +378,7 @@ def render_studio_page():
                     batch_btn = st.button(T("batch_btn"), use_container_width=True)
             else:
                 batch_txt = ""; batch_btn = False
-            st.markdown("<div style='height:.9rem;'></div>", unsafe_allow_html=True)
-            _chips = "".join(f'<div class="claude-chip">{ic(icon_name, 15)}{label}</div>' for icon_name, label in
-                             [("file", T("chip_sum")), ("lang", T("chip_tr")), ("hash", T("chip_kw")), ("bulb", T("chip_q")), ("download", T("chip_exp"))])
-            st.markdown(f'<div class="vs-chip-row">{_chips}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="vs-foot-hint">{ic("check", 14)}<span>{T("st_foot_hint")}</span></div>', unsafe_allow_html=True)
 
     with studio_col:
         render_studio_panel(tier)
