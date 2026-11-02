@@ -29,7 +29,8 @@ from pathlib import Path
 
 from src.ui.i18n import T
 from src.ui.components import ic, logo_html, STARS
-from src.ui.layout import render_navbar, render_footer, notify_admins
+from src.ui.layout import render_footer, notify_admins
+from src.ui.navbar import render_navbar   # barre fixe premium (remplace celle de layout.py)
 from src.core.config import CONTACT_EMAIL, PAYMENT_WAVE, MAP_EMBED, MAP_LINK, DEMO_VIDEO_URL
 from src.user_manager import list_users, get_tier
 from src.contact_manager import save_message
@@ -47,6 +48,9 @@ def _h(html: str) -> str:
 
 def _md(html: str) -> None:
     st.markdown(_h(html), unsafe_allow_html=True)
+
+
+_GAP = .7   # espace entre sections (les marges natives de Streamlit s'y ajoutent)
 
 
 def _spacer(rem: float = 2.5) -> None:
@@ -122,7 +126,7 @@ $$ .vsp-ico svg { stroke:#fff; }
 $$ .vsp-ico.sm { width:36px; height:36px; border-radius:11px; }
 
 /* ───── Titres de section ───── */
-$$ .vsp-sh { text-align:center; max-width:780px; margin:0 auto 2.2rem; }
+$$ .vsp-sh { text-align:center; max-width:780px; margin:0 auto 1.5rem; }
 $$ .vsp-k { display:inline-flex; align-items:center; gap:8px; font-size:.72rem; font-weight:800; letter-spacing:.2em; text-transform:uppercase; color:var(--vsp-gold) !important; }
 $$ .vsp-k::before { content:""; width:22px; height:2px; background:var(--vsp-gold); border-radius:2px; }
 $$ .vsp-h2 { font-family:'Sora',sans-serif; font-weight:800; font-size:clamp(1.55rem,3.2vw,2.35rem); line-height:1.14; letter-spacing:-.03em; color:var(--vsp-ink) !important; margin:.7rem 0 .7rem; }
@@ -187,11 +191,15 @@ $$ .vsp-fchip.a { left:-18px; top:-16px; animation-delay:-2s; } $$ .vsp-fchip.b 
 $$ .vsp-fchip svg { color:#34D399; stroke:#34D399; }
 
 /* ───── Zone CTA sous le hero ───── */
-.stApp [class*="st-key-vsp_cta"] { position:relative; z-index:6; margin-top:-2.4rem !important; }
-.stApp [class*="st-key-vsp_cta"] [data-testid="stHorizontalBlock"] { background:rgba(15,23,42,.72); border:1px solid rgba(255,255,255,.14); border-radius:20px; padding:.6rem; backdrop-filter:blur(18px); box-shadow:0 24px 60px rgba(2,8,18,.45); }
+.stApp [class*="st-key-vsp_cta"] { position:relative; z-index:6; margin-top:-2.6rem !important; margin-bottom:.4rem !important; }
+.stApp [class*="st-key-vsp_cta"] > div { background:transparent !important; box-shadow:none !important; border:none !important; padding:0 !important; position:static !important; }
+.stApp [class*="st-key-vsp_cta"] [data-testid="stColumn"] [data-testid="stHorizontalBlock"] { background:rgba(15,23,42,.78); border:1px solid rgba(255,255,255,.16); border-radius:22px; padding:.55rem; backdrop-filter:blur(18px); box-shadow:0 24px 60px rgba(2,8,18,.45); }
+.stApp [class*="st-key-vsp_cta"] .stButton > button { border-radius:16px !important; min-height:48px !important; font-weight:800 !important; }
+.stApp [class*="st-key-vsp_cta"] .stButton > button:not([data-testid="stBaseButton-primary"]) { background:rgba(255,255,255,.08) !important; border:1px solid rgba(255,255,255,.18) !important; box-shadow:none !important; }
+.stApp [class*="st-key-vsp_cta"] .stButton > button:not([data-testid="stBaseButton-primary"]) p { color:#F8FAFC !important; }
 
 /* ───── Marquee ───── */
-$$ .vsp-marq { overflow:hidden; margin:2.2rem 0 0; -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); }
+$$ .vsp-marq { overflow:hidden; margin:1.2rem 0 0; -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); }
 $$ .vsp-marq-lab { text-align:center; font-size:.72rem; font-weight:800; letter-spacing:.18em; text-transform:uppercase; color:var(--vsp-soft) !important; opacity:.8; margin-bottom:.9rem; }
 $$ .vsp-track { display:flex; gap:.7rem; width:max-content; animation:vsp-marq 34s linear infinite; }
 $$ .vsp-marq:hover .vsp-track { animation-play-state:paused; }
@@ -199,7 +207,7 @@ $$ .vsp-pill { display:inline-flex; align-items:center; gap:8px; padding:9px 18p
 $$ .vsp-pill svg { color:var(--vsp-accent); stroke:var(--vsp-accent); }
 
 /* ───── Statistiques ───── */
-$$ .vsp-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1rem; margin:2.4rem 0 0; }
+$$ .vsp-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1rem; margin:1.2rem 0 0; }
 $$ .vsp-stat { text-align:center; padding:1.4rem 1rem; border-radius:20px; background:var(--vsp-surface); border:1px solid var(--vsp-line); box-shadow:var(--vsp-shadow); transition:transform .4s var(--vsp-ease), box-shadow .4s ease; }
 $$ .vsp-stat:hover { transform:translateY(-4px); box-shadow:var(--vsp-shadowh); }
 $$ .vsp-stat b { display:block; font-family:'Sora',sans-serif; font-weight:800; font-size:clamp(1.6rem,3vw,2.2rem); letter-spacing:-.03em; color:var(--vsp-ink) !important; }
@@ -682,23 +690,23 @@ def render_home():
     _hero_home("home")
     _marquee()
     _stats()
-    _spacer(3)
+    _spacer(_GAP)
     _steps()
-    _spacer(3)
+    _spacer(_GAP)
     _features()
-    _spacer(3)
+    _spacer(_GAP)
     _demo_section()
-    _spacer(3)
+    _spacer(_GAP)
     _usecases()
-    _spacer(3)
+    _spacer(_GAP)
     _plans()
-    _spacer(3)
+    _spacer(_GAP)
     _testimonials()
-    _spacer(3)
+    _spacer(_GAP)
     _faq_home()
-    _spacer(3)
+    _spacer(_GAP)
     _final_cta("final_cta_register", "Découvrir Premium", "final_cta_premium", "premium")
-    _spacer(2)
+    _spacer(.6)
     render_footer(compact=True)
 
 
@@ -708,15 +716,15 @@ def render_landing():
     _inject_css()
     _hero_home("landing")
     _stats()
-    _spacer(3)
+    _spacer(_GAP)
     _steps()
-    _spacer(3)
+    _spacer(_GAP)
     _features()
-    _spacer(3)
+    _spacer(_GAP)
     _testimonials()
-    _spacer(3)
+    _spacer(_GAP)
     _demo_section()
-    _spacer(3)
+    _spacer(_GAP)
     _final_cta("landing_cta_register", "Découvrir Premium", "landing_cta_premium", "premium",
                title="Prêt à gagner du temps ?",
                text="Essayez gratuitement pendant un mois, sans carte bancaire. Résumés, mots-clés, quiz et exports en ~60 secondes.",
@@ -742,7 +750,7 @@ def render_about():
       <div class="vsp-card vsp-vm rv">{_ico("target", "green")}<h4>{T("mission")}</h4>
         <p>Accompagner les utilisateurs dans leur transformation numérique en concevant des solutions IA innovantes, adaptées à leurs besoins spécifiques.</p></div>
     </div>''')
-    _spacer(3)
+    _spacer(_GAP)
 
     _head("Notre parcours", "Une histoire construite <em>pas à pas</em>")
     hist = [("2024 — L'idée", "Un constat simple", "Des heures de vidéos YouTube pour quelques minutes d'information utile. L'idée de VideoScribe AI germe dans l'esprit de ses fondateurs."),
@@ -751,7 +759,7 @@ def render_about():
             ("Aujourd'hui", "Une communauté grandissante", "Plus de 1 000 vidéos analysées, des retours utilisateurs constants, et de nouvelles fonctionnalités chaque mois.")]
     items = "".join(f'<div class="vsp-ti rv"><div class="y">{y}</div><h4>{t}</h4><p>{d}</p></div>' for y, t, d in hist)
     _wrap(f'<div class="vsp-time">{items}</div>')
-    _spacer(3)
+    _spacer(_GAP)
 
     _head(T("values"), "Les principes qui <em>guident nos actions</em>")
     vals = [("tool", "blue", "Excellence", "Nous visons l'excellence dans tout ce que nous entreprenons, du code à l'expérience utilisateur."),
@@ -762,7 +770,7 @@ def render_about():
             ("book", "violet", "Apprentissage", "Une culture d'apprentissage perpétuel, en interne comme pour nos utilisateurs.")]
     cells = "".join(f'<div class="vsp-card rv">{_ico(i, t)}<h4>{n}</h4><p>{d}</p></div>' for i, t, n, d in vals)
     _wrap(f'<div class="vsp-grid3">{cells}</div>')
-    _spacer(3)
+    _spacer(_GAP)
 
     _head("L'équipe", "Les visages derrière <em>VideoScribe AI</em>")
     team = [("M", "linear-gradient(135deg,#3B82F6,#60A5FA)", "Mbaye T.", "Fondateur & Lead Dev", "Architecture technique, pipeline IA, vision produit."),
@@ -772,7 +780,7 @@ def render_about():
         f'<div class="vsp-card vsp-team rv"><div class="vsp-avl" style="background:{g};">{i}</div><h4>{n}</h4><div class="role">{r}</div><p>{d}</p></div>'
         for i, g, n, r, d in team)
     _wrap(f'<div class="vsp-grid3">{cells}</div>')
-    _spacer(3)
+    _spacer(_GAP)
 
     _final_cta("about_cta_register", T("home"), "about_cta_home", "accueil",
                title="Envie de tester par vous-même ?",
@@ -925,5 +933,5 @@ def render_contact():
                 elif ok_admin: st.success("✅ Message envoyé à l'équipe support.")
                 else: st.warning(f"⚠️ Message enregistré mais l'envoi email a échoué : {err_a}")
 
-    _spacer(2)
+    _spacer(.6)
     render_footer(compact=True)
