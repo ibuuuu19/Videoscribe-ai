@@ -455,6 +455,8 @@ padding: .55rem .5rem !important; font-size: .85rem !important; justify-content:
 """, unsafe_allow_html=True)
 
 st.markdown(custom_css(), unsafe_allow_html=True)
+from src.ui.tighten import apply_tighten
+apply_tighten()  # supprime les espaces fantômes en haut de page
 st.markdown("""<style>
 /* Scripts invisibles (iframes de cookies / icônes / anti-traduction) : aucune place dans la page.
    Sans ça, certaines versions de Streamlit leur réservent ~100 px chacun → grand vide + traits en haut de page. */
