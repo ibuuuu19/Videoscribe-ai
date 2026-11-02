@@ -19,7 +19,8 @@ import streamlit as st
 
 from src.ui.i18n import T, LANGS
 from src.ui.components import ic, logo_html
-from src.ui.layout import render_footer, _toggle_theme, render_navbar, notify_admins, notify, sync_notif_cursor
+from src.ui.layout import render_footer, _toggle_theme, notify_admins, notify, sync_notif_cursor
+from src.ui.navbar import render_navbar   # barre fixe premium
 from src.ui.prefs import _load_appearance
 from src.ui.storage import get_referral_code
 from src.core.config import COOKIE_NAME
@@ -38,23 +39,20 @@ from src.email_manager import send_verification_code
 # ═══════════════════════════════════════════════════════════════
 
 def _step_indicator(current):
-    """Affiche l'indicateur de progression du wizard (4 étapes)."""
-    parts = ['<div class="wizard-steps">']
-    for s in [1, 2, 3, 4]:
-        cls = "active" if s == current else ("done" if s < current else "")
-        label = "✓" if s < current else str(s)
-        parts.append(f'<div class="wstep {cls}">{label}</div>')
-        if s < 4:
-            parts.append(f'<div class="wline{" done" if s < current else ""}"></div>')
+    """Indicateur de progression du wizard (4 étapes, avec libellés)."""
+    labels = _l()["steps"]
+    parts = ['<div class="vsa-steps">']
+    for i, lab in enumerate(labels, 1):
+        cls = "active" if i == current else ("done" if i < current else "")
+        parts.append(f'<div class="vsa-st {cls}"><i>{"✓" if i < current else i}</i><span>{lab}</span></div>')
     parts.append('</div>')
     st.markdown("".join(parts), unsafe_allow_html=True)
-    
-    
+
+
 def render_register_wizard():
     step = st.session_state.get("reg_step", 1)
-    _step_indicator(step); st.markdown('<div class="wizard-card">', unsafe_allow_html=True)
+    _step_indicator(step)
     if step == 1:
-        st.markdown(f"### {T('reg_title')}"); st.caption(T("reg_sub"))
         u = st.text_input(T("username")+" (3 min)", value=st.session_state.get("reg_u",""))
         e = st.text_input(T("your_email"), value=st.session_state.get("reg_e",""))
         lang_sel = st.selectbox(
@@ -96,7 +94,7 @@ def render_register_wizard():
                 with b3:
                     if st.button("Email ↺", use_container_width=True): st.session_state.update(reg_code_sent=False, reg_email_verified=False, reg_msg=None); st.rerun()
         elif email and verified: st.success(f"Email vérifié : {email}")
-        if st.button(T("continue"), use_container_width=True):
+        if st.button(T("continue"), use_container_width=True, type="primary"):
             if len((u or "").strip())<3: st.error("3 caractères minimum.")
             elif email and not verified: st.error("Vérifiez votre email.")
             else: st.session_state.update(reg_u=(u or "").strip(), reg_e=email, reg_lang=lang_sel, reg_parrain=(parrain or "").strip().upper(), reg_step=2); st.rerun()
@@ -107,7 +105,7 @@ def render_register_wizard():
         with b1:
             if st.button(T("back"), use_container_width=True): st.session_state.reg_step=1; st.rerun()
         with b2:
-            if st.button(T("continue"), use_container_width=True):
+            if st.button(T("continue"), use_container_width=True, type="primary"):
                 if len(p)<6: st.error("6 caractères minimum.")
                 elif p!=c: st.error("La confirmation ne correspond pas.")
                 else: st.session_state.update(reg_p=p, reg_step=3); st.rerun()
@@ -124,7 +122,7 @@ def render_register_wizard():
         with b1:
             if st.button(T("back"), use_container_width=True): st.session_state.reg_step=2; st.rerun()
         with b2:
-            if st.button(T("continue"), use_container_width=True): st.session_state.update(reg_th=th, reg_tr=tr, reg_step=4); st.rerun()
+            if st.button(T("continue"), use_container_width=True, type="primary"): st.session_state.update(reg_th=th, reg_tr=tr, reg_step=4); st.rerun()
     else:
         st.markdown("### Confirmation")
         em = st.session_state.get("reg_e","")
@@ -134,7 +132,7 @@ def render_register_wizard():
         with b1:
             if st.button(T("back"), use_container_width=True): st.session_state.reg_step=3; st.rerun()
         with b2:
-            if st.button(T("register"), use_container_width=True):
+            if st.button(T("register"), use_container_width=True, type="primary"):
                 if not accept: st.error("Acceptez la politique RGPD.")
                 else:
                     ok, msg = register_user(st.session_state.reg_u, st.session_state.reg_p, st.session_state.get("reg_e",""))
@@ -157,218 +155,189 @@ def render_register_wizard():
                         set_cookie("ys_user", uname, max_age=30*24*3600)
                         set_cookie("ys_theme", st.session_state.theme, max_age=365*24*3600); st.balloons(); st.rerun()
                     else: st.error(f"{msg}")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # ⚠️ def render_landing(): extrait dans src/pages/public.py
+# ═══════════════════════════════════════════════════════════════
+# STYLE « PREMIUM » (connexion + inscription)
+# ═══════════════════════════════════════════════════════════════
+
+_TXT = {
+    "fr": {
+        "steps": ["Compte", "Sécurité", "Préférences", "Confirmation"],
+        "h_a": "Bon retour parmi", "h_b": "les esprits efficaces",
+        "lead": "Retrouvez tous vos résumés, vos favoris, vos statistiques et vos exports. Reprenez exactement là où vous vous étiez arrêté.",
+        "f1": ("Historique complet", "Toutes vos analyses, toujours accessibles"), "f2": ("Favoris & collections", "Organisez vos vidéos clés"),
+        "f3": ("Statistiques détaillées", "Temps, mots, chunks, tendances"), "f4": ("Exports illimités", "PDF, Markdown, Obsidian, Notion"),
+        "quote": "« Je révise mes cours en 10 min au lieu d'1 h de vidéo. »", "qa": "Khadija D.", "qr": "Étudiante en médecine",
+        "ph_user": "Votre pseudo", "remember": "Se souvenir de moi", "suspended": "⛔ Compte suspendu. Contactez le support.",
+        "bad": "❌ Identifiants incorrects.", "or": "ou", "secure": "Connexion sécurisée · Conformité RGPD",
+        "no_acc": "Pas encore de compte ?", "reg_a": "Rejoignez", "reg_b": "VideoScribe AI", "reg_lead": "Créez votre compte gratuit en 4 étapes — sans carte bancaire.",
+        "p1": "3 analyses par jour offertes", "p2": "Résumés, quiz et exports", "p3": "Données jamais revendues",
+        "have": "Déjà un compte ?",
+    },
+    "en": {
+        "steps": ["Account", "Security", "Preferences", "Confirm"],
+        "h_a": "Welcome back to", "h_b": "efficient minds",
+        "lead": "Find all your summaries, favourites, statistics and exports. Pick up exactly where you left off.",
+        "f1": ("Full history", "All your analyses, always within reach"), "f2": ("Favourites & collections", "Organise your key videos"),
+        "f3": ("Detailed statistics", "Time, words, chunks, trends"), "f4": ("Unlimited exports", "PDF, Markdown, Obsidian, Notion"),
+        "quote": "“I revise my classes in 10 min instead of 1 h of video.”", "qa": "Khadija D.", "qr": "Medical student",
+        "ph_user": "Your username", "remember": "Remember me", "suspended": "⛔ Account suspended. Please contact support.",
+        "bad": "❌ Incorrect credentials.", "or": "or", "secure": "Secure sign-in · GDPR compliant",
+        "no_acc": "No account yet?", "reg_a": "Join", "reg_b": "VideoScribe AI", "reg_lead": "Create your free account in 4 steps — no credit card.",
+        "p1": "3 free analyses per day", "p2": "Summaries, quizzes and exports", "p3": "Your data is never resold",
+        "have": "Already have an account?",
+    },
+}
+
+
+def _l() -> dict:
+    lg = st.session_state.get("cfg_lang", "fr")
+    return _TXT["fr"] if lg == "fr" else _TXT["en"]
+
+
+def _keyed(key: str):
+    try:
+        return st.container(key=key)
+    except TypeError:
+        return st.container()
+
+
+def _css() -> None:
+    light = st.session_state.get("theme", "light") == "light"
+    ink = "#0F1A2E" if light else "#F8FAFC"
+    soft = "#4A5A7A" if light else "rgba(203,213,225,.85)"
+    card = "#FFFFFF" if light else "rgba(255,255,255,.05)"
+    field = "#F3F7FD" if light else "rgba(255,255,255,.07)"
+    line = "rgba(15,26,46,.10)" if light else "rgba(255,255,255,.12)"
+    shadow = "0 28px 70px rgba(15,26,46,.11)" if light else "0 28px 80px rgba(0,0,0,.55)"
+    V = 'html body .stApp div[data-testid="stVerticalBlock"].st-key-vsa_card'
+    st.markdown(f"""<style>
+html body .stApp .vsa-left{{position:relative;overflow:hidden;isolation:isolate;border-radius:30px;padding:clamp(1.8rem,3.2vw,2.8rem);min-height:640px;color:#F8FAFC;display:flex;flex-direction:column;justify-content:space-between;
+  background:radial-gradient(640px 360px at 8% 0%,rgba(59,130,246,.45),transparent 62%),radial-gradient(520px 320px at 95% 100%,rgba(16,185,129,.32),transparent 62%),linear-gradient(160deg,#05080F 0%,#0A1220 50%,#0D1830 100%);
+  border:1px solid rgba(255,255,255,.10);box-shadow:0 40px 100px rgba(2,8,18,.38);}}
+html body .stApp .vsa-left::before{{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:44px 44px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 40%,#000 25%,transparent 75%);mask-image:radial-gradient(ellipse at 50% 40%,#000 25%,transparent 75%);}}
+html body .stApp .vsa-in{{position:relative;z-index:1;}}
+html body .stApp .vsa-brand{{display:flex;align-items:center;gap:12px;font-family:'Sora',sans-serif;font-weight:800;font-size:1.2rem;color:#F8FAFC !important;margin-bottom:2rem;}}
+html body .stApp .vsa-brand i{{font-style:normal;background:linear-gradient(92deg,#60A5FA,#34D399);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}}
+html body .stApp .vsa-h2{{font-family:'Sora',sans-serif;font-weight:800;letter-spacing:-.04em;line-height:1.08;font-size:clamp(1.8rem,2.7vw,2.5rem);color:#F8FAFC !important;margin:0 0 1rem;}}
+html body .stApp .vsa-h2 em{{font-style:normal;background:linear-gradient(92deg,#60A5FA,#34D399 55%,#FBBF24);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}}
+html body .stApp .vsa-lead{{color:rgba(226,232,240,.80) !important;font-size:1rem;line-height:1.75;margin:0 0 1.6rem;max-width:520px;}}
+html body .stApp .vsa-feats{{display:grid;gap:.65rem;}}
+html body .stApp .vsa-feat{{display:flex;align-items:center;gap:12px;padding:.7rem .9rem;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(8px);}}
+html body .stApp .vsa-feat .ic{{width:34px;height:34px;border-radius:11px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff !important;background:linear-gradient(135deg,#3B82F6,#10B981);box-shadow:0 8px 18px rgba(59,130,246,.30);}}
+html body .stApp .vsa-feat .ic svg{{stroke:#fff;}}
+html body .stApp .vsa-feat b{{display:block;color:#F8FAFC !important;font-size:.92rem;}}
+html body .stApp .vsa-feat small{{color:rgba(148,163,184,.95) !important;font-size:.78rem;}}
+html body .stApp .vsa-quote{{margin-top:1.8rem;padding-top:1.3rem;border-top:1px solid rgba(255,255,255,.10);font-style:italic;color:rgba(203,213,225,.88) !important;font-size:.9rem;line-height:1.7;}}
+html body .stApp .vsa-qa{{display:flex;align-items:center;gap:10px;margin-top:.8rem;font-style:normal;}}
+html body .stApp .vsa-qa i{{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:800;font-size:.8rem;color:#fff !important;background:linear-gradient(135deg,#3B82F6,#60A5FA);font-family:'Sora',sans-serif;}}
+html body .stApp .vsa-qa b{{color:#F8FAFC !important;font-size:.88rem;display:block;}} html body .stApp .vsa-qa small{{color:rgba(148,163,184,.95) !important;}}
+html body .stApp .vsa-pills{{display:flex;flex-wrap:wrap;gap:.5rem;}}
+html body .stApp .vsa-pills span{{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:#F1F5F9 !important;font-size:.82rem;font-weight:700;}}
+html body .stApp .vsa-pills svg{{stroke:#34D399;}}
+/* carte formulaire */
+{V}{{background:{card} !important;border:1px solid {line} !important;border-radius:28px !important;padding:clamp(1.4rem,2.6vw,2.2rem) !important;box-shadow:{shadow} !important;gap:.7rem !important;}}
+html body .stApp .vsa-ct{{font-family:'Sora',sans-serif;font-weight:800;letter-spacing:-.03em;font-size:1.65rem;color:{ink} !important;margin:0 0 .25rem;}}
+html body .stApp .vsa-cs{{color:{soft} !important;font-size:.93rem;margin:0 0 .6rem;}}
+html body .stApp .vsa-logo{{display:flex;justify-content:center;margin-bottom:.4rem;}}
+html body .stApp .vsa-center{{text-align:center;}}
+{V} label p, {V} [data-testid="stWidgetLabel"] p{{color:{ink} !important;font-weight:700 !important;font-size:.88rem !important;}}
+{V} [data-testid="stTextInput"] input, {V} [data-testid="stTextArea"] textarea{{background:{field} !important;color:{ink} !important;border:1px solid {line} !important;border-radius:14px !important;min-height:48px;box-shadow:none !important;}}
+{V} [data-testid="stTextInput"] input:focus{{border-color:#3B82F6 !important;box-shadow:0 0 0 3px rgba(59,130,246,.22) !important;}}
+{V} [data-baseweb="select"] > div{{background:{field} !important;border:1px solid {line} !important;border-radius:14px !important;}}
+{V} .stButton > button, {V} [data-testid="stFormSubmitButton"] button{{min-height:50px !important;border-radius:14px !important;font-weight:800 !important;background:transparent !important;border:1px solid {line} !important;box-shadow:none !important;transform:none !important;filter:none !important;transition:background .2s ease,border-color .2s ease,box-shadow .2s ease !important;}}
+{V} .stButton > button p, {V} [data-testid="stFormSubmitButton"] button p{{color:{ink} !important;font-weight:800 !important;}}
+{V} .stButton > button:hover, {V} [data-testid="stFormSubmitButton"] button:hover{{background:rgba(46,109,180,.10) !important;border-color:rgba(46,109,180,.45) !important;}}
+{V} button[data-testid*="primary"], {V} button[kind="primary"], {V} button[kind="primaryFormSubmit"]{{background:linear-gradient(135deg,#1B3B6F,#2E6DB4) !important;border:none !important;box-shadow:0 14px 30px rgba(46,109,180,.34) !important;}}
+{V} button[data-testid*="primary"] p, {V} button[kind="primary"] p, {V} button[kind="primaryFormSubmit"] p{{color:#fff !important;}}
+{V} button[data-testid*="primary"]:hover, {V} button[kind="primary"]:hover, {V} button[kind="primaryFormSubmit"]:hover{{background:linear-gradient(135deg,#1B3B6F,#3B82F6) !important;transform:translateY(-1px) !important;box-shadow:0 18px 36px rgba(46,109,180,.42) !important;}}
+{V} [data-testid="stForm"]{{border:none !important;padding:0 !important;background:transparent !important;box-shadow:none !important;}}
+html body .stApp div[data-testid="stHorizontalBlock"]:has(> div[data-testid="stColumn"] .vsa-left){{max-width:1240px;margin:0 auto;align-items:center;}}
+{V} h3{{font-family:'Sora',sans-serif;font-weight:800;letter-spacing:-.02em;color:{ink} !important;font-size:1.3rem;margin:.2rem 0 0;padding:0;}}
+html body .stApp .vsa-or{{display:flex;align-items:center;gap:12px;color:{soft} !important;font-size:.78rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin:.3rem 0;}}
+html body .stApp .vsa-or::before, html body .stApp .vsa-or::after{{content:"";flex:1;height:1px;background:{line};}}
+html body .stApp .vsa-sec{{display:flex;align-items:center;justify-content:center;gap:8px;color:{soft} !important;font-size:.8rem;margin-top:.5rem;}}
+html body .stApp .vsa-sec svg{{stroke:#10B981;}}
+/* indicateur d'étapes */
+html body .stApp .vsa-steps{{display:flex;align-items:flex-start;justify-content:space-between;gap:.4rem;max-width:560px;margin:.4rem auto 1.2rem;position:relative;}}
+html body .stApp .vsa-st{{flex:1;display:flex;flex-direction:column;align-items:center;gap:.4rem;position:relative;text-align:center;}}
+html body .stApp .vsa-st::before{{content:"";position:absolute;top:17px;left:-50%;width:100%;height:2px;background:{line};z-index:0;}}
+html body .stApp .vsa-st:first-child::before{{display:none;}}
+html body .stApp .vsa-st.done::before, html body .stApp .vsa-st.active::before{{background:linear-gradient(90deg,#3B82F6,#10B981);}}
+html body .stApp .vsa-st i{{position:relative;z-index:1;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:800;font-size:.85rem;font-family:'Sora',sans-serif;
+  background:{card};border:2px solid {line};color:{soft} !important;}}
+html body .stApp .vsa-st.active i{{background:linear-gradient(135deg,#1B3B6F,#2E6DB4);border-color:transparent;color:#fff !important;box-shadow:0 10px 22px rgba(46,109,180,.38);}}
+html body .stApp .vsa-st.done i{{background:linear-gradient(135deg,#10B981,#34D399);border-color:transparent;color:#fff !important;}}
+html body .stApp .vsa-st span{{font-size:.74rem;font-weight:700;color:{soft} !important;}}
+html body .stApp .vsa-st.active span{{color:{ink} !important;}}
+@media (max-width:900px){{ html body .stApp .vsa-left{{display:none;}} html body .stApp div[data-testid="stColumn"]:has(.vsa-left){{display:none !important;}} .vsa-st span{{font-size:.66rem;}} }}
+</style>""", unsafe_allow_html=True)
+
+
 def render_login():
-    st.markdown("""
-    <style>
-    .vs-login-left {
-        position:relative; overflow:hidden; padding: 3rem 2.6rem; border-radius: 24px;
-        background:
-            radial-gradient(600px 340px at 10% 0%, rgba(59,130,246,.38), transparent 62%),
-            radial-gradient(500px 300px at 90% 100%, rgba(16,185,129,.28), transparent 62%),
-            linear-gradient(160deg, #05080F 0%, #0A1220 50%, #0D1524 100%);
-        display:flex; flex-direction:column; justify-content:space-between;
-        color:#F8FAFC !important;
-        border:1px solid rgba(255,255,255,.10);
-        box-shadow: 0 40px 100px rgba(2,8,18,.35);
-        min-height: 620px;
-    }
-    .vs-login-left::before {
-        content:""; position:absolute; inset:0; z-index:0;
-        background-image:
-            linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
-        background-size: 40px 40px;
-        mask-image: radial-gradient(ellipse at center, black 25%, transparent 75%);
-        -webkit-mask-image: radial-gradient(ellipse at center, black 25%, transparent 75%);
-        pointer-events:none;
-    }
-    .vs-login-left-inner { position:relative; z-index:1; }
-    .vs-login-brand {
-        display:flex; align-items:center; gap:12px; margin-bottom: 2.5rem;
-        font-family:'Sora',sans-serif; font-weight:800; font-size:1.25rem;
-        color:#F8FAFC !important;
-    }
-    .vs-login-h2 {
-        font-family:'Sora',sans-serif; font-weight:800; letter-spacing:-.04em;
-        line-height:1.08; font-size: clamp(1.7rem, 2.6vw, 2.4rem);
-        color:#F8FAFC !important; margin-bottom: 1.1rem;
-    }
-    .vs-login-h2 .grad {
-        background: linear-gradient(92deg,#60A5FA,#34D399 55%,#FBBF24);
-        -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-    }
-    .vs-login-lead {
-        color: rgba(226,232,240,.78) !important; font-size: 1rem;
-        line-height: 1.75; margin-bottom: 1.8rem;
-    }
-    .vs-login-feats { display:flex; flex-direction:column; gap:.7rem; }
-    .vs-login-feat {
-        display:flex; align-items:flex-start; gap:11px; padding:.7rem .85rem;
-        background: rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.09);
-        border-radius: 13px; color:#E2E8F0 !important; font-size:.9rem;
-    }
-    .vs-login-feat .ic {
-        width:30px; height:30px; border-radius:9px; flex-shrink:0;
-        display:flex; align-items:center; justify-content:center;
-        background: linear-gradient(135deg, rgba(59,130,246,.28), rgba(16,185,129,.28));
-        color:#60A5FA !important;
-    }
-    .vs-login-feat b { color:#F8FAFC !important; font-weight:700; }
-    .vs-login-feat small { color: rgba(148,163,184,.9) !important; display:block; font-size:.76rem; margin-top:2px; }
-    .vs-login-quote {
-        margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,.08);
-        font-style: italic; color: rgba(203,213,225,.85) !important; font-size: .88rem; line-height:1.7;
-    }
-    .vs-login-quote-author {
-        display:flex; align-items:center; gap:9px; margin-top:.7rem; font-style: normal;
-    }
-    .vs-login-quote-avatar {
-        width:32px; height:32px; border-radius:50%;
-        background: linear-gradient(135deg,#3B82F6,#60A5FA);
-        display:flex; align-items:center; justify-content:center;
-        color:#fff !important; font-weight:800; font-size:.78rem; font-family:'Sora',sans-serif;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-        # ═══ Override : mode LIGHT ═══
-    if st.session_state.get("theme", "light") == "light":
-        st.markdown("""
-        <style>
-        .vs-login-left {
-            background:
-                radial-gradient(600px 340px at 10% 0%, rgba(59,130,246,.12), transparent 62%),
-                radial-gradient(500px 300px at 90% 100%, rgba(16,185,129,.10), transparent 62%),
-                linear-gradient(160deg, #F8FAFC 0%, #EFF4FB 100%) !important;
-            color: #0F1A2E !important;
-            border: 1px solid rgba(15,26,46,.10) !important;
-            box-shadow: 0 20px 60px rgba(15,26,46,.08) !important;
-        }
-        .vs-login-h2 { color: #0F1A2E !important; }
-        .vs-login-h2 .grad {
-            background: linear-gradient(92deg, #2E6DB4, #10B981 55%, #F59E0B) !important;
-            -webkit-background-clip: text !important;
-            background-clip: text !important;
-            -webkit-text-fill-color: transparent !important;
-        }
-        .vs-login-lead { color: #4A5A7A !important; }
-        .vs-login-feat {
-            background: #FFFFFF !important;
-            border: 1px solid rgba(15,26,46,.10) !important;
-            color: #0F1A2E !important;
-        }
-        .vs-login-feat b { color: #0F1A2E !important; }
-        .vs-login-feat small { color: #4A5A7A !important; }
-        .vs-login-feat .ic {
-            background: linear-gradient(135deg, rgba(46,109,180,.15), rgba(16,185,129,.15)) !important;
-            color: #2E6DB4 !important;
-        }
-        .vs-login-quote {
-            color: #4A5A7A !important;
-            border-top: 1px solid rgba(15,26,46,.10) !important;
-        }
-        .vs-login-quote-author b { color: #0F1A2E !important; }
-        .vs-login-quote-author small { color: #4A5A7A !important; }
-        .vs-login-brand { color: #0F1A2E !important; }
-        .vs-login-brand span { color: #0F1A2E !important; }
-        </style>
-        """, unsafe_allow_html=True)
+    render_navbar()
+    _css()
+    L = _l()
     _left, _right = st.columns([1.05, 1], gap="large")
     with _left:
-        st.markdown(f"""
-        <div class="vs-login-left">
-            <div class="vs-login-left-inner">
-                <div class="vs-login-brand">{logo_html(38)}<span><b>VideoScribe</b> AI</span></div>
-                <h2 class="vs-login-h2">Bon retour parmi<br>les <span class="grad">esprits efficaces</span>.</h2>
-                <p class="vs-login-lead">
-                    Retrouvez tous vos résumés, vos favoris, vos statistiques et vos exports.
-                    Reprenez exactement là où vous vous étiez arrêté.
-                </p>
-                <div class="vs-login-feats">
-                    <div class="vs-login-feat">
-                        <span class="ic">{ic("book", 15)}</span>
-                        <div><b>Historique complet</b><small>Toutes vos analyses, toujours accessibles</small></div>
-                    </div>
-                    <div class="vs-login-feat">
-                        <span class="ic">{ic("star", 15)}</span>
-                        <div><b>Favoris & collections</b><small>Organisez vos vidéos clés</small></div>
-                    </div>
-                    <div class="vs-login-feat">
-                        <span class="ic">{ic("chart", 15)}</span>
-                        <div><b>Statistiques détaillées</b><small>Temps, mots, chunks, tendances</small></div>
-                    </div>
-                    <div class="vs-login-feat">
-                        <span class="ic">{ic("download", 15)}</span>
-                        <div><b>Exports illimités</b><small>PDF, Markdown, Obsidian, Notion</small></div>
-                    </div>
-                </div>
-                <div class="vs-login-quote">
-                    « Je révise mes cours en 10 min au lieu d'1 h de vidéo. »
-                    <div class="vs-login-quote-author">
-                        <div class="vs-login-quote-avatar">K</div>
-                        <div>
-                            <b style="color:#F8FAFC !important;">Khadija D.</b><br>
-                            <small style="color:rgba(148,163,184,.9) !important;">Étudiante en médecine</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        feats = "".join(
+            f'<div class="vsa-feat"><span class="ic">{ic(i, 16)}</span><div><b>{t}</b><small>{d}</small></div></div>'
+            for i, (t, d) in zip(("book", "star", "chart", "download"), (L["f1"], L["f2"], L["f3"], L["f4"])))
+        st.markdown(f"""<div class="vsa-left"><div class="vsa-in">
+<div class="vsa-brand">{logo_html(38)}<span>VideoScribe<i> AI</i></span></div>
+<h2 class="vsa-h2">{L["h_a"]}<br><em>{L["h_b"]}</em>.</h2>
+<div class="vsa-lead">{L["lead"]}</div>
+<div class="vsa-feats">{feats}</div>
+<div class="vsa-quote">{L["quote"]}<div class="vsa-qa"><i>K</i><div><b>{L["qa"]}</b><small>{L["qr"]}</small></div></div></div>
+</div></div>""".replace("\n", ""), unsafe_allow_html=True)
     with _right:
-        st.markdown(f"""
-        <div style="padding: 1rem 0 1.4rem;">
-            <h2 style="font-family:'Sora',sans-serif; font-weight:800; letter-spacing:-.03em;
-                font-size:1.7rem; margin-bottom:.35rem;">{T("login_title")}</h2>
-            <p style="opacity:.7; font-size:.92rem;">{T("login_sub")}</p>
-        </div>
-        """, unsafe_allow_html=True)
-        with st.form("login_form", border=False):
-            username = st.text_input(T("username"), placeholder="Votre pseudo", key="login_user")
-            password = st.text_input(T("password"), type="password", placeholder="••••••••", key="login_pass")
-            _remember = st.checkbox("Se souvenir de moi", value=True, key="login_remember")
-            _submit = st.form_submit_button(f"{T('continue')}", use_container_width=True, type="primary")
-            if _submit:
-                ok, role_ = authenticate(username, password)
-                if ok:
-                    uname = (username or "").strip().lower()
-                    st.session_state.update(user=uname, role=role_, token=create_session(uname), page="analyse")
-                    _load_appearance(uname)
-                    sync_notif_cursor(uname)
-                    set_cookie(COOKIE_NAME, st.session_state.token, max_age=(30*24*3600 if _remember else 7*24*3600))
-                    set_cookie("ys_user", uname, max_age=30*24*3600)
-                    st.rerun()
-                elif role_ == "suspended":
-                    st.error("⛔ Compte suspendu. Contactez le support.")
-                else:
-                    st.error("❌ Identifiants incorrects.")
-        st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
-        _a1, _a2 = st.columns(2)
-        with _a1:
-            if st.button(T("register"), use_container_width=True, key="login_to_register"):
-                st.session_state.page = "register"; st.rerun()
-        with _a2:
-            if st.button("← " + T("home"), use_container_width=True, key="login_to_home"):
-                st.session_state.page = "accueil"; st.rerun()
-        st.markdown(f"""
-        <div style="margin-top:1.2rem; text-align:center; opacity:.7; font-size:.82rem;">
-            Pas encore de compte ? <b>Créez-en un</b> — c'est gratuit.
-        </div>
-        """, unsafe_allow_html=True)
-        _theme_label = "🌙 Mode sombre" if st.session_state.theme == "light" else "☀️ Mode clair"
-        if st.button(_theme_label, use_container_width=True, key="login_theme_toggle"):
-            _toggle_theme()
+        with _keyed("vsa_card"):
+            st.markdown(f'<div class="vsa-ct">{T("login_title")}</div><div class="vsa-cs">{T("login_sub")}</div>', unsafe_allow_html=True)
+            with st.form("login_form", border=False):
+                username = st.text_input(T("username"), placeholder=L["ph_user"], key="login_user")
+                password = st.text_input(T("password"), type="password", placeholder="••••••••", key="login_pass")
+                _remember = st.checkbox(L["remember"], value=True, key="login_remember")
+                _submit = st.form_submit_button(f"{T('continue')}", use_container_width=True, type="primary")
+                if _submit:
+                    ok, role_ = authenticate(username, password)
+                    if ok:
+                        uname = (username or "").strip().lower()
+                        st.session_state.update(user=uname, role=role_, token=create_session(uname), page="analyse")
+                        _load_appearance(uname)
+                        sync_notif_cursor(uname)
+                        set_cookie(COOKIE_NAME, st.session_state.token, max_age=(30*24*3600 if _remember else 7*24*3600))
+                        set_cookie("ys_user", uname, max_age=30*24*3600)
+                        st.rerun()
+                    elif role_ == "suspended":
+                        st.error(L["suspended"])
+                    else:
+                        st.error(L["bad"])
+            st.markdown(f'<div class="vsa-or">{L["or"]}</div>', unsafe_allow_html=True)
+            _a1, _a2 = st.columns(2)
+            with _a1:
+                if st.button(T("register"), use_container_width=True, key="login_to_register"):
+                    st.session_state.page = "register"; st.rerun()
+            with _a2:
+                if st.button("← " + T("home"), use_container_width=True, key="login_to_home"):
+                    st.session_state.page = "accueil"; st.rerun()
+            st.markdown(f'<div class="vsa-sec">{ic("lock", 14)} {L["secure"]}</div>', unsafe_allow_html=True)
     render_footer(compact=True)
+
 
 def render_register_page():
     render_navbar()
-    _cl,_cm,_cr = st.columns([1,1.4,1])
+    _css()
+    L = _l()
+    _cl, _cm, _cr = st.columns([1, 1.7, 1])
     with _cm:
-        st.markdown(f"""<div style="text-align:center; margin-top:2.5rem;">{logo_html(64)}
-<div class="g-h1" style="font-size:2.2rem;">{T("reg_title")}</div>
-<p class="g-lead" style="margin:0 auto;">{T("reg_sub")}</p><div class="g-rule" style="margin:1.4rem auto;"></div></div>""", unsafe_allow_html=True)
-        render_register_wizard()
-        if st.button(T("login"), use_container_width=True): st.session_state.page="login"; st.rerun()
+        st.markdown(f'<div class="vsa-center"><div class="vsa-logo">{logo_html(56)}</div><div class="vsa-ct" style="font-size:2rem">{T("reg_title")}</div>'
+                    f'<div class="vsa-cs">{L["reg_lead"]}</div></div>', unsafe_allow_html=True)
+        with _keyed("vsa_card"):
+            render_register_wizard()
+            st.markdown(f'<div class="vsa-or">{L["have"]}</div>', unsafe_allow_html=True)
+            if st.button(T("login"), use_container_width=True, key="reg_to_login"):
+                st.session_state.page = "login"; st.rerun()
+            st.markdown(f'<div class="vsa-sec">{ic("lock", 14)} {L["secure"]}</div>', unsafe_allow_html=True)
     render_footer(compact=True)

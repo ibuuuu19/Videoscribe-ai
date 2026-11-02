@@ -223,10 +223,20 @@ page_icon=str(LOGO_FILE) if LOGO_FILE.exists() else "🖊️")
 # Streamlit déclare <html lang="en"> alors que l'app est en français → Chrome propose/applique « Traduire en français »
 # et la traduction casse le DOM de React (page blanche, « Stop » qui reste affiché alors que le serveur a fini en 0,2 s).
 # On déclare la vraie langue et on interdit la traduction, dès le début du script.
-_components.html("""<script>try{var d=window.parent.document,h=d.documentElement;
-h.setAttribute('lang','%s');h.setAttribute('translate','no');h.classList.add('notranslate');
-if(!d.querySelector('meta[name=google][content=notranslate]')){var m=d.createElement('meta');m.name='google';m.content='notranslate';d.head.appendChild(m);}
-if(d.body)d.body.setAttribute('translate','no');}catch(e){}</script>""" % st.session_state.get("cfg_lang", "fr"), height=0)
+_components.html("""<script>try{var d=window.parent.document,h=d.documentElement,L='%s';
+function fix(){try{
+if(h.getAttribute('lang')!==L)h.setAttribute('lang',L);
+if(h.getAttribute('translate')!=='no')h.setAttribute('translate','no');
+h.classList.add('notranslate');
+if(d.body){d.body.setAttribute('translate','no');d.body.classList.add('notranslate');}
+['root','stApp'].forEach(function(i){var e=d.getElementById(i)||d.querySelector('.'+i);if(e){e.setAttribute('translate','no');e.classList.add('notranslate');}});
+[['google','notranslate'],['robots','notranslate']].forEach(function(p){if(!d.querySelector('meta[name='+p[0]+'][content='+p[1]+']')){var m=d.createElement('meta');m.name=p[0];m.content=p[1];d.head.appendChild(m);}});
+if(!d.querySelector('meta[http-equiv=Content-Language]')){var c=d.createElement('meta');c.httpEquiv='Content-Language';c.content=L;d.head.appendChild(c);}
+}catch(e){}}
+fix();
+if(!window.parent.__vsNoTr){window.parent.__vsNoTr=1;
+new MutationObserver(function(){fix();}).observe(h,{attributes:true,attributeFilter:['lang','translate','class']});}
+}catch(e){}</script>""" % st.session_state.get("cfg_lang", "fr"), height=0)
 @st.cache_resource(show_spinner=False)
 def _boot_once():
     """Initialisation exécutée UNE seule fois par processus (et non à chaque clic)."""

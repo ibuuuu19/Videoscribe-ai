@@ -137,45 +137,8 @@ html body .stApp div[data-testid="stVerticalBlock"].st-key-vsnav:has(.lnav) .stB
 
 
 def render_navbar():
-    """Affiche la barre de navigation publique (visiteurs)."""
-    try:
-        _box = st.container(key="vsnav")
-    except TypeError:
-        _box = st.container()
-    _navbar_css()
-    with _box:
-        st.markdown('<div class="lnav"></div>', unsafe_allow_html=True)
-        b1, b2, b3, b4, b5, b6, b7 = st.columns([2.2, 1, 1, 1, 1.2, 1.6, .6])
-        with b1:
-            st.markdown(f'''
-                <div class="lnav-brand">
-                    {logo_html(32)}
-                    <div class="lnav-brand-text">
-                        <span class="lnav-brand-name">VideoScribe</span>
-                        <span class="lnav-brand-ai">AI</span>
-                    </div>
-                </div>
-            ''', unsafe_allow_html=True)
-        with b2:
-            if st.button(T("home"), key="ln_home", use_container_width=True):
-                st.session_state.page = "accueil"; st.rerun()
-        with b3:
-            if st.button(T("about"), key="ln_about", use_container_width=True):
-                st.session_state.page = "about"; st.rerun()
-        with b4:
-            if st.button(T("m_contact"), key="ln_contact", use_container_width=True):
-                st.session_state.page = "contact"; st.rerun()
-        with b5:
-            if st.button(T("login"), key="ln_login", use_container_width=True):
-                st.session_state.page = "login"; st.rerun()
-        with b6:
-            if st.button(f"{T('register')} →", key="ln_register", type="primary", use_container_width=True):
-                st.session_state.page = "register"; st.rerun()
-        with b7:
-            if st.button("🌙" if st.session_state.theme == "light" else "☀️", key="ln_theme", use_container_width=True):
-                _toggle_theme()
-
-
+    from src.ui.navbar import render_navbar as _r
+    _r()
 # ═══════════════════════════════════════════════════════════════
 # FOOTER
 # ═══════════════════════════════════════════════════════════════
