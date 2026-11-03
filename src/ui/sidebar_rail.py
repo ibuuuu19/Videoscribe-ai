@@ -33,6 +33,21 @@ def inject(accent: str = "#2E6DB4", ink: str = "#0F1A2E") -> None:
 {_S} .stButton > button p .vs-ic {{ font-size:16px !important; margin:0 !important; display:inline-flex !important; }}
 {_S} .stButton > button p .vs-ic svg {{ width:22px !important; height:22px !important; }}
 {_S} .stButton > button:hover {{ transform:scale(1.06); }}
+/* ── icônes premium : tuiles en verre, actif = dégradé + halo ── */
+{_S} .stButton > button {{ position:relative; background:linear-gradient(145deg,color-mix(in srgb,currentColor 9%,transparent),color-mix(in srgb,currentColor 3%,transparent)) !important;
+   border:1px solid color-mix(in srgb,currentColor 12%,transparent) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 4px 12px rgba(15,26,46,.07) !important;
+   transition:transform .28s cubic-bezier(.34,1.56,.64,1),background .25s ease,box-shadow .25s ease,border-color .25s ease !important; }}
+{_S} .stButton > button:hover {{ transform:translateY(-2px) scale(1.05) !important; border-color:{accent}88 !important;
+   background:linear-gradient(145deg,{accent}2e,{accent}0d) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 22px {accent}38 !important; }}
+{_S} .stButton > button:hover .vs-ic, {_S} .stButton > button:hover svg {{ color:{accent} !important; }}
+{_S} .stButton > button[kind="primary"], {_S} .stButton > button[data-testid="stBaseButton-primary"] {{
+   background:linear-gradient(145deg,{accent},color-mix(in srgb,{accent} 55%,#0F1A2E)) !important; border-color:transparent !important; color:#fff !important;
+   box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 10px 24px {accent}66,0 0 0 3px {accent}22 !important; }}
+{_S} .stButton > button[kind="primary"] .vs-ic, {_S} .stButton > button[kind="primary"] svg,
+{_S} .stButton > button[data-testid="stBaseButton-primary"] .vs-ic, {_S} .stButton > button[data-testid="stBaseButton-primary"] svg {{ color:#fff !important; }}
+{_S} .stButton > button[kind="primary"]::before, {_S} .stButton > button[data-testid="stBaseButton-primary"]::before {{
+   content:""; position:absolute; left:-9px; top:25%; bottom:25%; width:4px; border-radius:0 4px 4px 0; background:{accent}; box-shadow:0 0 12px {accent}; }}
+{_S} .stButton {{ margin:.18rem 0 !important; }}
 {_S} .user-card {{ padding:.35rem 0 !important; background:transparent !important; border:0 !important; box-shadow:none !important; display:flex; justify-content:center; }}
 {_S} .user-card .user-row {{ justify-content:center !important; }}
 {_S} .user-card .uname, {_S} .user-card .chev {{ display:none !important; }}

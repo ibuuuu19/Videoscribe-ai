@@ -66,7 +66,8 @@ get_notifications = _cached(_nm.get_notifications, 15)
 count_today = _cached(_hm.count_today, 30)
 get_history = _cached(_hm.get_history, 30)
 load_favs = _cached(_stor.load_favs, 30)
-get_avatar_b64 = _cached(_stor.get_avatar_b64, 600)
+from src.core import avatar_store as _avs  # photo de profil persistante (base de données)
+get_avatar_b64 = _cached(_avs.get_avatar_b64, 600)
 
 # ── Écritures (vident le cache) ──
 set_plan = _writer(_um.set_plan)
