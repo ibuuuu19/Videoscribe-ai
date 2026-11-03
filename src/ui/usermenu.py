@@ -8,6 +8,8 @@ _I = {
  "bell": "<path d='M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8'/><path d='M10.3 21a1.9 1.9 0 0 0 3.4 0'/>",
  "moon": "<path d='M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z'/>",
  "sun": "<circle cx='12' cy='12' r='4'/><path d='M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4'/>",
+ "phone": "<path d='M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z'/>",
+ "tool": "<path d='M14.7 6.3a4 4 0 00-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 005.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z'/>",
  "out": "<path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/><path d='M16 17l5-5-5-5M21 12H9'/>",
 }
 
@@ -18,7 +20,8 @@ def _uri(name: str) -> str:
     return "url(\"data:image/svg+xml;utf8," + svg.replace("#", "%23").replace('"', "'") + "\")"
 
 
-_COL = {"um_profil": "#3B82F6", "um_config": "#8B5CF6", "um_notifs": "#F59E0B", "um_theme": "#F59E0B", "um_logout": "#EF4444"}
+_COL = {"um_profil": "#3B82F6", "um_config": "#8B5CF6", "um_notifs": "#F59E0B", "um_theme": "#F59E0B", "um_logout": "#EF4444",
+        "mt_profil": "#3B82F6", "mt_config": "#8B5CF6", "mt_notifs": "#F59E0B", "mt_contact": "#10B981", "mt_admin": "#EC4899", "mt_theme": "#F59E0B", "mt_logout": "#EF4444"}
 
 
 # ── Badges de forfait : icônes premium à la place du texte (Gratuit · Basique · Premium · Premium+) ──
@@ -84,7 +87,7 @@ def trigger_css(dark: bool) -> str:
     return "<style>" + _BADGE_CSS + "".join(r) + "</style>"
 
 
-def css(dark: bool) -> str:
+def css(dark: bool, items=None) -> str:
     ink, soft = ("#F8FAFC", "#AAB8D0") if dark else ("#0F1A2E", "#5B6B88")
     bg = "#0F1828" if dark else "#FFFFFF"
     line = "rgba(255,255,255,.10)" if dark else "rgba(15,26,46,.10)"
@@ -107,7 +110,7 @@ def css(dark: bool) -> str:
      f"{P} .vsum-av::after{{content:'';position:absolute;right:-2px;bottom:-2px;width:12px;height:12px;border-radius:50%;background:#22C55E;border:2px solid {bg};animation:vsumPulse 2.4s ease infinite;}}",
      f"{P} .vsum-id{{display:flex;flex-direction:column;min-width:0;}}",
      f"{P} .vsum-id b{{color:{ink} !important;font-size:1rem;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}}",
-     f"{P} .vsum-id span{{margin-top:4px;align-self:flex-start;font-size:.62rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;"
+     f"{P} .vsum-id>span:not(.vsum-plan){{margin-top:4px;align-self:flex-start;font-size:.62rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;"
      f"padding:2px 9px;border-radius:999px;background:linear-gradient(135deg,#D4AF37,#F0D488);color:#0B1F3A !important;}}",
      f"{P} .vsum-plan{{display:inline-flex;align-items:center;gap:7px;margin-top:5px;}}",
      f"{P} .vsum-plan em{{font-style:normal;font-size:.74rem;font-weight:750;color:{soft} !important;letter-spacing:.02em;}}",
@@ -127,13 +130,15 @@ def css(dark: bool) -> str:
      f"{P} .stButton>button:hover::after{{transform:scaleY(1);}}",
      f"{P} .stButton>button:active{{background:color-mix(in srgb,var(--c,#2E6DB4) 24%,transparent) !important;}}",
     ]
-    for i, (key, ic_) in enumerate((("um_profil", "user"), ("um_config", "gear"), ("um_notifs", "bell"),
-                                    ("um_theme", "sun" if dark else "moon"), ("um_logout", "out"))):
+    items = items or (("um_profil", "user"), ("um_config", "gear"), ("um_notifs", "bell"),
+                      ("um_theme", "sun" if dark else "moon"), ("um_logout", "out"))
+    for i, (key, ic_) in enumerate(items):
         rules.append(f"{P} .st-key-{key}{{animation:vsumItem .38s cubic-bezier(.16,1,.3,1) both;animation-delay:{.05 + i * .045:.3f}s;}}")
         rules.append(f"{P} .st-key-{key} .stButton>button{{--i:{_uri(ic_)};--c:{_COL[key]};}}")
-    rules.append(f"{P} .st-key-um_logout .stButton>button{{color:#EF4444 !important;}}"
-                 f"{P} .st-key-um_logout .stButton>button::before{{background:#EF4444;}}"
-                 f"{P} .st-key-um_logout .stButton>button:hover{{background:linear-gradient(90deg,rgba(239,68,68,.18),transparent) !important;}}")
+    for lk in [k for k, _ in items if k.endswith("logout")]:
+        rules.append(f"{P} .st-key-{lk} .stButton>button{{color:#EF4444 !important;}}"
+                     f"{P} .st-key-{lk} .stButton>button::before{{background:#EF4444;}}"
+                     f"{P} .st-key-{lk} .stButton>button:hover{{background:linear-gradient(90deg,rgba(239,68,68,.18),transparent) !important;}}")
     return "<style>" + _BADGE_CSS + "".join(rules) + "</style>"
 
 
