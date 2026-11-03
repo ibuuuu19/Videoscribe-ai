@@ -411,11 +411,11 @@ def _sec_compte(ctx, L):
         st.markdown(f'<div class="stg-id">{face}<div><b>{user}</b><small>{L["role"]} : {role} · {ctx["plan_name"]}</small></div></div>', unsafe_allow_html=True)
         up = st.file_uploader(L["photo"], type=["png", "jpg", "jpeg", "webp"])
         if up:
-            d = ctx["avatar_dir"]; d.mkdir(parents=True, exist_ok=True)
-            ext = up.name.rsplit(".", 1)[-1].lower()
-            for old in d.glob(f"{user}.*"):
-                old.unlink()
-            (d / f"{user}.{ext}").write_bytes(up.read()); ctx["fast_clear"](); st.success(L["photo_ok"]); st.rerun()
+            from src.core.avatar_store import save_avatar
+            _sig = f"{up.name}:{up.size}"
+            if ss.get("_av_sig") != _sig:  # évite de ré-enregistrer (et de boucler) à chaque rerun
+                save_avatar(user, up.getvalue(), up.name); ss["_av_sig"] = _sig
+                ctx["fast_clear"](); st.success(L["photo_ok"]); st.rerun()
         a, b = st.columns(2)
         with a:
             st.text_input(T("fullname"), key="prof_fullname")
