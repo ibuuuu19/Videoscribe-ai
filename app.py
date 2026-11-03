@@ -532,7 +532,7 @@ def render_profil():
             if confirm_del:
                 uname = user; notify_admins("trash", f"Compte **{uname}** supprimé (RGPD).")
                 delete_user(uname); clear_history(uname)
-                for p in AVATAR_DIR.glob(f"{uname}.*"): p.unlink()
+                from src.core.avatar_store import delete_avatar; delete_avatar(uname)
                 delete_session(st.session_state.get("token")); delete_cookie(COOKIE_NAME); delete_cookie("ys_user")
                 st.session_state.update(user=None, role=None, result=None, token=None, page="accueil", show_privacy=False); st.rerun()
             else: st.error("Cochez la case de confirmation.")
@@ -711,7 +711,7 @@ if st.session_state.user is None:
 user = st.session_state.user; role = st.session_state.get("role", "client"); is_guest = role == "visiteur"
 tier = 3 if role == "admin" else (0 if is_guest else get_tier(user))
 from src.ui.sidebar_rail import inject as _inject_rail
-_inject_rail()
+_inject_rail(st.session_state.get("cfg_accent", "#2E6DB4"))
 
 with st.sidebar:
     st.markdown(f'<div class="qbrand">{logo_html(34)}<span style="margin-left:8px;"><b>VideoScribe</b> AI</span></div>', unsafe_allow_html=True)
@@ -726,12 +726,14 @@ with st.sidebar:
             st.button(T("m_admin"), key="nav_admin", use_container_width=True, type="primary" if st.session_state.page == "admin" else "secondary", on_click=_nav_to, args=("admin",))
         _av = get_avatar_b64(user); _av_html = f'<img src="{_av}" alt="">' if _av else user[:2].upper(); _th = st.session_state.theme
 
+        from src.ui import usermenu as _um0
+        st.markdown(_um0.trigger_css(_th == "dark"), unsafe_allow_html=True)
         # ── 1. User-card HTML (rendu visuel) — SANS indentation dans le f-string ! ──
         st.markdown(
             f'<div class="user-card user-card-trigger">'
             f'<div class="user-row">'
             f'<span class="avatar">{_av_html}</span>'
-            f'<span class="uname">{user} <span class="tier-chip">{TIER_CHIP[tier]}</span></span>'
+            f'<span class="uname">{user} {_um0.plan_badge(tier, 24)}</span>'
             f'<span class="chev">{ic("chev", 14)}</span>'
             f'</div>'
             f'</div>',
@@ -740,6 +742,8 @@ with st.sidebar:
 
         # ── 2. Popover invisible superposé (zone cliquable + menu) ──
         with st.popover(" ", use_container_width=True):
+            from src.ui import usermenu as _um
+            st.markdown(_um.css(_th == "dark") + _um.header(user, TIER_CHIP[tier], _av, tier), unsafe_allow_html=True)
             st.button(T('m_profile'), key="um_profil", use_container_width=True, on_click=_nav_to, args=("profil",))
             st.button(T('m_settings'), key="um_config", use_container_width=True, on_click=_nav_to, args=("config",))
             st.button(T('m_notifs'), key="um_notifs", use_container_width=True, on_click=_nav_to, args=("notifs",))
