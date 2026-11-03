@@ -95,7 +95,7 @@ _CSS = """
   /* ── Cadre général ── */
   html body .stApp { background:@page@ !important; }
   html body .stApp [data-testid="stMainBlockContainer"], html body .stApp section.main > div.block-container {
-    padding-top:5rem !important; padding-bottom:8rem !important; }
+    padding-top:5rem !important; padding-bottom:8.5rem !important; }
   html body .stApp header[data-testid="stHeader"] { background:transparent !important; height:0 !important; min-height:0 !important; }
   html body .stApp [data-testid="stToolbarActions"], html body .stApp [data-testid="stMainMenu"],
   html body .stApp [data-testid="stAppDeployButton"], html body .stApp [data-testid="stDecoration"] { display:none !important; }
@@ -135,10 +135,10 @@ _CSS = """
   .stApp .st-key-mt_credits button .stMarkdownEllipsis { overflow:visible !important; text-overflow:clip !important; }
 
   /* Cloche */
-  .stApp .st-key-mt_bell button { width:44px !important; height:44px !important; padding:0 !important; border-radius:50% !important;
+  .stApp .st-key-mt_bell button { width:46px !important; height:46px !important; padding:0 !important; display:flex !important; align-items:center !important; justify-content:center !important; border-radius:50% !important;
     background:@surface@ !important; border:1px solid @line@ !important; box-shadow:@shadow@ !important; position:relative; }
   .stApp .st-key-mt_bell button p { font-size:0 !important; line-height:0 !important; }
-  .stApp .st-key-mt_bell button::before { content:""; width:22px; height:22px; background:@ink@; -webkit-mask:@m_bell@ center/contain no-repeat; mask:@m_bell@ center/contain no-repeat; }
+  .stApp .st-key-mt_bell button::before { content:""; display:block; flex:none; width:30px; height:30px; min-width:30px; background:@ink@; -webkit-mask:@m_bell@ center/contain no-repeat; mask:@m_bell@ center/contain no-repeat; }
   @BADGE@
 
   /* Avatar (popover) */
@@ -148,34 +148,39 @@ _CSS = """
   .stApp .st-key-mt_user button [data-testid="stIconMaterial"] { color:@soft@ !important; font-size:1.2rem !important; }
 
   /* ══ BARRE DU BAS ══ */
-  $P.st-key-mnav { display:block !important; position:fixed !important; left:0 !important; right:0 !important; bottom:0 !important; z-index:999985 !important;
-    padding:8px 8px calc(8px + env(safe-area-inset-bottom)) !important; margin:0 !important; background:@bar@ !important;
-    backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
-    border-top:1px solid @line@ !important; box-shadow:0 -12px 34px rgba(30,70,140,.08); border-radius:22px 22px 0 0; }
-  $P.st-key-mnav [data-testid="stHorizontalBlock"] { display:grid !important; grid-template-columns:repeat(5,minmax(0,1fr)) !important; gap:2px !important;
-    width:100% !important; align-items:end !important; flex-wrap:nowrap !important; flex-direction:row !important; }
+  $P.st-key-mnav { display:block !important; position:fixed !important; left:12px !important; right:12px !important; width:calc(100vw - 24px) !important; max-width:calc(100vw - 24px) !important; box-sizing:border-box !important; bottom:calc(12px + env(safe-area-inset-bottom)) !important; z-index:999985 !important;
+    padding:5px !important; margin:0 !important; background:@bar_glass@ !important; border:1px solid @glass_line@ !important; border-radius:38px !important;
+    backdrop-filter:blur(34px) saturate(210%); -webkit-backdrop-filter:blur(34px) saturate(210%);
+    box-shadow:0 14px 40px rgba(8,20,45,.24), 0 2px 8px rgba(8,20,45,.10), inset 0 1px 0 rgba(255,255,255,.45); }
+  $P.st-key-mnav [data-testid="stHorizontalBlock"] { display:grid !important; grid-template-columns:repeat(5,minmax(0,1fr)) !important; gap:0 !important;
+    width:100% !important; align-items:center !important; flex-wrap:nowrap !important; flex-direction:row !important; }
   $P.st-key-mnav [data-testid="stColumn"] { width:auto !important; min-width:0 !important; flex:none !important; }
   $P.st-key-mnav [data-testid="stElementContainer"] { width:100% !important; }
   $P.st-key-mnav .stButton > button, $P.st-key-mnav .stButton > button[data-testid="stBaseButton-primary"], $P.st-key-mnav .stButton > button[data-testid="stBaseButton-secondary"] {
-    width:100% !important; min-height:56px !important; padding:6px 0 2px !important; flex-direction:column !important; gap:4px !important;
-    background:transparent !important; border:none !important; box-shadow:none !important; border-radius:14px !important; color:@soft@ !important; }
-  $P.st-key-mnav .stButton > button::before { content:""; width:24px; height:24px; background:currentColor; flex:none;
-    -webkit-mask:var(--ic) center/contain no-repeat; mask:var(--ic) center/contain no-repeat; transition:transform .25s cubic-bezier(.16,1,.3,1); }
-  $P.st-key-mnav .stButton > button p { color:inherit !important; font-size:.68rem !important; font-weight:700 !important; line-height:1.1 !important; margin:0 !important; white-space:nowrap !important; }
+    width:100% !important; min-height:58px !important; padding:8px 0 6px !important; flex-direction:column !important; justify-content:center !important; gap:4px !important;
+    background:transparent !important; border:none !important; box-shadow:none !important; border-radius:32px !important; color:@soft@ !important;
+    transition:background .35s ease,color .3s ease,transform .3s cubic-bezier(.34,1.56,.64,1) !important; }
+  $P.st-key-mnav .stButton > button::before { content:""; width:26px; height:26px; background:currentColor; flex:none;
+    -webkit-mask:var(--ic) center/contain no-repeat; mask:var(--ic) center/contain no-repeat; transition:transform .35s cubic-bezier(.34,1.56,.64,1); }
+  $P.st-key-mnav .stButton > button p { color:inherit !important; font-size:.66rem !important; font-weight:600 !important; letter-spacing:.01em; line-height:1.1 !important; margin:0 !important; white-space:nowrap !important; }
   $P.st-key-mnav .stButton > button .stMarkdownEllipsis { overflow:visible !important; text-overflow:clip !important; }
-  $P.st-key-mnav .stButton > button[data-testid="stBaseButton-primary"] { color:@acc@ !important; }
-  $P.st-key-mnav .stButton > button[data-testid="stBaseButton-primary"]::before { transform:translateY(-1px) scale(1.1); }
-  $P.st-key-mnav .stButton > button:active { transform:scale(.94); }
+  $P.st-key-mnav .stButton > button[data-testid="stBaseButton-primary"] { color:@acc@ !important; background:@cap@ !important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 2px 10px rgba(8,20,45,.08) !important; }
+  $P.st-key-mnav .stButton > button[data-testid="stBaseButton-primary"] p { font-weight:800 !important; }
+  $P.st-key-mnav .stButton > button[data-testid="stBaseButton-primary"]::before { transform:scale(1.1) translateY(-1px); }
+  $P.st-key-mnav .stButton > button:active { transform:scale(.92) !important; }
   .stApp .st-key-mn_analyse button { --ic:@m_home@; } .stApp .st-key-mn_hist button { --ic:@m_grid@; }
   .stApp .st-key-mn_stats button { --ic:@m_chart@; } .stApp .st-key-mn_premium button { --ic:@m_star@; }
 
-  /* Bouton central « + » */
+  /* Bouton central « + » : pastille dégradée intégrée à la barre */
   .stApp .st-key-mn_new { display:flex !important; justify-content:center; }
   $P.st-key-mnav .st-key-mn_new button, $P.st-key-mnav .st-key-mn_new button[data-testid="stBaseButton-secondary"] {
-    width:60px !important; min-height:60px !important; height:60px !important; padding:0 !important; margin-top:-34px !important; border-radius:21px !important;
-    background:linear-gradient(135deg,@acc@,@acc_dark@) !important; color:#fff !important; border:4px solid @surface_solid@ !important;
-    box-shadow:0 16px 30px rgba(30,100,200,.38) !important; justify-content:center !important; }
-  $P.st-key-mnav .st-key-mn_new button::before { width:28px; height:28px; -webkit-mask:@m_plus@ center/contain no-repeat; mask:@m_plus@ center/contain no-repeat; }
+    width:50px !important; min-height:50px !important; height:50px !important; padding:0 !important; margin:0 auto !important; border-radius:50% !important;
+    background:linear-gradient(135deg,@acc@,@acc_dark@) !important; color:#fff !important; border:none !important;
+    box-shadow:0 10px 22px rgba(30,100,200,.40), inset 0 1px 0 rgba(255,255,255,.35) !important; justify-content:center !important; }
+  $P.st-key-mnav .st-key-mn_new button { flex-direction:row !important; align-items:center !important; gap:0 !important; }
+  $P.st-key-mnav .st-key-mn_new button > div { display:none !important; }
+  $P.st-key-mnav .st-key-mn_new button::before { width:26px; height:26px; -webkit-mask:@m_plus@ center/contain no-repeat; mask:@m_plus@ center/contain no-repeat; }
   $P.st-key-mnav .st-key-mn_new button p { font-size:0 !important; }
   /* ══ TIROIR (menu ☰) : mêmes liens que la barre latérale, style application ══ */
   html body .stApp [data-testid="stSidebar"] { width:min(86vw,330px) !important; min-width:0 !important; background:@surface_solid@ !important;
@@ -247,8 +252,20 @@ def render_mobile_shell(user: str, role: str, tier: int) -> None:
     except Exception:
         tint = "rgba(46,109,180,.12)"
     t = {**t, "acc_tint": tint, "surface_solid": solid}
+    _lt = st.session_state.get("theme", "light") == "light"
+    t = {**t, "bar_glass": "rgba(255,255,255,.66)" if _lt else "rgba(24,28,36,.62)",
+         "glass_line": "rgba(255,255,255,.75)" if _lt else "rgba(255,255,255,.12)",
+         "cap": "rgba(15,26,46,.09)" if _lt else "rgba(255,255,255,.15)"}
     for k, v in t.items():
         css = css.replace(f"@{k}@", v)
+    try:  # photo de profil dans le bouton avatar de la barre du haut
+        from src.ui.fast import get_avatar_b64 as _gav0
+        _av0 = _gav0(user)
+    except Exception:
+        _av0 = ""
+    if _av0:
+        css += (f'@media (max-width:768px){{.stApp .st-key-mt_user button p{{background:url("{_av0}") center/cover no-repeat !important;'
+                f'font-size:0 !important;color:transparent !important;}}}}')
     style_tag = f"<style>{css}</style>"   # injecté dans la barre fixe : aucun espace ajouté au flux de la page
 
     # ── Libellé de la pastille ──
@@ -281,6 +298,26 @@ def render_mobile_shell(user: str, role: str, tier: int) -> None:
         with c4:
             with _keyed("mt_user"):
                 with st.popover(user[:2].upper()):
+                    from src.ui import usermenu as _um
+                    _dark = st.session_state.get("theme", "light") == "dark"
+                    _items = [("mt_profil", "user"), ("mt_config", "gear"), ("mt_notifs", "bell"), ("mt_contact", "phone")]
+                    if role == "admin":
+                        _items.append(("mt_admin", "tool"))
+                    _items += [("mt_theme", "sun" if _dark else "moon"), ("mt_logout", "out")]
+                    try:
+                        from src.ui.fast import get_avatar_b64 as _gav
+                        _av = _gav(user)
+                    except Exception:
+                        _av = ""
+                    try:
+                        _ucss = _um.css(_dark, _items)
+                    except TypeError:  # ancien usermenu.py sans paramètre « items »
+                        _ucss = _um.css(_dark)
+                    try:
+                        _uhead = _um.header(user, "", _av, tier)
+                    except TypeError:  # ancien usermenu.py sans paramètre « tier »
+                        _uhead = _um.header(user, "", _av)
+                    st.markdown(_ucss + _uhead, unsafe_allow_html=True)
                     st.button("Profil", key="mt_profil", use_container_width=True, on_click=_go, args=("profil",))
                     st.button("Paramètres", key="mt_config", use_container_width=True, on_click=_go, args=("config",))
                     st.button("Notifications" + (f" ({n_unread})" if n_unread else ""), key="mt_notifs", use_container_width=True, on_click=_go, args=("notifs",))
@@ -288,8 +325,7 @@ def render_mobile_shell(user: str, role: str, tier: int) -> None:
                     if role == "admin":
                         st.button("Administration", key="mt_admin", use_container_width=True, on_click=_go, args=("admin",))
                     st.divider()
-                    dark = st.session_state.get("theme", "light") == "dark"
-                    if st.button("Passer en mode clair" if dark else "Passer en mode sombre", key="mt_theme", use_container_width=True):
+                    if st.button("Passer en mode clair" if _dark else "Passer en mode sombre", key="mt_theme", use_container_width=True):
                         _toggle_theme()
                     if st.button("Se déconnecter", key="mt_logout", use_container_width=True):
                         if st.session_state.get("token"):
