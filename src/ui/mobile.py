@@ -59,6 +59,13 @@ def _mask(name: str, sw: float = 2) -> str:
 def theme_tokens() -> dict:
     """Jetons de couleur partagés (barres mobiles + page Historique)."""
     acc, acc_dark = get_accent()
+    if st.session_state.get("user") is not None:  # get_accent() renvoie le bleu fixe sur Premium/Contact… : on garde la couleur choisie
+        acc = st.session_state.get("cfg_accent", acc)
+        try:
+            from src.ui.css import shade as _shade
+            acc_dark = _shade(acc, 0.55)
+        except Exception:
+            pass
     if st.session_state.get("theme", "light") == "light":
         return dict(acc=acc, acc_dark=acc_dark, ink="#0F1A2E", soft="#64748B", surface="#FFFFFF",
                     surface2="#F1F6FD", bar="rgba(255,255,255,.90)", line="rgba(15,26,46,.09)",
@@ -135,6 +142,8 @@ _CSS = """
   .stApp .st-key-mt_credits button .stMarkdownEllipsis { overflow:visible !important; text-overflow:clip !important; }
 
   /* Cloche */
+  $P.st-key-mtop .st-key-mt_bell button { background-image:none !important; background-color:@surface@ !important; color:@ink@ !important; }
+  $P.st-key-mtop .st-key-mt_credits button, $P.st-key-mtop .st-key-mt_user button { background-image:none !important; }
   .stApp .st-key-mt_bell button { width:46px !important; height:46px !important; padding:0 !important; display:flex !important; align-items:center !important; justify-content:center !important; border-radius:50% !important;
     background:@surface@ !important; border:1px solid @line@ !important; box-shadow:@shadow@ !important; position:relative; }
   .stApp .st-key-mt_bell button p { font-size:0 !important; line-height:0 !important; }
