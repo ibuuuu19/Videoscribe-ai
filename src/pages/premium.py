@@ -200,7 +200,25 @@ html body .stApp [data-testid="stMainBlockContainer"] .stButton > button[kind="p
   {V}.st-key-pm_pc_m, {V}.st-key-pm_pc_a {{ position:relative; gap:0 !important; }}
   .stApp .st-key-pm_pc_m [data-testid="stElementContainer"]:has(.stButton), .stApp .st-key-pm_pc_a [data-testid="stElementContainer"]:has(.stButton) {{ position:absolute !important; inset:0; z-index:3; margin:0 !important; }}
   .stApp .st-key-pm_pc_m .stButton, .stApp .st-key-pm_pc_a .stButton {{ height:100%; }}
-  .stApp .st-key-pm_pc_m .stButton button, .stApp .st-key-pm_pc_a .stButton button {{ width:100% !important; height:100% !important; min-height:0 !important; opacity:0; cursor:pointer; }}
+  html body .stApp .st-key-pm_pc_m .stButton button, html body .stApp .st-key-pm_pc_a .stButton button,
+  html body .stApp .st-key-pm_pc_m .stButton button:hover, html body .stApp .st-key-pm_pc_a .stButton button:hover,
+  html body .stApp .st-key-pm_pc_m .stButton button:focus, html body .stApp .st-key-pm_pc_a .stButton button:focus,
+  html body .stApp .st-key-pm_pc_m .stButton button:active, html body .stApp .st-key-pm_pc_a .stButton button:active {{
+     width:100% !important; height:100% !important; min-height:0 !important; opacity:0 !important; cursor:pointer; background:transparent !important; background-image:none !important;
+     border:0 !important; box-shadow:none !important; outline:0 !important; transform:none !important; filter:none !important; }}
+  html body .stApp .st-key-pm_pc_m .stButton button::before, html body .stApp .st-key-pm_pc_a .stButton button::before,
+  html body .stApp .st-key-pm_pc_m .stButton button::after, html body .stApp .st-key-pm_pc_a .stButton button::after {{ display:none !important; content:none !important; }}
+  html body .stApp .st-key-pm_pc_m [data-testid="stElementContainer"], html body .stApp .st-key-pm_pc_a [data-testid="stElementContainer"] {{ background:transparent !important; }}
+  /* balayage : le panneau glisse depuis le côté du geste */
+  @keyframes pmSlide {{ from {{ opacity:0; transform:translateX(var(--pm-d,34px)); }} to {{ opacity:1; transform:none; }} }}
+  .pm-panel.pm-a0, .pm-panel.pm-a1 {{ animation:pmSlide .38s cubic-bezier(.22,.9,.3,1) both; }}
+  .pm-panel.pm-a1 {{ animation-name:pmSlide2; }}
+  @keyframes pmSlide2 {{ from {{ opacity:0; transform:translateX(var(--pm-d,34px)); }} to {{ opacity:1; transform:none; }} }}
+  .st-key-pm_mob {{ touch-action:pan-y; overflow-x:clip; }}
+  .pm-dots {{ display:flex; justify-content:center; gap:6px; margin:.7rem 0 .2rem; }}
+  .pm-dots i {{ width:6px; height:6px; border-radius:99px; background:{line}; transition:width .3s ease, background .3s ease; }}
+  .pm-dots i.on {{ width:20px; background:linear-gradient(90deg,{acc},{acc_dark}); }}
+  @media (prefers-reduced-motion:reduce) {{ .pm-panel.pm-a0, .pm-panel.pm-a1 {{ animation:none; }} }}
   .pm-pc {{ position:relative; box-sizing:border-box; min-height:78px; border-radius:20px; padding:.8rem .95rem; background:{surf2}; border:1.5px solid {line};
      transition:border-color .25s ease, background .25s ease, box-shadow .25s ease; }}
   .pm-pc b {{ display:block; color:{ink} !important; font-size:1.18rem; font-weight:800; letter-spacing:-.02em; }}
@@ -220,6 +238,20 @@ html body .stApp [data-testid="stMainBlockContainer"] .stButton > button[kind="p
     st.markdown("<style>" + css.replace("\n", " ") + "</style>", unsafe_allow_html=True)
 
 
+_SWIPE_JS = """<script>(function(){try{
+var P=window.parent,d=P.document;
+if(P.__pmSwipe){return;} P.__pmSwipe=true;
+var x0=0,y0=0,t0=0,on=false;
+function inZone(t){return t&&t.closest&&t.closest('.st-key-pm_mob')&&!t.closest('.st-key-pm_buy');}
+d.addEventListener('touchstart',function(e){var t=e.target;if(!inZone(t)){on=false;return;}var p=e.touches[0];x0=p.clientX;y0=p.clientY;t0=Date.now();on=true;},{passive:true});
+d.addEventListener('touchend',function(e){if(!on)return;on=false;var p=e.changedTouches[0],dx=p.clientX-x0,dy=p.clientY-y0;
+ if(Math.abs(dx)<48||Math.abs(dx)<Math.abs(dy)*1.4||Date.now()-t0>700)return;
+ var opts=d.querySelectorAll('.st-key-pm_plan [data-testid="stRadioOption"]');if(!opts.length)return;
+ var cur=-1;opts.forEach(function(o,i){if(o.querySelector('input:checked'))cur=i;});
+ var nx=cur+(dx<0?1:-1);if(nx<0||nx>=opts.length)return;opts[nx].click();},{passive:true});
+}catch(e){}})();</script>"""
+
+
 def _render_mobile_sheet(plans_ui, cur, is_guest, acc, acc_dark):
     """Feuille d'abonnement mobile : onglets de formule, avantages, cartes mensuel/annuel fixes, gros bouton d'achat."""
     lang = st.session_state.get("cfg_lang", "fr")
@@ -235,8 +267,18 @@ def _render_mobile_sheet(plans_ui, cur, is_guest, acc, acc_dark):
             f'<div class="pm-f">{ic(_FEAT_ICONS[i % len(_FEAT_ICONS)], 20)}<span>{_html_esc(f)}'
             f'{(" <span class=pm-new>" + X["new"] + "</span>") if new else ""}</span></div>'
             for i, (f, new) in enumerate(feats))
-        st.markdown(f'<div class="pm-panel"><div class="pm-adv"><b>{X["adv"].format(p=_html_esc(p["name"]))}</b></div>{rows}</div>'.replace("\n", ""),
+        keys = [pp["key"] for pp in plans_ui]
+        idx = keys.index(key)
+        last = st.session_state.get("_pm_last")
+        if last is not None and last != idx:
+            st.session_state["_pm_n"] = st.session_state.get("_pm_n", 0) + 1
+        d = 34 if (last is None or idx >= last) else -34
+        st.session_state["_pm_last"] = idx
+        anim = f'pm-a{st.session_state.get("_pm_n", 0) % 2}' if (last is not None and last != idx) else ""
+        dots = "".join(f'<i class="{"on" if i == idx else ""}"></i>' for i in range(len(keys)))
+        st.markdown(f'<div class="pm-panel {anim}" style="--pm-d:{d}px"><div class="pm-adv"><b>{X["adv"].format(p=_html_esc(p["name"]))}</b></div>{rows}</div><div class="pm-dots">{dots}</div>'.replace("\n", ""),
                     unsafe_allow_html=True)
+        _components.html(_SWIPE_JS.replace("%N%", str(len(keys))), height=0)
 
         # ── barre d'achat fixe ──
         with st.container(key="pm_buy"):
