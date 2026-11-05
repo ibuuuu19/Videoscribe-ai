@@ -97,7 +97,8 @@ def notif_feedback():
 def _toggle_theme():
     """Bascule entre le thème clair et sombre, et sauvegarde dans un cookie."""
     st.session_state.theme = "dark" if st.session_state.theme == "light" else "light"
-    set_cookie("ys_theme", st.session_state.theme, max_age=365*24*3600)
+    # cookie écrit au prochain rendu par render_loader() : plus d'attente bloquante ni de composant détruit
+    st.session_state["_theme_ck"] = st.session_state.theme
     st.rerun()
 
 

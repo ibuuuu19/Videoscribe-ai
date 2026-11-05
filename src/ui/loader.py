@@ -118,6 +118,11 @@ def render_loader() -> None:
            "bg": "rgba(5,8,15,.90)" if dark else "rgba(243,247,253,.92)",
            "ink": "#F8FAFC" if dark else "#0F1A2E", "soft": "#AAB8D0" if dark else "#5B6B88"}
     js = _JS.replace("%CFG%", json.dumps(cfg)).replace("%SEL%", json.dumps(_SEL))
+    # cookie du thème écrit ICI (sans attente côté serveur) : le basculement ne bloque plus le script
+    ck = st.session_state.pop("_theme_ck", None)
+    if ck in ("light", "dark"):
+        c = json.dumps(f"ys_theme={ck}; path=/; max-age={365 * 24 * 3600}; SameSite=Lax")
+        js += f"\n(function(){{try{{document.cookie={c};}}catch(e){{}}try{{window.parent.document.cookie={c};}}catch(e){{}}}})();"
     _components.html(f"<script>{js}</script>", height=0)
 
 
