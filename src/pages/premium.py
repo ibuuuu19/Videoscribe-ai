@@ -209,6 +209,10 @@ html body .stApp [data-testid="stMainBlockContainer"] .stButton > button[kind="p
   html body .stApp .st-key-pm_pc_m .stButton button::before, html body .stApp .st-key-pm_pc_a .stButton button::before,
   html body .stApp .st-key-pm_pc_m .stButton button::after, html body .stApp .st-key-pm_pc_a .stButton button::after {{ display:none !important; content:none !important; }}
   html body .stApp .st-key-pm_pc_m [data-testid="stElementContainer"], html body .stApp .st-key-pm_pc_a [data-testid="stElementContainer"] {{ background:transparent !important; }}
+  html body .stApp .st-key-pm_pc_m, html body .stApp .st-key-pm_pc_a {{ min-height:80px; }}
+  html body .stApp .st-key-pm_pc_m [data-testid="stElementContainer"]:has(.stButton), html body .stApp .st-key-pm_pc_a [data-testid="stElementContainer"]:has(.stButton),
+  html body .stApp .st-key-pm_pick_m, html body .stApp .st-key-pm_pick_a {{ position:absolute !important; inset:0 !important; width:100% !important; height:100% !important; max-width:none !important; z-index:5; }}
+  html body .stApp .st-key-pm_pick_m .stButton, html body .stApp .st-key-pm_pick_a .stButton, html body .stApp .st-key-pm_pick_m [data-testid="stButton"], html body .stApp .st-key-pm_pick_a [data-testid="stButton"] {{ width:100% !important; height:100% !important; }}
   /* balayage : le panneau glisse depuis le côté du geste */
   @keyframes pmSlide {{ from {{ opacity:0; transform:translateX(var(--pm-d,34px)); }} to {{ opacity:1; transform:none; }} }}
   .pm-panel.pm-a0, .pm-panel.pm-a1 {{ animation:pmSlide .38s cubic-bezier(.22,.9,.3,1) both; }}
