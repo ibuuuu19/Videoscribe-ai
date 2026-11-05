@@ -502,44 +502,12 @@ def render_notifs():
         style = "" if n["read"] else "border-left:4px solid #D4AF37;"
         st.markdown(f"<div class='notif-card' style='{style}'><span class='notif-ico'>{ic('bell', 18)}</span><div><b>{n['text']}</b><br><small>{ic('clock', 12)} {n['date']}</small></div></div>", unsafe_allow_html=True)
     render_footer(compact=True)
+    
 # ⚠️ render_premium extrait dans src/pages/premium.py
 def render_profil():
-    _acc, _acc_dark = get_accent()
-    info = list_users().get(user, {})
-    cur = "premium_plus" if role == "admin" else get_plan(user)
-    badges = ["Admin" if role == "admin" else "Client", PLANS[cur]["name"] if cur != "free" else T("plan_free")]
-    if tier >= 3: badges.append(T("certified"))
-    hero("user", f"@{user}", T("profile"), badges)
-    _av = get_avatar_b64(user)
-    if _av: st.markdown(f'<img src="{_av}" class="big-avatar">', unsafe_allow_html=True)
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric(T("role"), role); c2.metric(T("plan"), PLANS[cur]["name"] if cur != "free" else T("plan_free"))
-    exp = info.get("premium_expires")
-    c3.metric(T("expires"), datetime.fromisoformat(exp).strftime("%d/%m/%Y") if exp and cur != "free" else "—")
-    c4.metric(T("m_analyse"), len(get_history(user)))
-    st.markdown("---"); st.subheader(T("change_pwd"))
-    with st.form("pwd_form"):
-        cur_p = st.text_input(T("pwd_current"), type="password"); new = st.text_input(T("pwd_new"), type="password"); conf = st.text_input(T("pwd_confirm"), type="password")
-        if st.form_submit_button(T("pwd_update"), use_container_width=True):
-            ok, _ = authenticate(user, cur_p)
-            if not ok: st.error("Mot de passe actuel incorrect.")
-            elif new != conf: st.error("La confirmation ne correspond pas.")
-            elif reset_password(user, new): notify_admins("key", f"**{user}** a changé son mot de passe."); st.success("Mot de passe mis à jour.")
-            else: st.error("Nouveau mot de passe trop court.")
-    st.markdown("---"); st.subheader(T("del_title"))
-    st.caption(T("del_caption"))
-    with st.form("delete_form"):
-        confirm_del = st.checkbox(T("del_check"))
-        if st.form_submit_button(T("del_btn"), use_container_width=True):
-            if confirm_del:
-                uname = user; notify_admins("trash", f"Compte **{uname}** supprimé (RGPD).")
-                delete_user(uname); clear_history(uname)
-                from src.core.avatar_store import delete_avatar; delete_avatar(uname)
-                delete_session(st.session_state.get("token")); delete_cookie(COOKIE_NAME); delete_cookie("ys_user")
-                st.session_state.update(user=None, role=None, result=None, token=None, page="accueil", show_privacy=False); st.rerun()
-            else: st.error("Cochez la case de confirmation.")
-    render_footer(compact=True)
-
+    from src.pages.profil import render_profil as _rp
+    _rp(user, role, tier)
+    
 def _parse_hdate(h):
     try: return datetime.strptime(h["date"], "%d/%m/%Y %H:%M")
     except Exception: return datetime.min
