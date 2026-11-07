@@ -487,21 +487,8 @@ def _nav_to(page_key):
 
 
 def render_notifs():
-    _acc, _acc_dark = get_accent()
-    hero("bell", T("notifs_title"), T("notifs_sub"))
-    notifs = get_notifications(user)
-    n_unread = unread_count(user)
-    s1, s2, s3 = st.columns(3)
-    s1.metric("Total", len(notifs)); s2.metric("Non lues", n_unread); s3.metric("Lues", len(notifs)-n_unread)
-    if st.button(T("mark_all"), use_container_width=True): mark_all_read(user); st.rerun()
-    if not notifs:
-        st.markdown(f"<div class='notif-card'><span class='notif-ico'>{ic('bell', 18)}</span><div><b>{T('no_notif')}</b><br><small>—</small></div></div>", unsafe_allow_html=True)
-        render_footer(compact=True)
-        return
-    for n in notifs:
-        style = "" if n["read"] else "border-left:4px solid #D4AF37;"
-        st.markdown(f"<div class='notif-card' style='{style}'><span class='notif-ico'>{ic('bell', 18)}</span><div><b>{n['text']}</b><br><small>{ic('clock', 12)} {n['date']}</small></div></div>", unsafe_allow_html=True)
-    render_footer(compact=True)
+    from src.pages.notifs import render_notifs as _rn
+    _rn(user)
     
 # ⚠️ render_premium extrait dans src/pages/premium.py
 def render_profil():

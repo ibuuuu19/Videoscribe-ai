@@ -110,6 +110,30 @@ def clear_history(username):
     return True
 
 
+def delete_analysis(username, video_id, date):
+    """Supprime UNE analyse (video_id + date « DD/MM/YYYY HH:MM »). Renvoie True si une ligne a été supprimée."""
+    user_id = _get_user_id(username)
+    if not user_id:
+        return False
+
+    with db_cursor() as cur:
+        cur.execute(
+            """
+            DELETE FROM history
+            WHERE id = (
+                SELECT id FROM history
+                WHERE user_id = %s
+                  AND video_id = %s
+                  AND to_char(date, 'DD/MM/YYYY HH24:MI') = %s
+                ORDER BY date DESC
+                LIMIT 1
+            )
+            """,
+            (user_id, video_id, date),
+        )
+        return cur.rowcount > 0
+
+
 def count_today(username):
     """Compte les analyses effectuées aujourd'hui."""
     user_id = _get_user_id(username)
