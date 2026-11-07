@@ -63,6 +63,23 @@ html body .stApp [class*="st-key-hc_"] button { border-radius:14px !important; m
 html body .stApp [class*="st-key-hc_"] button[data-testid="stBaseButton-secondary"] { background:@surface@ !important; border:1px solid @line@ !important; }
 html body .stApp [class*="st-key-hc_"] button[data-testid="stBaseButton-secondary"] p { color:@ink@ !important; }
 
+/* Menu ⋮ */
+html body .stApp [class*="st-key-hc_"] [data-testid="stPopover"] button { font-size:1.35rem !important; font-weight:900 !important; letter-spacing:0; }
+html body .stApp [class*="st-key-hc_"] [data-testid="stPopover"] button [data-testid="stIconMaterial"], html body .stApp [class*="st-key-hc_"] [data-testid="stPopover"] button svg { display:none !important; }
+html body .stApp [class*="st-key-hc_"] [data-testid="stPopover"] button p { color:@ink@ !important; margin:0 !important; line-height:1; }
+html body [data-testid="stPopoverBody"] [class*="st-key-hfav_"] button, html body [data-testid="stPopoverBody"] [class*="st-key-hdel_"] button, html body [data-testid="stPopoverBody"] a[data-testid="stBaseLinkButton-secondary"] {
+  justify-content:flex-start !important; border:0 !important; background:transparent !important; box-shadow:none !important; border-radius:12px !important; min-height:44px !important; transition:background .2s ease, transform .2s ease; }
+html body [data-testid="stPopoverBody"] [class*="st-key-hfav_"] button:hover, html body [data-testid="stPopoverBody"] a[data-testid="stBaseLinkButton-secondary"]:hover { background:rgba(128,128,128,.14) !important; transform:translateX(3px); }
+html body [data-testid="stPopoverBody"] [class*="st-key-hfav_"] button > div, html body [data-testid="stPopoverBody"] [class*="st-key-hdel_"] button > div, html body [data-testid="stPopoverBody"] a[data-testid="stBaseLinkButton-secondary"] > div { justify-content:flex-start !important; width:100%; text-align:left !important; }
+html body [data-testid="stPopoverBody"] [class*="st-key-hfav_"] button p, html body [data-testid="stPopoverBody"] a[data-testid="stBaseLinkButton-secondary"] p { color:@ink@ !important; text-align:left !important; font-weight:700 !important; }
+html body .stApp [class*="st-key-hc_"] [data-testid="stPopover"] > div > button, html body .stApp [class*="st-key-hc_"] [data-testid="stPopover"] button[data-testid="stPopoverButton"] { background:@surface@ !important; border:1px solid @line@ !important; }
+html body [data-testid="stPopoverBody"] [class*="st-key-hdel_"] button p { color:#EF4444 !important; font-weight:700 !important; }
+html body [data-testid="stPopoverBody"] [class*="st-key-hdel_"] button:hover { background:rgba(239,68,68,.14) !important; transform:translateX(3px); }
+html body .stApp .vh-ask { margin:-.5rem 0 .5rem; padding:.7rem 1rem; border-radius:16px; font-weight:700; font-size:.9rem; color:#EF4444 !important; background:rgba(239,68,68,.10); border:1px solid rgba(239,68,68,.35); }
+html body div[data-testid="stVerticalBlock"][class*="st-key-hq_"] { margin:0 0 1rem; }
+html body .stApp [class*="st-key-hq_"] button[data-testid="stBaseButton-primary"] { background:#EF4444 !important; border:0 !important; box-shadow:0 10px 22px rgba(239,68,68,.3) !important; }
+html body .stApp [class*="st-key-hq_"] button[data-testid="stBaseButton-primary"] p { color:#fff !important; font-weight:800 !important; }
+
 /* État vide */
 html body .stApp .vh-empty { text-align:center; background:@surface@; border:1px solid @line@; border-radius:28px; padding:clamp(1.6rem,6vw,3rem) 1.2rem 1.4rem; box-shadow:@shadow@; margin-top:.4rem; }
 html body .stApp .vh-empty .ic { width:84px; height:84px; margin:0 auto 1.1rem; border-radius:50%; background:@surface2@; display:flex; align-items:center; justify-content:center; color:@acc@; }
@@ -88,6 +105,14 @@ def _parse(h) -> datetime:
         return datetime.min
 
 
+def _supports_key() -> bool:
+    import inspect
+    try:
+        return "key" in inspect.signature(st.popover).parameters
+    except Exception:
+        return False
+
+
 def _keyed(key: str):
     try:
         return st.container(key=key)
@@ -99,6 +124,69 @@ def _open(result) -> None:
     """Callback : ouvre l'analyse (ou une nouvelle) — une seule exécution du script."""
     st.session_state.result = result
     st.session_state.page = "analyse"
+
+
+def _delete_one(user: str, h: dict) -> bool:
+    """Supprime UNE analyse. Utilise la fonction native du gestionnaire si elle existe, sinon reconstruit l'historique sans elle."""
+    from src import history_manager as _hm
+    from src.ui import fast as _fast
+    vid, date = h.get("video_id"), h.get("date")
+    for name in ("delete_analysis", "delete_history_item", "remove_analysis", "delete_entry", "remove_entry"):
+        fn = getattr(_hm, name, None)
+        if callable(fn):
+            for args in ((user, vid, date), (user, h), (user, vid)):
+                try:
+                    fn(*args)
+                    _fast.clear()
+                    return True
+                except TypeError:
+                    continue
+                except Exception:
+                    return False
+    # repli : vider puis ré-enregistrer les autres analyses (de la plus ancienne à la plus récente)
+    try:
+        full = list(_hm.get_history(user) or [])
+        rest = [x for x in full if not (x.get("video_id") == vid and x.get("date") == date)]
+        if len(rest) == len(full):
+            return False
+        _hm.clear_history(user)
+        try:
+            for x in reversed(rest):
+                _hm.save_analysis(user, x)
+        except Exception:
+            _hm.clear_history(user)
+            for x in reversed(full):
+                _hm.save_analysis(user, x)
+            _fast.clear()
+            return False
+        _fast.clear()
+        return True
+    except Exception:
+        return False
+
+
+def _ask_delete(key: str) -> None:
+    st.session_state["hist_del_ask"] = key
+
+
+def _cancel_delete() -> None:
+    st.session_state.pop("hist_del_ask", None)
+
+
+def _confirm_delete(user: str, h: dict) -> None:
+    ok = _delete_one(user, h)
+    st.session_state.pop("hist_del_ask", None)
+    if ok:
+        vid = h.get("video_id")
+        try:  # retire aussi le favori si plus aucune analyse de cette vidéo
+            left = [x for x in (get_history(user) or []) if x.get("video_id") == vid and x is not h]
+            if vid in set(load_favs(user) or []) and not left:
+                toggle_fav(user, vid)
+        except Exception:
+            pass
+        st.toast("Analyse supprimée")
+    else:
+        st.toast("Suppression impossible pour le moment")
 
 
 def render_historique(user: str, tier: int) -> None:
@@ -181,12 +269,26 @@ def render_historique(user: str, tier: int) -> None:
           <div class="vh-meta"><b>{title}</b><small>{_html.escape(meta)}</small></div>
           <div class="vh-star">{"⭐" if is_fav else ""}</div>
         </div></div>''')
+        key_id = f"{vid}|{h.get('date','')}"
         with _keyed(f"hc_{i}"):
             b1, b2 = st.columns([4, 1])
             with b1:
                 st.button(T("open_analyse"), key=f"open_{vid}_{h.get('date','')}_{i}", use_container_width=True, on_click=_open, args=(h,))
             with b2:
-                st.button("⭐" if is_fav else "☆", key=f"fav_{vid}_{h.get('date','')}_{i}", use_container_width=True, help=T("add_fav"), on_click=toggle_fav, args=(user, vid))
+                with st.popover("⋮", use_container_width=True, key=f"hmenu_{i}") if _supports_key() else st.popover("⋮", use_container_width=True):
+                    st.button(("☆  Retirer des favoris" if is_fav else "⭐  Ajouter aux favoris"), key=f"hfav_{i}", use_container_width=True,
+                              on_click=toggle_fav, args=(user, vid))
+                    if vid:
+                        st.link_button("▶  Voir sur YouTube", f"https://www.youtube.com/watch?v={vid}", use_container_width=True)
+                    st.button("🗑  Supprimer", key=f"hdel_{i}", use_container_width=True, on_click=_ask_delete, args=(key_id,))
+        if st.session_state.get("hist_del_ask") == key_id:
+            _md('<div class="vh-w"><div class="vh-ask">Supprimer définitivement cette analyse ?</div></div>')
+            with _keyed(f"hq_{i}"):
+                q1, q2 = st.columns(2)
+                with q1:
+                    st.button("Annuler", key=f"hno_{i}", use_container_width=True, on_click=_cancel_delete)
+                with q2:
+                    st.button("Oui, supprimer", key=f"hyes_{i}", use_container_width=True, type="primary", on_click=_confirm_delete, args=(user, h))
 
     st.markdown("---")
     st.button(T("clear_hist"), use_container_width=True, key="hist_clear", on_click=clear_history, args=(user,))
