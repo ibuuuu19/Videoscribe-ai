@@ -39,11 +39,15 @@ function blocked(t){
     e=e.parentElement;}
   return false;
 }
-function setX(x,anim){var s=sb();if(!s)return;
-  s.style.setProperty('width',sbW()+'px','important');s.style.setProperty('min-width',sbW()+'px','important');
-  s.style.setProperty('transition',anim?'transform .28s cubic-bezier(.22,.9,.3,1)':'none','important');
-  s.style.setProperty('transform','translateX('+x+'px)','important');s.style.willChange='transform';}
-function clearInline(){var s=sb();if(!s)return;['transition','transform','width','min-width'].forEach(function(k){s.style.removeProperty(k);});s.style.willChange='';}
+// On ne touche JAMAIS au style inline du tiroir (géré par React/Streamlit) : on pilote une classe + des variables CSS sur <html>.
+var root=d.documentElement;
+if(!d.getElementById('vs-sw-css')){var cs=d.createElement('style');cs.id='vs-sw-css';
+  cs.textContent='html.vs-sw section[data-testid="stSidebar"]{width:var(--vs-w)!important;min-width:var(--vs-w)!important;transform:translateX(var(--vs-x))!important;transition:var(--vs-t,none)!important;will-change:transform}';
+  d.head.appendChild(cs);}
+function setX(x,anim){root.style.setProperty('--vs-w',sbW()+'px');root.style.setProperty('--vs-x',x+'px');
+  root.style.setProperty('--vs-t',anim?'transform .28s cubic-bezier(.22,.9,.3,1)':'none');root.classList.add('vs-sw');}
+function clearInline(){root.classList.remove('vs-sw');['--vs-w','--vs-x','--vs-t'].forEach(function(k){root.style.removeProperty(k);});}
+P.addEventListener('pagehide',clearInline);
 
 d.addEventListener('touchstart',function(e){
   st=null;if(!isMobile()||e.touches.length!==1)return;var s=sb();if(!s)return;
