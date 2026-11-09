@@ -357,3 +357,10 @@ def render_mobile_shell(user: str, role: str, tier: int) -> None:
                 st.button(label, key=key, use_container_width=True,
                           type="primary" if is_active else "secondary",
                           on_click=_go, args=(("analyse", True) if target is None else (target,)))
+
+    # ══════════ BALAYAGE : ouvrir / fermer le tiroir du menu ══════════
+    try:
+        from src.ui.swipe_nav import render_swipe_nav
+        render_swipe_nav()
+    except Exception:       # swipe_nav.py absent : la coque mobile fonctionne quand même
+        pass
