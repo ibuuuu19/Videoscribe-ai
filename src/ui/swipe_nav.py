@@ -7,7 +7,8 @@ et validation au 1/3 de la largeur ou sur un geste rapide.
 
 • Ouvrir  : glisser vers la DROITE depuis la bande gauche de l'écran (28 % de la largeur ; la bande 0-24 px reste libre
             pour le « retour » système d'iOS/Android).
-• Fermer  : glisser vers la GAUCHE n'importe où sur le tiroir ou sur le voile.
+• Fermer  : glisser vers la GAUCHE n'importe où sur le tiroir ou sur le voile,
+            OU glisser vers la GAUCHE depuis le bord droit de l'écran (bande 24 px).
 • Ignoré  : champs, curseurs, zones défilantes horizontalement, onglets Premium (qui ont leur propre balayage), ≥ 769 px.
 """
 import streamlit as st
@@ -39,28 +40,37 @@ function blocked(t){
     e=e.parentElement;}
   return false;
 }
-// On ne touche JAMAIS au style inline du tiroir (géré par React/Streamlit) : on pilote une classe + des variables CSS sur <html>.
-var root=d.documentElement;
-if(!d.getElementById('vs-sw-css')){var cs=d.createElement('style');cs.id='vs-sw-css';
-  cs.textContent='html.vs-sw section[data-testid="stSidebar"]{width:var(--vs-w)!important;min-width:var(--vs-w)!important;transform:translateX(var(--vs-x))!important;transition:var(--vs-t,none)!important;will-change:transform}';
-  d.head.appendChild(cs);}
-function setX(x,anim){root.style.setProperty('--vs-w',sbW()+'px');root.style.setProperty('--vs-x',x+'px');
-  root.style.setProperty('--vs-t',anim?'transform .28s cubic-bezier(.22,.9,.3,1)':'none');root.classList.add('vs-sw');}
-function clearInline(){root.classList.remove('vs-sw');['--vs-w','--vs-x','--vs-t'].forEach(function(k){root.style.removeProperty(k);});}
-P.addEventListener('pagehide',clearInline);
+function setX(x,anim){var s=sb();if(!s)return;
+  s.style.setProperty('width',sbW()+'px','important');s.style.setProperty('min-width',sbW()+'px','important');
+  s.style.setProperty('transition',anim?'transform .28s cubic-bezier(.22,.9,.3,1)':'none','important');
+  s.style.setProperty('transform','translateX('+x+'px)','important');s.style.willChange='transform';}
+function clearInline(){var s=sb();if(!s)return;['transition','transform','width','min-width'].forEach(function(k){s.style.removeProperty(k);});s.style.willChange='';}
 
 d.addEventListener('touchstart',function(e){
   st=null;if(!isMobile()||e.touches.length!==1)return;var s=sb();if(!s)return;
   var p=e.touches[0],open=isOpen();
-  if(!open){ if(p.clientX>P.innerWidth*0.28||blocked(e.target))return; st={mode:'open'}; }
-  else { st={mode:'close'}; }
+  if(!open){
+    // Ouverture : uniquement depuis la bande gauche (0-28 %), bande système 0-24px exclue.
+    if(p.clientX>P.innerWidth*0.28||blocked(e.target))return;
+    st={mode:'open'};
+  } else {
+    // Fermeture : ignorer champs, sliders, scroll horiz, Premium, et la bande système gauche.
+    if(blocked(e.target))return;
+    if(p.clientX<24)return;
+    // Second geste : bord droit -> gauche (bande 24 px du bord droit).
+    var fromRightEdge = p.clientX > P.innerWidth - 24;
+    st={mode:'close',fromEdge:fromRightEdge};
+  }
   st.x=p.clientX;st.y=p.clientY;st.t=Date.now();st.lock=false;st.w=sbW();st.dx=0;
 },{passive:true});
 
 d.addEventListener('touchmove',function(e){
-  if(!st)return;var p=e.touches[0],dx=p.clientX-st.x,dy=p.clientY-st.y;
+  if(!st)return;
+  // Sécurité : si le tiroir a changé d'état en cours de geste, on abandonne proprement.
+  if(!sb() || (st.mode==='close' && !isOpen()) || (st.mode==='open' && isOpen())){st=null;return;}
+  var p=e.touches[0],dx=p.clientX-st.x,dy=p.clientY-st.y;
   if(!st.lock){
-    if(Math.abs(dx)<10&&Math.abs(dy)<10)return;
+    if(Math.abs(dx)<12&&Math.abs(dy)<12)return;
     if(Math.abs(dx)<Math.abs(dy)*1.5||(st.mode==='open'&&dx<0)||(st.mode==='close'&&dx>0)){st=null;return;}
     st.lock=true;
   }
