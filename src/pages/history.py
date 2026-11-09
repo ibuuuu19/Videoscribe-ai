@@ -63,6 +63,12 @@ html body .stApp [class*="st-key-hc_"] button { border-radius:14px !important; m
 html body .stApp [class*="st-key-hc_"] button[data-testid="stBaseButton-secondary"] { background:@surface@ !important; border:1px solid @line@ !important; }
 html body .stApp [class*="st-key-hc_"] button[data-testid="stBaseButton-secondary"] p { color:@ink@ !important; }
 
+/* Menu ⋮ : fond et texte suivent le thème (clair / sombre) */
+html body [data-testid="stPopoverBody"]:has([class*="st-key-hfav_"]) { background:@pop@ !important; border:1px solid @popline@ !important; border-radius:18px !important; box-shadow:0 18px 40px rgba(0,0,0,.22) !important; padding:.4rem !important; }
+html body [data-testid="stPopoverBody"] [class*="st-key-hfav_"] button, html body [data-testid="stPopoverBody"] [class*="st-key-hdel_"] button, html body [data-testid="stPopoverBody"] a[data-testid="stBaseLinkButton-secondary"] { background:transparent !important; border:0 !important; color:@ink@ !important; }
+html body [data-testid="stPopoverBody"] [class*="st-key-hfav_"] button:hover, html body [data-testid="stPopoverBody"] a[data-testid="stBaseLinkButton-secondary"]:hover { background:@pophov@ !important; }
+html body [data-testid="stPopoverBody"] [class*="st-key-hfav_"] button p, html body [data-testid="stPopoverBody"] [class*="st-key-hfav_"] button span, html body [data-testid="stPopoverBody"] a[data-testid="stBaseLinkButton-secondary"] p, html body [data-testid="stPopoverBody"] a[data-testid="stBaseLinkButton-secondary"] span { color:@ink@ !important; opacity:1 !important; }
+html body [data-testid="stPopoverBody"] [class*="st-key-hdel_"] button p, html body [data-testid="stPopoverBody"] [class*="st-key-hdel_"] button span { color:#EF4444 !important; }
 /* Menu ⋮ */
 html body .stApp [class*="st-key-hc_"] [data-testid="stPopover"] button { font-size:1.35rem !important; font-weight:900 !important; letter-spacing:0; }
 html body .stApp [class*="st-key-hc_"] [data-testid="stPopover"] button [data-testid="stIconMaterial"], html body .stApp [class*="st-key-hc_"] [data-testid="stPopover"] button svg { display:none !important; }
@@ -192,6 +198,9 @@ def _confirm_delete(user: str, h: dict) -> None:
 def render_historique(user: str, tier: int) -> None:
     t = theme_tokens()
     css = _CSS
+    _dark = str(t.get("ink", "")).upper().startswith("#F")
+    t = dict(t, pop="#0E1626" if _dark else "#FFFFFF", pophov="rgba(255,255,255,.08)" if _dark else "rgba(15,26,46,.06)",
+             popline="rgba(255,255,255,.12)" if _dark else "rgba(15,26,46,.12)")
     for k, v in t.items():
         css = css.replace(f"@{k}@", v)
     style_tag = f"<style>{css}</style>"
