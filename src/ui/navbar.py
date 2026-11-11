@@ -113,3 +113,10 @@ def render_navbar() -> None:
         with b7:
             if st.button("🌙" if st.session_state.theme == "light" else "☀️", key="ln_theme", use_container_width=True):
                 _toggle_theme()
+
+    # Barre de navigation du BAS (mobile) — voir src/ui/public_bottom_nav.py
+    try:
+        from src.ui.public_bottom_nav import render_public_bottom_nav
+        render_public_bottom_nav()
+    except Exception:
+        pass
